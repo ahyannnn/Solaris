@@ -2,16 +2,57 @@
 const cloudinary = require('cloudinary').v2;
 const receiptPDFGenerator = require('./receiptPDFGenerator');
 const Receipt = require('../models/Receipt');
+const User = require('../models/Users');
 
 class ReceiptService {
   constructor() {
+    // Canonical company info — same as Reports & Quotations (presentation only;
+    // companyInfo is used for the PDF header, never persisted to the database).
     this.companyInfo = {
       name: 'Salfer Engineering',
-      address: 'Purok 2, Masaya, San Jose, Camarines Sur',
+      address: 'San Nicolas St. Bunsuran 3rd, Pandi, Bulacan',
       contact: '0917XXXXXXX',
       email: 'info@salferengineering.com',
       tin: '123-456-789-000'
     };
+  }
+
+  // Resolve the "Generated/Issued by" display name (header text only —
+  // stored receipt data is never changed).
+  // Rule: the issuer is the staff member (or system) that produced the
+  // receipt — never the customer. Some callers pass the paying customer's
+  // id (or a non-user id) as verifiedBy, so a customer-role/unknown id
+  // resolves to the system label instead of a person's name.
+  async resolveIssuerName(paymentData = {}) {
+    const explicit = paymentData.generatedBy || paymentData.issuedBy;
+    if (explicit) {
+      const raw = String(explicit);
+      if (!/^[0-9a-fA-F]{24}$/.test(raw)) return raw.slice(0, 80);
+      try {
+        const u = await User.findById(raw).select('fullName email').lean();
+        if (u?.fullName && String(u.fullName).trim()) return String(u.fullName).trim();
+        if (u?.email) return u.email;
+      } catch (e) { /* fall through */ }
+      return 'Administrator';
+    }
+
+    const verifiedBy = paymentData.verifiedBy;
+    if (verifiedBy && /^[0-9a-fA-F]{24}$/.test(String(verifiedBy))) {
+      try {
+        const u = await User.findById(verifiedBy).select('fullName email role').lean();
+        // Only staff members can issue a receipt — a customer id (or any
+        // non-user id) means the payment was auto-verified by the system.
+        if (u && (u.role === 'admin' || u.role === 'engineer')) {
+          if (u.fullName && String(u.fullName).trim()) return String(u.fullName).trim();
+          if (u.email) return u.email;
+          return 'Administrator';
+        }
+      } catch (e) { /* fall through to system label */ }
+    } else if (verifiedBy) {
+      // Already a display name string (not an id)? Use it as-is.
+      return String(verifiedBy).slice(0, 80);
+    }
+    return 'System (Auto-verified)';
   }
 
   generateReceiptNumber() {
@@ -28,11 +69,13 @@ class ReceiptService {
   async generateReceipt(paymentData) {
     try {
       const receiptNumber = paymentData.receiptNumber || this.generateReceiptNumber();
-      
+      const verifiedByName = await this.resolveIssuerName(paymentData);
+
       const receiptData = {
         receiptNumber,
-        companyInfo: this.companyInfo,
+        companyInfo: paymentData.companyInfo || this.companyInfo,
         paymentDate: paymentData.paymentDate || new Date(),
+        generatedAt: new Date(),
         customer: {
           name: paymentData.customer.name,
           address: paymentData.customer.address,
@@ -46,6 +89,7 @@ class ReceiptService {
         invoiceNumber: paymentData.invoiceNumber,
         projectName: paymentData.projectName,
         verifiedBy: paymentData.verifiedBy,
+        verifiedByName,
         verifiedAt: paymentData.verifiedAt,
         notes: paymentData.notes
       };

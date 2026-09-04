@@ -57,6 +57,16 @@
   --type-free-text: #059669;
   --type-paid-bg: rgba(243, 156, 18, 0.10);
   --type-paid-text: #D97706;
+  --bg-table-header: rgba(255, 255, 255, 0.5);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.3);
+  --bg-dropdown: rgba(255, 255, 255, 0.98);
+  --border-dropdown: #EEF0ED;
+  --border-modal: #EEF0ED;
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.2);
+  --dropdown-view-details: #2563EB;
+  --dropdown-view-quotation: #7C3AED;
+  --dropdown-download-quotation: #059669;
+  --dropdown-view-photos: #D97706;
 }
 
 /* ============================================
@@ -114,6 +124,16 @@ body.dark-mode {
   --type-free-text: #10B981;
   --type-paid-bg: rgba(243, 156, 18, 0.12);
   --type-paid-text: #F39C12;
+  --bg-table-header: rgba(255, 255, 255, 0.05);
+  --bg-table-row-hover: rgba(255, 255, 255, 0.03);
+  --bg-dropdown: #1A2533;
+  --border-dropdown: rgba(255, 255, 255, 0.06);
+  --border-modal: rgba(255, 255, 255, 0.06);
+  --shadow-dropdown: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --dropdown-view-details: #3B82F6;
+  --dropdown-view-quotation: #8B5CF6;
+  --dropdown-download-quotation: #10B981;
+  --dropdown-view-photos: #F39C12;
 }
 
 /* ============================================
@@ -2606,6 +2626,507 @@ body.dark-mode {
   cursor: not-allowed !important;
   opacity: 0.7 !important;
   border-color: var(--border-color) !important;
+}
+
+/* ============================================
+   MY REQUESTS TABLE (matches billing-customer table)
+   ============================================ */
+.req-table-container-cusset {
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: 1px solid var(--border-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.req-table-wrapper-cusset {
+  overflow-x: auto;
+}
+
+.req-table-cusset {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.req-table-cusset thead {
+  background: var(--bg-table-header);
+}
+
+.req-table-cusset thead th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.req-table-cusset tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s ease, border-color 0.3s ease;
+}
+
+.req-table-cusset tbody tr:last-child {
+  border-bottom: none;
+}
+
+.req-table-cusset tbody tr:hover {
+  background: var(--bg-table-row-hover);
+}
+
+.req-table-cusset tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.req-ref-cusset {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.req-summary-cusset {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+/* Actions cell: dropdown + direct Accept */
+.req-action-cell-cusset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.req-dropdown-trigger-btn {
+  padding: 6px 16px;
+  background: var(--bg-section);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.req-dropdown-trigger-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.req-dropdown-menu {
+  position: fixed !important;
+  min-width: 200px !important;
+  max-width: 250px !important;
+  background: var(--bg-dropdown) !important;
+  border: 1px solid var(--border-dropdown) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-dropdown) !important;
+  z-index: 99999 !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+.req-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.req-dropdown-item.view-details {
+  color: var(--dropdown-view-details);
+}
+
+.req-dropdown-item.view-details:hover {
+  background: rgba(59, 130, 246, 0.10);
+}
+
+.req-dropdown-item.view-quotation {
+  color: var(--dropdown-view-quotation);
+}
+
+.req-dropdown-item.view-quotation:hover {
+  background: rgba(139, 92, 246, 0.10);
+}
+
+.req-dropdown-item.download-quotation {
+  color: var(--dropdown-download-quotation);
+}
+
+.req-dropdown-item.download-quotation:hover {
+  background: rgba(16, 185, 129, 0.10);
+}
+
+.req-dropdown-item.view-photos {
+  color: var(--dropdown-view-photos);
+}
+
+.req-dropdown-item.view-photos:hover {
+  background: rgba(243, 156, 18, 0.10);
+}
+
+/* Direct Accept button: visually distinct */
+.req-accept-btn-cusset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #16A34A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.req-accept-btn-cusset:hover:not(:disabled) {
+  background: #15803D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.req-accept-btn-cusset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================
+   REQUEST MODALS (matches billing-customer modal)
+   ============================================ */
+.req-modal-overlay-cusset {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.req-modal-cusset {
+  position: relative;
+  background: var(--bg-modal);
+  border-radius: 18px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-modal);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.req-modal-cusset.req-accept-modal-cusset {
+  max-width: 720px;
+}
+
+.req-modal-cusset h3 {
+  padding: 20px 24px 16px 24px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.req-modal-scroll-cusset {
+  padding: 20px 24px 24px 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 80px);
+}
+
+.req-modal-close-cusset {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.req-modal-close-cusset:hover {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.req-details-section-cusset {
+  margin-bottom: 18px;
+}
+
+.req-details-section-cusset:last-child {
+  margin-bottom: 0;
+}
+
+.req-details-section-cusset h4 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 0 0 8px 0;
+}
+
+.req-details-section-cusset p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.req-details-section-cusset p strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.req-total-line-cusset {
+  margin-top: 10px !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  font-size: 15px !important;
+}
+
+.req-total-vat-cusset {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.req-modal-actions-cusset {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.req-cancel-btn-cusset {
+  padding: 10px 24px;
+  background: var(--bg-section);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.req-cancel-btn-cusset:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.req-cancel-btn-cusset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.req-confirm-btn-cusset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #16A34A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.req-confirm-btn-cusset:hover:not(:disabled) {
+  background: #15803D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.req-confirm-btn-cusset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* PDF preview inside Accept modal */
+.req-pdf-preview-cusset {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-section);
+}
+
+.req-pdf-frame-cusset {
+  width: 100%;
+  height: 420px;
+  border: none;
+  display: block;
+  background: #FFFFFF;
+}
+
+.req-open-doc-btn-cusset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 18px;
+  background: var(--bg-section);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.req-open-doc-btn-cusset:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-medium);
+}
+
+.req-no-doc-cusset {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Payment options inside Accept modal */
+.req-pay-options-cusset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.req-pay-option-cusset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.req-pay-option-cusset.selected {
+  border-color: #F39C12;
+  background: var(--bg-fee);
+  color: var(--text-primary);
+}
+
+.req-pay-option-cusset input[type="radio"] {
+  accent-color: #F39C12;
+}
+
+/* ============================================
+   MY REQUESTS TABLE - RESPONSIVE (horizontal scroll)
+   ============================================ */
+@media (max-width: 768px) {
+  .req-table-cusset thead th,
+  .req-table-cusset tbody td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .req-modal-cusset {
+    max-width: 100%;
+    margin: 12px;
+    border-radius: 14px;
+  }
+
+  .req-modal-cusset h3 {
+    font-size: 18px;
+    padding: 16px 18px;
+  }
+
+  .req-modal-scroll-cusset {
+    padding: 16px 18px;
+  }
+
+  .req-pdf-frame-cusset {
+    height: 300px;
+  }
+
+  .req-modal-actions-cusset {
+    flex-direction: column;
+  }
+
+  .req-modal-actions-cusset .req-cancel-btn-cusset,
+  .req-modal-actions-cusset .req-confirm-btn-cusset {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .req-action-cell-cusset {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .req-dropdown-trigger-btn,
+  .req-accept-btn-cusset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .req-pdf-frame-cusset {
+    height: 260px;
+  }
 }
 
 .schedule-form-input-readonly:focus,

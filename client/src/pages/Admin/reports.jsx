@@ -260,13 +260,15 @@ const Reports = () => {
 
       // ✅ Map 'clients' to 'client-transaction' for export
       const exportType = activeTab === 'clients' ? 'client-transaction' : activeTab;
+      const generatedBy = sessionStorage.getItem('userName') || localStorage.getItem('userName') || dataToExport?.generatedBy || undefined;
 
       const exportResponse = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/reports/export`,
         {
           format: format,
           type: exportType,
-          data: dataToExport
+          data: dataToExport,
+          generatedBy
         },
         {
           headers: { Authorization: `Bearer ${token}` },

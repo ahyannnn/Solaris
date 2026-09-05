@@ -60,6 +60,14 @@ const ScheduleAssessment = () => {
   const [selectedPaymentPreference, setSelectedPaymentPreference] = useState('fifty_fifty');
   const [acceptingLoading, setAcceptingLoading] = useState(false);
 
+  // Cancellation & Refund states
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancellingAssessment, setCancellingAssessment] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [refundPreview, setRefundPreview] = useState(null);
+  const [refundPreviewLoading, setRefundPreviewLoading] = useState(false);
+  const [cancellingLoading, setCancellingLoading] = useState(false);
+
   // Requests table: actions dropdown (fixed-position, same pattern as billing table)
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -69,7 +77,7 @@ const ScheduleAssessment = () => {
       setActiveDropdown(null);
     } else {
       const rect = event.currentTarget.getBoundingClientRect();
-      const dropdownHeight = 180;
+      const dropdownHeight = 260;
       const dropdownWidth = 220;
       let top = rect.bottom + 4;
       let left = rect.left;
@@ -1212,6 +1220,71 @@ const ScheduleAssessment = () => {
     return badges[status] || <span className="status-badge-schedule">{status}</span>;
   };
 
+  // ============ CANCELLATION & REFUND HELPERS ============
+  const canCancelAssessment = (assessment) => {
+    if (!assessment) return false;
+    const terminal = ['cancelled', 'completed', 'quotation_accepted', 'quotation_generated'];
+    if (terminal.includes(assessment.assessmentStatus)) return false;
+    // During monitoring: backend will allow but with 0% refund; we allow cancel for pending_review/pending_payment/scheduled/for_verification/paid
+    const allowed = ['pending_review', 'pending_payment', 'for_verification', 'scheduled', 'paid'];
+    // also allow if paymentStatus indicates refund already pending/refunded -> no
+    if (['refunded', 'refund_pending', 'no_refund', 'cancelled'].includes(assessment.paymentStatus) && assessment.assessmentStatus === 'cancelled') return false;
+    // Block if already in refund flow
+    if (assessment.cancellation && ['pending', 'processing'].includes(assessment.cancellation.refundStatus)) return false;
+    return allowed.includes(assessment.assessmentStatus) || assessment.assessmentStatus === 'for_verification' || assessment.paymentStatus === 'for_verification' || assessment.paymentStatus === 'pending';
+  };
+
+  const fetchRefundPreview = async (assessmentId) => {
+    setRefundPreviewLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${assessmentId}/refund-preview`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRefundPreview(res.data);
+    } catch (err) {
+      console.error('Refund preview failed:', err);
+      // Fallback local calc if API fails
+      setRefundPreview(null);
+      showToast(err.response?.data?.message || 'Failed to load refund preview', 'error');
+    } finally {
+      setRefundPreviewLoading(false);
+    }
+  };
+
+  const openCancelModal = async (assessment) => {
+    setCancellingAssessment(assessment);
+    setCancelReason('');
+    setRefundPreview(null);
+    setShowCancelModal(true);
+    setActiveDropdown(null);
+    await fetchRefundPreview(assessment._id);
+  };
+
+  const confirmCancel = async () => {
+    if (!cancellingAssessment) return;
+    setCancellingLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${cancellingAssessment._id}/cancel`,
+        { reason: cancelReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      showToast(res.data.message || 'Pre-assessment cancelled successfully', 'success');
+      setShowCancelModal(false);
+      setCancellingAssessment(null);
+      setCancelReason('');
+      setRefundPreview(null);
+      fetchMyRequests();
+    } catch (err) {
+      console.error('Cancel failed:', err);
+      showToast(err.response?.data?.message || 'Failed to cancel pre-assessment', 'error');
+    } finally {
+      setCancellingLoading(false);
+    }
+  };
+
   const viewQuotation = (quotationUrl) => {
     if (quotationUrl) window.open(quotationUrl, '_blank');
     else showToast('No quotation PDF available yet.', 'info');
@@ -1509,6 +1582,14 @@ const ScheduleAssessment = () => {
                                         <FaImages /> View Photos ({assessment.sitePhotos.length})
                                       </button>
                                     )}
+                                    {canCancelAssessment(assessment) && (
+                                      <button
+                                        className="req-dropdown-item cancel-request"
+                                        onClick={() => openCancelModal(assessment)}
+                                      >
+                                        <FaTimes /> Cancel Request
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1583,7 +1664,21 @@ const ScheduleAssessment = () => {
                     <div className="req-details-section-cusset">
                       <h4>Assignment</h4>
                       <p><strong>Engineer:</strong> {selectedRequest.data.engineerName || 'Not assigned yet'}</p>
+                      {selectedRequest.data.siteVisitDate && <p><strong>Site Visit:</strong> {formatDate(selectedRequest.data.siteVisitDate)}</p>}
+                      {selectedRequest.data.paymentMethod && <p><strong>Payment Method:</strong> {selectedRequest.data.paymentMethod} {selectedRequest.data.paymentStatus ? `(${selectedRequest.data.paymentStatus})` : ''}</p>}
                     </div>
+                    {selectedRequest.data.cancellation && (
+                      <div className="req-details-section-cusset">
+                        <h4>Cancellation &amp; Refund</h4>
+                        <p><strong>Cancelled At:</strong> {formatDate(selectedRequest.data.cancellation.cancelledAt)}</p>
+                        {selectedRequest.data.cancellation.reason && <p><strong>Reason:</strong> {selectedRequest.data.cancellation.reason}</p>}
+                        <p><strong>Policy Tier:</strong> {selectedRequest.data.cancellation.policyTier || '—'}</p>
+                        <p><strong>Refund:</strong> {selectedRequest.data.cancellation.refundPercentage}% — {formatCurrency(selectedRequest.data.cancellation.refundAmount)}</p>
+                        <p><strong>Refund Status:</strong> {selectedRequest.data.cancellation.refundStatus}</p>
+                        {selectedRequest.data.cancellation.refundMethod && <p><strong>Refund Method:</strong> {selectedRequest.data.cancellation.refundMethod}</p>}
+                        {selectedRequest.data.cancellation.refundReference && <p><strong>Reference:</strong> {selectedRequest.data.cancellation.refundReference}</p>}
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="req-modal-actions-cusset">
@@ -1695,6 +1790,76 @@ const ScheduleAssessment = () => {
                 <button className="photo-download-btn-cusset" onClick={() => downloadPhoto(selectedPhotos[currentPhotoIndex], currentPhotoIndex)}>
                   <FaDownload /> Download
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showCancelModal && cancellingAssessment && (
+          <div className="req-modal-overlay-cusset" onClick={() => { if (!cancellingLoading) { setShowCancelModal(false); setCancellingAssessment(null); } }}>
+            <div className="req-modal-cusset req-cancel-modal-cusset" onClick={(e) => e.stopPropagation()}>
+              <button className="req-modal-close-cusset" onClick={() => { if (!cancellingLoading) { setShowCancelModal(false); setCancellingAssessment(null); } }}><FaTimes /></button>
+              <h3>Cancel Pre-Assessment</h3>
+              <div className="req-modal-scroll-cusset">
+                <div className="req-details-content-cusset">
+                  <div className="req-details-section-cusset">
+                    <h4>Request</h4>
+                    <p><strong>Reference:</strong> {cancellingAssessment.bookingReference}</p>
+                    <p><strong>Fee:</strong> {formatCurrency(cancellingAssessment.assessmentFee)}</p>
+                    <p><strong>Payment:</strong> {cancellingAssessment.paymentMethod ? `${cancellingAssessment.paymentMethod} (${cancellingAssessment.paymentStatus})` : `Unpaid (${cancellingAssessment.paymentStatus})`}</p>
+                    <p><strong>Site Visit Date:</strong> {cancellingAssessment.siteVisitDate ? formatDate(cancellingAssessment.siteVisitDate) : 'Not yet scheduled — 80% tier applies'}</p>
+                  </div>
+                  <div className="req-details-section-cusset">
+                    <h4>Cancellation &amp; Refund Policy — Terms §4</h4>
+                    <div className="cancel-policy-table-wrapper">
+                      <table className="cancel-policy-table">
+                        <thead><tr><th>Timing</th><th>Refund</th></tr></thead>
+                        <tbody>
+                          <tr><td>≥72h before deployment</td><td>80%</td></tr>
+                          <tr><td>48–72h before deployment</td><td>50%</td></tr>
+                          <tr><td>&lt;48h before deployment</td><td>No refund</td></tr>
+                          <tr><td>During monitoring</td><td>No refund</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <small>Processing fees are non-refundable. Anchor is Pre-Assessment site visit date.</small>
+                  </div>
+                  <div className="req-details-section-cusset">
+                    <h4>Your Refund Preview</h4>
+                    {refundPreviewLoading ? (
+                      <p><FaSpinner className="spinning" /> Loading preview...</p>
+                    ) : refundPreview ? (
+                      <>
+                        <p><strong>Tier:</strong> {refundPreview.policyTier}</p>
+                        <p><strong>Hours before deployment:</strong> {refundPreview.hoursBeforeDeployment != null ? Number(refundPreview.hoursBeforeDeployment).toFixed(1) + 'h' : '—'}</p>
+                        <p><strong>Refund:</strong> {refundPreview.refundPercentage}% — {formatCurrency(refundPreview.refundAmount)} {refundPreview.refundAmount > 0 && <span> {refundPreview.paymentMethod === 'card' ? '(auto via PayMongo)' : '(pending admin via original method)'} </span>}</p>
+                        <p className="req-refund-reason-cusset"><em>{refundPreview.reason}</em></p>
+                        {refundPreview.refundAmount === 0 && refundPreview.refundPercentage === 0 && cancellingAssessment.paymentStatus === 'paid' && <p className="req-warning-cusset">No refund per policy for this timing. Proceeding will still cancel the request.</p>}
+                        {refundPreview.refundAmount > 0 && refundPreview.paymentMethod && ['gcash','bank_transfer','cash'].includes(refundPreview.paymentMethod) && <p className="req-info-cusset">Refund will be processed manually by admin via your original payment method.</p>}
+                        {refundPreview.refundAmount > 0 && refundPreview.paymentMethod === 'card' && <p className="req-info-cusset">Refund will be auto-processed via PayMongo.</p>}
+                      </>
+                    ) : (
+                      <p>No preview available — cancellation will be calculated on the server.</p>
+                    )}
+                  </div>
+                  <div className="req-details-section-cusset">
+                    <h4>Reason for Cancellation (optional)</h4>
+                    <textarea
+                      className="schedule-form-input-cusset"
+                      rows={3}
+                      placeholder="Tell us why you are cancelling..."
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      disabled={cancellingLoading}
+                    />
+                  </div>
+                </div>
+                <div className="req-modal-actions-cusset">
+                  <button className="req-cancel-btn-cusset" disabled={cancellingLoading} onClick={() => { setShowCancelModal(false); setCancellingAssessment(null); }}>Keep Request</button>
+                  <button className="req-confirm-btn-cusset cancel-confirm-btn" disabled={cancellingLoading} onClick={confirmCancel}>
+                    {cancellingLoading ? <><FaSpinner className="spinning" /> Cancelling...</> : <><FaTimes /> Confirm Cancel</>}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

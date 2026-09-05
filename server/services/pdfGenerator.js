@@ -462,54 +462,6 @@ class QuotationGenerator {
       // Currency from data or default
       const currency = data.currency || '₱';
 
-      // Calculate values - supports both data structures
-      const equipmentTotal = data.calculatedEquipmentTotal ||
-         data.costBreakdown?.equipment?.panels?.total ||
-         data.equipmentCost || 0;
-
-      const installationTotal = data.calculatedInstallationTotal ||
-         data.costBreakdown?.installation?.total ||
-         data.installationCost || 0;
-
-      const totalCost = equipmentTotal + installationTotal;
-      const discount = data.discount || data.lessDiscount || 0;
-      const totalPackagePrice = totalCost - discount;
-
-      // ROI Section (configurable)
-      if (data.showROI !== false) {
-         doc.font('Roboto-Bold')
-            .fontSize(10)
-            .text('Return of Investment', leftX, y);
-
-         y += 15;
-
-         let roiValue = data.roiYears || data.calculatedRoiYears || data.roiData;
-         if (typeof roiValue === 'number' && roiValue > 0) {
-            roiValue = roiValue.toFixed(1) + ' years';
-         } else if (typeof roiValue === 'number') {
-            roiValue = 'N/A';
-         } else if (!roiValue || roiValue === 'N/A') {
-            // Calculate ROI if possible
-            if (totalPackagePrice > 0 && data.annualProduction) {
-               const annualSavings = data.annualProduction * (data.ratePerKwh || 12);
-               const calculatedRoi = totalPackagePrice / annualSavings;
-               roiValue = calculatedRoi.toFixed(1) + ' years';
-            } else {
-               roiValue = 'N/A';
-            }
-         }
-         doc.font('Roboto')
-            .fontSize(9)
-            .text(`ROI: ${typeof roiValue === 'number' ? roiValue.toFixed(1) + ' years' : roiValue}`, leftX + 5, y);
-
-         //line here - FULL LINE from left to right
-         doc.moveTo(leftX, y + 12)
-            .lineTo(rightX, y + 12)
-            .stroke();
-
-         y += 20;
-      }
-
       // Header
       doc.font('Roboto-Bold')
          .fontSize(10)
@@ -535,10 +487,12 @@ class QuotationGenerator {
          isDiscount: true
       });
 
-      // TOTAL PACKAGE PRICE
+      // TOTAL PACKAGE PRICE - fall back to computed total so the ₱ value never renders as missing/₱0.00 when finalAmount is omitted
+      const discountForTotal = data.discountAmount ?? data.discount ?? data.lessDiscount ?? 0;
+      const fallbackTotal = (data.calculatedTotalCost ?? data.totalCost ?? 0) - (Number(discountForTotal) || 0);
       pricingItems.push({
          label: 'TOTAL PACKAGE PRICE',
-         value: data.finalAmount,
+         value: data.finalAmount ?? data.totalPackagePrice ?? (fallbackTotal || 0),
          isTotal: true
       });
 
@@ -550,7 +504,7 @@ class QuotationGenerator {
             y = this.margins.top + 60;
          }
 
-         const formattedValue = `${currency}${item.value.toFixed(2)}`;
+         const formattedValue = this._formatPeso(currency, item.value);
 
          if (item.isDiscount && item.value > 0) {
             doc.fillColor('#FF0000'); // Red color for discount
@@ -565,13 +519,9 @@ class QuotationGenerator {
          if (item.isTotal) {
             const x = leftX + labelWidth;
 
-            doc.fillColor(this.colors.black)
-               .font('Roboto-Bold')
-               .fontSize(10)
-               .text(formattedValue, x, y, {
-                  width: valueWidth,
-                  align: 'right'
-               });
+            // Draw ₱ in Roboto (regular, guaranteed glyph) + amount in Roboto-Bold,
+            // right-aligned as a single "₱1,234,567.00" value.
+            this._drawTotalPesoValue(doc, currency, item.value, x, y, valueWidth);
          } else {
             doc.text(formattedValue, leftX + labelWidth, y, {
                width: valueWidth,
@@ -606,6 +556,37 @@ class QuotationGenerator {
    // HELPER METHODS
    // ==========================================================
 
+   _formatPeso(currency, value) {
+      return `${currency}${this._formatAmount(value)}`;
+   }
+
+   _formatAmount(value) {
+      const amount = Number(value || 0);
+      return amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+   }
+
+   _drawTotalPesoValue(doc, currency, value, x, y, valueWidth) {
+      const amountStr = this._formatAmount(value);
+      const fontSize = 10;
+
+      doc.fillColor(this.colors.black).fontSize(fontSize);
+
+      // Measure with each font so right-alignment stays exact
+      doc.font('Roboto-Bold');
+      const amountWidth = doc.widthOfString(amountStr);
+      doc.font('Roboto');
+      const symbolWidth = doc.widthOfString(currency);
+
+      const totalWidth = symbolWidth + amountWidth;
+      let startX = x + valueWidth - totalWidth;
+      // Safety: never overflow the value column
+      if (startX < x) startX = x;
+
+      doc.fillColor(this.colors.black).fontSize(fontSize);
+      doc.font('Roboto').text(currency, startX, y);
+      doc.font('Roboto-Bold').text(amountStr, startX + symbolWidth, y);
+   }
+
    _buildFlexibleEquipmentItems(data) {
       const items = [];
       let counter = 1;
@@ -613,33 +594,102 @@ class QuotationGenerator {
       // Get equipment from either data structure
       const equipment = data.costBreakdown?.equipment || data.equipment || {};
 
-      // Standard equipment mapping
-      const equipmentMap = [
-         { key: 'panels', category: 'SOLAR PV MODULES', unit: 'pcs' },
-         { key: 'mountingStructure', category: 'MOUNTING STRUCTURE', unit: 'set' },
-         { key: 'inverter', category: 'INVERTERS, COMBINERS AND PROTECTION DEVICES', unit: 'pcs' },
-         { key: 'battery', category: 'BATTERY SYSTEM', unit: 'pcs' }
-      ];
+      // Standard equipment mapping (panels / mounting / battery).
+      // NOTE: inverter is handled separately below so missing protection/
+      // combiner equipment can be appended as 3.2, 3.3, ... in the SAME
+      // 'INVERTERS, COMBINERS AND PROTECTION DEVICES' category (no new headings).
+      const INV_CATEGORY = 'INVERTERS, COMBINERS AND PROTECTION DEVICES';
 
-      for (const eq of equipmentMap) {
-         if (equipment[eq.key] && equipment[eq.key].quantity > 0) {
+      const pushSingle = (key, category, fallbackUnit) => {
+         if (equipment[key] && equipment[key].quantity > 0) {
             const item = {
-               category: eq.category,
+               category,
                itemNumber: `${counter}.1`,
-               description: equipment[eq.key].name || eq.key,
-               quantity: equipment[eq.key].quantity || 0,
-               unit: equipment[eq.key].unit || eq.unit
+               description: equipment[key].name || key,
+               quantity: equipment[key].quantity || 0,
+               unit: equipment[key].unit || fallbackUnit
             };
 
             // Add details if available
-            if (equipment[eq.key].brand || equipment[eq.key].model) {
-               item.details = `${equipment[eq.key].brand || ''} ${equipment[eq.key].model || ''}`.trim();
+            if (equipment[key].brand || equipment[key].model) {
+               item.details = `${equipment[key].brand || ''} ${equipment[key].model || ''}`.trim();
             }
 
             items.push(item);
             counter++;
          }
+      };
+
+      pushSingle('panels', 'SOLAR PV MODULES', 'pcs');
+      pushSingle('mountingStructure', 'MOUNTING STRUCTURE', 'set');
+
+      // Inverter + all remaining combiner/protection equipment as 3.2, 3.3, ...
+      if (equipment.inverter && equipment.inverter.quantity > 0) {
+         const invCounter = counter;
+         let subIndex = 1;
+
+         const invItem = {
+            category: INV_CATEGORY,
+            itemNumber: `${invCounter}.${subIndex}`,
+            description: equipment.inverter.name || 'inverter',
+            quantity: equipment.inverter.quantity || 0,
+            unit: equipment.inverter.unit || 'pcs'
+         };
+         if (equipment.inverter.brand || equipment.inverter.model) {
+            invItem.details = `${equipment.inverter.brand || ''} ${equipment.inverter.model || ''}`.trim();
+         }
+         items.push(invItem);
+         subIndex++;
+
+         // Helper: accept { items: [...] } or plain [...] shapes
+         const asArray = (node) => {
+            if (!node) return [];
+            if (Array.isArray(node)) return node;
+            if (Array.isArray(node.items)) return node.items;
+            return [];
+         };
+         const pushInvRow = (name, quantity, unit) => {
+            if (!name && (quantity === undefined || quantity === null)) return;
+            items.push({
+               category: INV_CATEGORY,
+               itemNumber: `${invCounter}.${subIndex}`,
+               description: name || 'Component',
+               quantity: quantity || 0,
+               unit: unit || 'pcs'
+            });
+            subIndex++;
+         };
+
+         for (const jb of asArray(equipment.junctionBoxes)) {
+            pushInvRow(jb.name || 'Junction / Combiner Box', jb.quantity, jb.unit);
+         }
+         for (const sw of asArray(equipment.disconnectSwitches)) {
+            pushInvRow(sw.name || 'Disconnect Switch', sw.quantity, sw.unit);
+         }
+         for (const meter of asArray(equipment.meters)) {
+            pushInvRow(meter.name || 'Meter', meter.quantity, meter.unit);
+         }
+         // Non-grounding electrical components (breakers, SPD, MC4, etc.).
+         // Grounding items stay under the separate GROUNDING category below.
+         for (const comp of asArray(equipment.electricalComponents)) {
+            const isGrounding = comp.category === 'Grounding' || comp.name?.toLowerCase().includes('ground');
+            if (isGrounding) continue;
+            pushInvRow(comp.name || 'Protection Device', comp.quantity, comp.unit);
+         }
+         // Additional equipment included in totals but never rendered before.
+         // Controllers store it as costBreakdown.equipment.additional (array).
+         for (const add of asArray(equipment.additional)) {
+            pushInvRow(add.name || add.description || 'Additional Equipment', add.quantity, add.unit);
+         }
+         // Back-compat: some payloads use these alternate keys.
+         for (const add of asArray(equipment.additionalEquipment)) {
+            pushInvRow(add.name || add.description || 'Additional Equipment', add.quantity, add.unit);
+         }
+
+         counter++;
       }
+
+      pushSingle('battery', 'BATTERY SYSTEM', 'pcs');
 
       // Cables
       if (equipment.cables?.items?.length > 0) {
@@ -843,13 +893,54 @@ class QuotationGenerator {
       }
 
       if (equipment.inverter && equipment.inverter.quantity > 0) {
+         const invCounter = counter;
+         let subIndex = 1;
          items.push({
             category: 'INVERTERS, COMBINERS AND PROTECTION DEVICES',
-            itemNumber: `${counter}.1`,
+            itemNumber: `${invCounter}.${subIndex}`,
             description: equipment.inverter.name || 'Inverter',
             quantity: equipment.inverter.quantity || 0,
             unit: 'pcs'
          });
+         subIndex++;
+
+         const asArrayLegacy = (node) => {
+            if (!node) return [];
+            if (Array.isArray(node)) return node;
+            if (Array.isArray(node.items)) return node.items;
+            return [];
+         };
+         const pushInvRowLegacy = (name, quantity, unit) => {
+            items.push({
+               category: 'INVERTERS, COMBINERS AND PROTECTION DEVICES',
+               itemNumber: `${invCounter}.${subIndex}`,
+               description: name || 'Component',
+               quantity: quantity || 0,
+               unit: unit || 'pcs'
+            });
+            subIndex++;
+         };
+
+         for (const jb of asArrayLegacy(equipment.junctionBoxes)) {
+            pushInvRowLegacy(jb.name || 'Junction / Combiner Box', jb.quantity, jb.unit);
+         }
+         for (const sw of asArrayLegacy(equipment.disconnectSwitches)) {
+            pushInvRowLegacy(sw.name || 'Disconnect Switch', sw.quantity, sw.unit);
+         }
+         for (const meter of asArrayLegacy(equipment.meters)) {
+            pushInvRowLegacy(meter.name || 'Meter', meter.quantity, meter.unit);
+         }
+         for (const comp of asArrayLegacy(equipment.electricalComponents)) {
+            const isGrounding = comp.category === 'Grounding' || comp.name?.toLowerCase().includes('ground');
+            if (isGrounding) continue;
+            pushInvRowLegacy(comp.name || 'Protection Device', comp.quantity, comp.unit);
+         }
+         for (const add of asArrayLegacy(equipment.additional)) {
+            pushInvRowLegacy(add.name || add.description || 'Additional Equipment', add.quantity, add.unit);
+         }
+         for (const add of asArrayLegacy(equipment.additionalEquipment)) {
+            pushInvRowLegacy(add.name || add.description || 'Additional Equipment', add.quantity, add.unit);
+         }
          counter++;
       }
 

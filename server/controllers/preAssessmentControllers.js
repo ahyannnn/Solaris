@@ -3083,6 +3083,7 @@ exports.cancelPreAssessment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { reason } = req.body;
 
     const client = await Client.findOne({ userId });
     if (!client) {
@@ -3094,22 +3095,287 @@ exports.cancelPreAssessment = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    if (assessment.assessmentStatus !== 'pending_payment') {
-      return res.status(400).json({ message: 'Cannot cancel assessment that is already scheduled or in progress' });
+    // Block terminal states
+    const terminal = ['cancelled', 'completed', 'quotation_accepted'];
+    if (terminal.includes(assessment.assessmentStatus)) {
+      return res.status(400).json({ message: `Cannot cancel assessment with status ${assessment.assessmentStatus}` });
+    }
+    if (assessment.assessmentStatus === 'quotation_generated') {
+      return res.status(400).json({ message: 'Cannot cancel after quotation has been generated. Please contact support.' });
     }
 
+    // During monitoring: no refund but still block cancellation if paid? Allow cancel but 0% refund.
+    // Policy §4B: during monitoring no refund — still allow cancellation with 0% refund, but prevent if already device_deployed etc.
+    // We enforce 0% refund tier instead of blocking outright; only block if already completed stages beyond report? Keep simple: allow.
+
+    const { calculateRefund } = require('../utils/refundPolicy');
+    const refundCalc = calculateRefund({
+      assessmentFee: assessment.assessmentFee,
+      siteVisitDate: assessment.siteVisitDate,
+      assessmentStatus: assessment.assessmentStatus,
+      paymentStatus: assessment.paymentStatus
+    });
+
+    const refundPercentage = refundCalc.refundPercentage;
+    const refundAmount = refundCalc.refundAmount;
+    const hoursBeforeDeployment = refundCalc.hoursBeforeDeployment;
+    const policyTier = refundCalc.policyTier;
+
+    // Determine refund handling by payment method/paymentStatus
+    const manualMethods = ['gcash', 'bank_transfer', 'cash'];
+    const isManual = manualMethods.includes(assessment.paymentMethod) || assessment.paymentGateway === 'manual';
+    const isPaid = assessment.paymentStatus === 'paid' || assessment.paymentStatus === 'for_verification';
+    const isPendingUnpaid = assessment.paymentStatus === 'pending' || !assessment.paymentMethod;
+
+    let refundStatus = 'none';
+    let newPaymentStatus = assessment.paymentStatus;
+    let refundMethod = assessment.paymentMethod || 'manual';
+    let refundReference = null;
+
+    if (isPendingUnpaid) {
+      // Q4: just cancelled, no refund
+      refundStatus = 'no_refund';
+      newPaymentStatus = 'cancelled';
+    } else if (refundAmount === 0) {
+      refundStatus = 'no_refund';
+      newPaymentStatus = assessment.paymentStatus === 'for_verification' ? 'cancelled' : 'no_refund';
+      if (newPaymentStatus === 'no_refund' && !['pending','for_verification','paid','failed','cancelled','refund_pending','refunded','no_refund'].includes(newPaymentStatus)) {
+        newPaymentStatus = 'cancelled';
+      }
+    } else if (isManual && isPaid) {
+      // Manual methods: mark pending admin processing (Q1)
+      refundStatus = 'pending';
+      newPaymentStatus = 'refund_pending';
+    } else if (assessment.paymentMethod === 'card' && assessment.paymongoPaymentIntentId) {
+      // Auto PayMongo refund (Q2)
+      refundStatus = 'processing';
+      newPaymentStatus = 'refund_pending';
+      try {
+        const refundResult = await PayMongoService.refundPayment(assessment.paymongoPaymentIntentId, refundAmount, 'requested_by_customer');
+        if (refundResult.success) {
+          refundStatus = 'refunded';
+          newPaymentStatus = 'refunded';
+          refundReference = refundResult.refundId;
+        } else {
+          // Keep pending for admin fallback
+          refundStatus = 'pending';
+          newPaymentStatus = 'refund_pending';
+          refundReference = refundResult.error;
+        }
+      } catch (e) {
+        refundStatus = 'pending';
+        newPaymentStatus = 'refund_pending';
+        refundReference = e.message;
+      }
+    } else if (isPaid && refundAmount > 0) {
+      // Fallback manual
+      refundStatus = 'pending';
+      newPaymentStatus = 'refund_pending';
+    } else {
+      refundStatus = 'no_refund';
+      newPaymentStatus = 'cancelled';
+    }
+
+    // Update assessment
     assessment.assessmentStatus = 'cancelled';
+    assessment.paymentStatus = newPaymentStatus;
+    assessment.cancellation = {
+      requestedAt: new Date(),
+      reason: reason || null,
+      cancelledAt: new Date(),
+      cancelledBy: userId,
+      refundPercentage,
+      refundAmount,
+      refundStatus,
+      refundMethod,
+      refundReference,
+      hoursBeforeDeployment,
+      policyTier
+    };
     await assessment.save();
+
+    // Cancel linked Schedule if exists
+    try {
+      const Schedule = require('../models/Schedule');
+      const schedule = await Schedule.findOne({ preAssessmentId: assessment._id });
+      if (schedule && schedule.status !== 'cancelled') {
+        await schedule.cancel(userId, reason || 'Customer cancelled pre-assessment');
+      }
+    } catch (schedErr) {
+      console.error('Schedule cancel on preAssessment cancel failed:', schedErr.message);
+    }
+
+    // Cancel BankTransferPayment if waiting_verification
+    try {
+      const BankTransferPayment = require('../models/BankTransferPayment');
+      const bt = await BankTransferPayment.findOne({ invoiceId: assessment._id, status: 'waiting_verification' });
+      if (bt) {
+        bt.status = 'rejected';
+        bt.rejectionReason = 'Cancelled by customer — ' + (reason || 'no reason');
+        await bt.save();
+      }
+    } catch (btErr) {
+      console.error('BankTransfer cancel failed:', btErr.message);
+    }
+
+    // Notifications
+    try {
+      const refundMsg = refundAmount > 0
+        ? `Refund: ${refundPercentage}% (₱${refundAmount}) — ${refundStatus === 'refunded' ? 'processed via PayMongo' : refundStatus === 'pending' ? 'pending admin processing via original method' : 'no refund per policy'}`
+        : 'No refund per Cancellation Policy ( <48h or during monitoring )';
+      await sendNotification(
+        userId,
+        'Pre-Assessment Cancelled',
+        `Your pre-assessment ${assessment.bookingReference} has been cancelled. ${refundMsg}`,
+        refundAmount > 0 ? 'warning' : 'info',
+        `/app/customer/scheduleassessment`,
+        { bookingReference: assessment.bookingReference, refundPercentage, refundAmount, refundStatus, policyTier }
+      );
+      const clientName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
+      const adminMsg = `Customer ${clientName} cancelled ${assessment.bookingReference} (${assessment.paymentMethod || 'unpaid'}). Refund ${refundPercentage}% ₱${refundAmount} status:${refundStatus} tier:${policyTier}`;
+      await sendAdminBroadcast('Pre-Assessment Cancelled', adminMsg, refundStatus === 'pending' ? 'warning' : 'info', `/app/admin/pre-assessments`, { bookingReference: assessment.bookingReference, clientId: client._id, refundAmount, refundStatus, paymentMethod: assessment.paymentMethod, policyTier });
+    } catch (notifErr) {
+      console.error('Cancel notification failed:', notifErr.message);
+    }
+
+    try {
+      await AuditLog.create({
+        action: 'preassessment_cancelled',
+        performedBy: userId,
+        targetId: assessment._id,
+        targetModel: 'PreAssessment',
+        details: { bookingReference: assessment.bookingReference, refundPercentage, refundAmount, refundStatus, policyTier, hoursBeforeDeployment, reason }
+      });
+    } catch (auditErr) {
+      console.error('Audit log cancel failed:', auditErr.message);
+    }
 
     res.json({
       success: true,
-      message: 'Pre-assessment cancelled successfully',
-      assessment
+      message: assessment.paymentStatus === 'refunded'
+        ? `Pre-assessment cancelled. Refund of ₱${refundAmount} (${refundPercentage}%) has been processed via PayMongo.`
+        : refundStatus === 'pending'
+          ? `Pre-assessment cancelled. Refund of ₱${refundAmount} (${refundPercentage}%) is pending admin processing via original payment method.`
+          : 'Pre-assessment cancelled successfully. No refund applicable per policy.',
+      assessment,
+      refund: { refundPercentage, refundAmount, refundStatus, policyTier, hoursBeforeDeployment, deploymentDate: refundCalc.deploymentDate, reason: refundCalc.reason }
     });
 
   } catch (error) {
     console.error('Cancel pre-assessment error:', error);
     res.status(500).json({ message: 'Failed to cancel pre-assessment', error: error.message });
+  }
+};
+
+// @desc    Get refund preview without cancelling
+// @route   GET /api/pre-assessments/:id/refund-preview
+// @access  Private (Customer)
+exports.getRefundPreview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const client = await Client.findOne({ userId });
+    if (!client) return res.status(404).json({ message: 'Client not found' });
+    const assessment = await PreAssessment.findOne({ _id: id, clientId: client._id });
+    if (!assessment) return res.status(404).json({ message: 'Pre-assessment not found' });
+    const { calculateRefund } = require('../utils/refundPolicy');
+    const calc = calculateRefund({
+      assessmentFee: assessment.assessmentFee,
+      siteVisitDate: assessment.siteVisitDate,
+      assessmentStatus: assessment.assessmentStatus,
+      paymentStatus: assessment.paymentStatus
+    });
+    const isPendingUnpaid = assessment.paymentStatus === 'pending' || !assessment.paymentMethod;
+    const effectiveRefund = isPendingUnpaid ? { ...calc, refundPercentage: 0, refundAmount: 0, reason: 'No payment made — no refund' } : calc;
+    res.json({
+      success: true,
+      assessmentId: assessment._id,
+      bookingReference: assessment.bookingReference,
+      assessmentFee: assessment.assessmentFee,
+      paymentMethod: assessment.paymentMethod,
+      paymentStatus: assessment.paymentStatus,
+      assessmentStatus: assessment.assessmentStatus,
+      siteVisitDate: assessment.siteVisitDate,
+      ...effectiveRefund
+    });
+  } catch (error) {
+    console.error('Refund preview error:', error);
+    res.status(500).json({ message: 'Failed to get refund preview', error: error.message });
+  }
+};
+
+// @desc    Admin process manual refund (approve/reject)
+// @route   PUT /api/pre-assessments/:id/process-refund
+// @access  Private (Admin)
+exports.processRefund = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, reference, remarks } = req.body; // action: 'refunded' | 'rejected'
+    const adminId = req.user.id;
+    if (!['refunded', 'rejected'].includes(action)) {
+      return res.status(400).json({ message: 'Action must be refunded or rejected' });
+    }
+    const assessment = await PreAssessment.findById(id).populate('clientId');
+    if (!assessment) return res.status(404).json({ message: 'Pre-assessment not found' });
+    if (!assessment.cancellation || !['pending', 'processing'].includes(assessment.cancellation.refundStatus)) {
+      return res.status(400).json({ message: 'No pending refund to process' });
+    }
+    if (assessment.paymentMethod === 'card' && assessment.cancellation.refundStatus === 'refunded') {
+      return res.status(400).json({ message: 'Card refund already auto-processed via PayMongo' });
+    }
+
+    assessment.cancellation.refundStatus = action === 'refunded' ? 'refunded' : 'rejected';
+    assessment.cancellation.refundReference = reference || null;
+    assessment.cancellation.refundProcessedAt = new Date();
+    assessment.cancellation.refundProcessedBy = adminId;
+    if (remarks) assessment.adminRemarks = remarks;
+
+    if (action === 'refunded') {
+      assessment.paymentStatus = 'refunded';
+      // keep assessmentStatus cancelled
+    } else {
+      // rejected: refund denied per policy review
+      assessment.paymentStatus = 'cancelled';
+      assessment.cancellation.refundAmount = 0;
+      assessment.cancellation.refundPercentage = 0;
+    }
+    await assessment.save();
+
+    // Notify customer
+    try {
+      const clientUserId = assessment.clientId?.userId || assessment.clientId?._id;
+      // Resolve actual User id via Client
+      let notifyUserId = null;
+      if (assessment.clientId?.userId) {
+        notifyUserId = assessment.clientId.userId;
+        if (typeof notifyUserId === 'object' && notifyUserId._id) notifyUserId = notifyUserId._id;
+      } else {
+        const c = await Client.findById(assessment.clientId);
+        notifyUserId = c?.userId;
+      }
+      if (notifyUserId) {
+        const title = action === 'refunded' ? 'Refund Processed' : 'Refund Rejected';
+        const msg = action === 'refunded'
+          ? `Your refund of ₱${assessment.cancellation.refundAmount} (${assessment.cancellation.refundPercentage}%) for ${assessment.bookingReference} has been processed via ${assessment.cancellation.refundMethod || assessment.paymentMethod}. Reference: ${reference || 'N/A'}`
+          : `Your refund request for ${assessment.bookingReference} was rejected. ${remarks || ''}`;
+        await sendNotification(notifyUserId, title, msg, action === 'refunded' ? 'success' : 'error', `/app/customer/scheduleassessment`, { bookingReference: assessment.bookingReference, refundAmount: assessment.cancellation.refundAmount, refundStatus: assessment.cancellation.refundStatus });
+      }
+    } catch (nErr) {
+      console.error('Process refund notify failed:', nErr.message);
+    }
+
+    await AuditLog.create({
+      action: 'preassessment_refund_processed',
+      performedBy: adminId,
+      targetId: assessment._id,
+      targetModel: 'PreAssessment',
+      details: { bookingReference: assessment.bookingReference, action, reference, remarks }
+    });
+
+    res.json({ success: true, message: `Refund ${action} successfully`, assessment });
+  } catch (error) {
+    console.error('Process refund error:', error);
+    res.status(500).json({ message: 'Failed to process refund', error: error.message });
   }
 };
 

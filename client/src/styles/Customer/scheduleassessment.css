@@ -2794,6 +2794,14 @@ body.dark-mode {
   background: rgba(243, 156, 18, 0.10);
 }
 
+.req-dropdown-item.cancel-request {
+  color: #DC2626;
+}
+
+.req-dropdown-item.cancel-request:hover {
+  background: rgba(239, 68, 68, 0.10);
+}
+
 /* Direct Accept button: visually distinct */
 .req-accept-btn-cusset {
   display: inline-flex;
@@ -2855,6 +2863,89 @@ body.dark-mode {
 
 .req-modal-cusset.req-accept-modal-cusset {
   max-width: 720px;
+}
+
+.req-modal-cusset.req-cancel-modal-cusset {
+  max-width: 600px;
+}
+
+.cancel-policy-table-wrapper {
+  overflow-x: auto;
+  margin: 8px 0 8px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.cancel-policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.cancel-policy-table th {
+  background: var(--bg-section);
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cancel-policy-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.cancel-policy-table tr:last-child td {
+  border-bottom: none;
+}
+
+.req-refund-reason-cusset {
+  margin: 6px 0 0 0 !important;
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+}
+
+.req-warning-cusset {
+  margin-top: 8px !important;
+  padding: 8px 12px !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(239,68,68,0.15) !important;
+  border-radius: 8px !important;
+  color: #DC2626 !important;
+  font-size: 13px !important;
+}
+
+.req-info-cusset {
+  margin-top: 8px !important;
+  padding: 8px 12px !important;
+  background: rgba(59,130,246,0.08) !important;
+  border: 1px solid rgba(59,130,246,0.15) !important;
+  border-radius: 8px !important;
+  color: #2563EB !important;
+  font-size: 13px !important;
+}
+
+.req-confirm-btn-cusset.cancel-confirm-btn {
+  background: #DC2626;
+}
+
+.req-confirm-btn-cusset.cancel-confirm-btn:hover:not(:disabled) {
+  background: #B91C1C;
+  box-shadow: 0 4px 12px rgba(220,38,38,0.25);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .req-modal-cusset h3 {

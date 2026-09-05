@@ -61,6 +61,9 @@ const SiteAssessment = () => {
   const [devices, setDevices] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundReference, setRefundReference] = useState('');
+  const [refundRemarks, setRefundRemarks] = useState('');
   const buttonRefs = useRef({});
   const dropdownRef = useRef(null);
   const [stats, setStats] = useState({
@@ -558,6 +561,32 @@ const SiteAssessment = () => {
     return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
   };
 
+  const handleProcessRefund = async (action) => {
+    if (!selectedItem) return;
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/process-refund`,
+        { action, reference: refundReference, remarks: refundRemarks },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      showToast(action === 'refunded' ? 'Refund processed successfully' : 'Refund rejected', action === 'refunded' ? 'success' : 'warning');
+      setShowRefundModal(false);
+      setSelectedItem(null);
+      setRefundReference('');
+      setRefundRemarks('');
+      setOpenDropdownId(null);
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Process refund error:', error);
+      showToast(error.response?.data?.message || 'Failed to process refund', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const getAvailableActions = (item) => {
     const actions = [
       {
@@ -568,6 +597,12 @@ const SiteAssessment = () => {
     ];
 
     if (activeTab === 'pre-assessments') {
+      // Refund pending (manual gcash/bank_transfer/cash) — admin via original method Q1
+      if (item.assessmentStatus === 'cancelled' && item.cancellation && ['pending', 'processing'].includes(item.cancellation.refundStatus)) {
+        actions.push(
+          { label: `Process Refund — ${item.cancellation.refundPercentage}% ₱${item.cancellation.refundAmount}`, icon: <FaMoneyBillWave />, action: () => { setSelectedItem(item); setRefundReference(''); setRefundRemarks(''); setShowRefundModal(true); setOpenDropdownId(null); }, color: 'warning' }
+        );
+      }
       if (item.assessmentStatus === 'pending_review') {
         actions.push(
           { label: 'Approve Booking', icon: <FaCheckCircle />, action: () => { setSelectedItem(item); setShowApproveModal(true); setOpenDropdownId(null); }, color: 'success' },
@@ -1180,7 +1215,12 @@ const SiteAssessment = () => {
                 {activeTab === 'free-quotes' ? (
                   <div className="detail-section-adminbills_"><h4>Quote Details</h4><p><strong>Reference:</strong> {selectedItem.quotationReference}</p><p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p><p><strong>Status:</strong> {selectedItem.status}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p></div>
                 ) : (
-                  <div className="detail-section-adminbills_"><h4>Assessment</h4><p><strong>Reference:</strong> {selectedItem.bookingReference}</p><p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p><p><strong>Payment:</strong> {selectedItem.paymentStatus}</p><p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p><p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p></div>
+                  <>
+                  <div className="detail-section-adminbills_"><h4>Assessment</h4><p><strong>Reference:</strong> {selectedItem.bookingReference}</p><p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p><p><strong>Payment:</strong> {selectedItem.paymentStatus}</p><p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p><p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p><p><strong>Site Visit:</strong> {selectedItem.siteVisitDate ? formatDate(selectedItem.siteVisitDate) : 'Not set'}</p><p><strong>Method:</strong> {selectedItem.paymentMethod || '—'}</p></div>
+                  {selectedItem.cancellation && (
+                    <div className="detail-section-adminbills_"><h4>Cancellation &amp; Refund</h4><p><strong>Cancelled:</strong> {formatDate(selectedItem.cancellation.cancelledAt)}</p><p><strong>Reason:</strong> {selectedItem.cancellation.reason || '—'}</p><p><strong>Tier:</strong> {selectedItem.cancellation.policyTier}</p><p><strong>Refund:</strong> {selectedItem.cancellation.refundPercentage}% — {formatCurrency(selectedItem.cancellation.refundAmount)}</p><p><strong>Status:</strong> {selectedItem.cancellation.refundStatus}</p><p><strong>Method:</strong> {selectedItem.cancellation.refundMethod}</p>{selectedItem.cancellation.refundReference && <p><strong>Ref:</strong> {selectedItem.cancellation.refundReference}</p>}</div>
+                  )}
+                  </>
                 )}
               </div>
               <div className="modal-actions-adminbills_"><button className="cancel-btn-adminbills_" onClick={() => setShowDetailModal(false)}>Close</button></div>
@@ -1203,6 +1243,27 @@ const SiteAssessment = () => {
                 {selectedItem.paymentGateway === 'paymongo' && (<div className="info-box-adminbills_"><FaInfoCircle /><small>Auto-verified via PayMongo. No action needed.</small></div>)}
               </div>
               {selectedItem.paymentGateway === 'paymongo' && (<div className="modal-actions-adminbills_"><button className="cancel-btn-adminbills_" onClick={() => setShowVerifyModal(false)}>Close</button></div>)}
+            </div>
+          </div>
+        )}
+
+        {showRefundModal && selectedItem && (
+          <div className="modal-overlay-adminbills_" onClick={() => setShowRefundModal(false)}>
+            <div className="modal-adminbills_" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminbills_"><h3>Process Refund — {selectedItem.bookingReference}</h3><button className="modal-close-adminbills_" onClick={() => setShowRefundModal(false)}>×</button></div>
+              <div className="modal-body-adminbills_">
+                <div className="detail-row-adminbills_"><span>Refund:</span><strong>{selectedItem.cancellation?.refundPercentage}% — {formatCurrency(selectedItem.cancellation?.refundAmount)} via {selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod}</strong></div>
+                <div className="detail-row-adminbills_"><span>Tier:</span><strong>{selectedItem.cancellation?.policyTier}</strong></div>
+                <div className="detail-row-adminbills_"><span>Site Visit:</span><strong>{selectedItem.siteVisitDate ? formatDate(selectedItem.siteVisitDate) : 'Not set'}</strong></div>
+                <div className="info-box-adminbills_" style={{marginTop:'12px'}}><FaInfoCircle /><small>Process refund via original method <strong>{selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod}</strong> offline, then confirm here with reference.</small></div>
+                <div className="form-group-adminbills_"><label>Refund Reference <span className="required-field-adminbills_">*</span></label><input type="text" placeholder="GCash ref / bank ref / receipt no" value={refundReference} onChange={(e)=>setRefundReference(e.target.value)} /></div>
+                <div className="form-group-adminbills_"><label>Admin Remarks</label><textarea rows="2" value={refundRemarks} onChange={(e)=>setRefundRemarks(e.target.value)} placeholder="Optional note" /></div>
+              </div>
+              <div className="modal-actions-adminbills_">
+                <button className="cancel-btn-adminbills_" onClick={() => setShowRefundModal(false)}>Close</button>
+                <button className="reject-btn-adminbills_" onClick={() => handleProcessRefund('rejected')} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Reject Refund'}</button>
+                <button className="approve-btn-adminbills_" onClick={() => handleProcessRefund('refunded')} disabled={isSubmitting || !refundReference}>{isSubmitting ? 'Processing...' : 'Confirm Refunded'}</button>
+              </div>
             </div>
           </div>
         )}

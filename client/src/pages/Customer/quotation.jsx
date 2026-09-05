@@ -1,5 +1,6 @@
 // pages/Customer/Quotation.cuspro.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -73,7 +74,6 @@ const Quotation = () => {
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const [showManualTransferForm, setShowManualTransferForm] = useState(false);
 
-  const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -874,6 +874,58 @@ const Quotation = () => {
     setActiveDropdown(null);
   };
 
+  // Shared Action menu rendered via portal to document.body so it escapes
+  // card/table stacking contexts (backdrop-filter / overflow) and can never
+  // paint behind the next card. Position comes from toggleDropdown, which
+  // flips the menu upward when space below the trigger is short.
+  const renderActionMenu = (item, withReceiptOptions) => {
+    const showReceipts = withReceiptOptions && !!item.receiptUrl;
+    return createPortal(
+      <div
+        className="billing-customer-dropdown-menu"
+        style={{
+          position: 'fixed',
+          top: dropdownPosition.top + 'px',
+          left: dropdownPosition.left + 'px',
+          zIndex: 99999,
+        }}
+      >
+        <button
+          className="billing-customer-dropdown-item view-details"
+          onClick={() => {
+            setActiveDropdown(null);
+            handleViewDetails(item);
+          }}
+        >
+          View Details
+        </button>
+        {showReceipts && (
+          <>
+            <button
+              className="billing-customer-dropdown-item view-receipt"
+              onClick={() => {
+                setActiveDropdown(null);
+                handleViewReceipt(item);
+              }}
+            >
+              View Receipt
+            </button>
+            <button
+              className="billing-customer-dropdown-item download-receipt"
+              onClick={() => {
+                setActiveDropdown(null);
+                handleDownloadReceipt(item);
+              }}
+            >
+              Download Receipt
+            </button>
+          </>
+        )}
+      </div>,
+      document.body
+    );
+  };
+
   const handlePaymentReferenceChange = (e) => {
     saveScrollPosition();
     setPaymentReference(e.target.value);
@@ -1164,10 +1216,6 @@ const Quotation = () => {
 
   const getFilteredItems = () => {
     let filtered = [...allItems];
-
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(item => item.type === typeFilter);
-    }
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(item => item.status === statusFilter);
@@ -1477,9 +1525,6 @@ const Quotation = () => {
     if (tab === 'all') return filteredItems;
     if (tab === 'pre-assessment') return filteredItems.filter(item => item.type === 'pre-assessment');
     if (tab === 'project') return filteredItems.filter(item => item.type === 'project');
-    if (tab === 'pending') return filteredItems.filter(item => item.status === 'pending' || item.status === 'pending_payment');
-    if (tab === 'paid') return filteredItems.filter(item => item.status === 'paid');
-    if (tab === 'for_verification') return filteredItems.filter(item => item.status === 'for_verification');
     return filteredItems;
   };
 
@@ -1557,10 +1602,13 @@ const Quotation = () => {
     if (activeDropdown === null) return;
 
     const handleScroll = () => {
-      // Find the active button element
+      // Find the active button element (skip hidden duplicates —
+      // the table and mobile cards render the same item, one is display:none)
       const triggerButtons = document.querySelectorAll('.billing-customer-dropdown-trigger-btn');
       let activeButton = null;
       triggerButtons.forEach(btn => {
+        const rect = btn.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
         if (btn.closest('.billing-customer-dropdown-menu-container')) {
           const container = btn.closest('.billing-customer-dropdown-menu-container');
           if (container && container.querySelector('.billing-customer-dropdown-menu')) {
@@ -1741,7 +1789,7 @@ const Quotation = () => {
           </div>
         </div>
 
-        {/* TABS - WITHOUT BADGES/NUMBERS */}
+        {/* TABS - All / Pre-Assessment / Solar Invoice */}
         <div className="billing-customer-tabs">
           <button
             className={`billing-customer-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
@@ -1759,25 +1807,7 @@ const Quotation = () => {
             className={`billing-customer-tab-btn ${activeTab === 'project' ? 'active' : ''}`}
             onClick={() => setActiveTab('project')}
           >
-            Project Bills
-          </button>
-          <button
-            className={`billing-customer-tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pending')}
-          >
-            Pending
-          </button>
-          <button
-            className={`billing-customer-tab-btn ${activeTab === 'paid' ? 'active' : ''}`}
-            onClick={() => setActiveTab('paid')}
-          >
-            Paid
-          </button>
-          <button
-            className={`billing-customer-tab-btn ${activeTab === 'for_verification' ? 'active' : ''}`}
-            onClick={() => setActiveTab('for_verification')}
-          >
-            Verifying
+            Solar Invoices
           </button>
         </div>
 
@@ -1806,9 +1836,8 @@ const Quotation = () => {
             )}
           </div>
 
-          {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
+          {(statusFilter !== 'all' || searchTerm) && (
             <button className="billing-customer-clear-filters-btn" onClick={() => {
-              setTypeFilter('all');
               setStatusFilter('all');
               setSearchTerm('');
             }}>
@@ -1848,7 +1877,6 @@ const Quotation = () => {
                     const isPending = item.status === 'pending' || item.status === 'pending_payment';
                     const isVerifying = item.status === 'for_verification';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
-                    const hasReceipt = item.receiptUrl;
                     const isDropdownOpen = activeDropdown === item.id;
 
                     return (
@@ -1857,8 +1885,9 @@ const Quotation = () => {
                           <div className="billing-customer-transaction-cell">
                             <div>
                               <div className="billing-customer-transaction-name">{item.description}</div>
-                              {!isPreAssessment && item.invoiceType && (
+                              {!isPreAssessment && item.invoiceType && getInvoiceTypeLabel(item) && (
                                 <span className={`billing-customer-invoice-type-label ${item.invoiceType}`}>
+                                  {getInvoiceTypeLabel(item)}
                                 </span>
                               )}
                             </div>
@@ -1903,27 +1932,7 @@ const Quotation = () => {
                                   Action ▾
                                 </button>
 
-                                {isDropdownOpen && (
-                                  <div
-                                    className="billing-customer-dropdown-menu"
-                                    style={{
-                                      position: 'fixed',
-                                      top: dropdownPosition.top + 'px',
-                                      left: dropdownPosition.left + 'px',
-                                      zIndex: 99999,
-                                    }}
-                                  >
-                                    <button
-                                      className="billing-customer-dropdown-item view-details"
-                                      onClick={() => {
-                                        setActiveDropdown(null);
-                                        handleViewDetails(item);
-                                      }}
-                                    >
-                                      View Details
-                                    </button>
-                                  </div>
-                                )}
+                                {isDropdownOpen && renderActionMenu(item, false)}
                               </div>
                             ) : isPaid ? (
                               // For paid status - show dropdown with all actions
@@ -1935,50 +1944,7 @@ const Quotation = () => {
                                   Action ▾
                                 </button>
 
-                                {isDropdownOpen && (
-                                  <div
-                                    className="billing-customer-dropdown-menu"
-                                    style={{
-                                      position: 'fixed',
-                                      top: dropdownPosition.top + 'px',
-                                      left: dropdownPosition.left + 'px',
-                                      zIndex: 99999,
-                                    }}
-                                  >
-                                    <button
-                                      className="billing-customer-dropdown-item view-details"
-                                      onClick={() => {
-                                        setActiveDropdown(null);
-                                        handleViewDetails(item);
-                                      }}
-                                    >
-                                      View Details
-                                    </button>
-
-                                    {hasReceipt && (
-                                      <>
-                                        <button
-                                          className="billing-customer-dropdown-item view-receipt"
-                                          onClick={() => {
-                                            setActiveDropdown(null);
-                                            handleViewReceipt(item);
-                                          }}
-                                        >
-                                          View Receipt
-                                        </button>
-                                        <button
-                                          className="billing-customer-dropdown-item download-receipt"
-                                          onClick={() => {
-                                            setActiveDropdown(null);
-                                            handleDownloadReceipt(item);
-                                          }}
-                                        >
-                                          Download Receipt
-                                        </button>
-                                      </>
-                                    )}
-                                  </div>
-                                )}
+                                {isDropdownOpen && renderActionMenu(item, true)}
                               </div>
                             ) : (
                               <span className="billing-customer-status-text">{item.status}</span>
@@ -2008,7 +1974,6 @@ const Quotation = () => {
               const isPending = item.status === 'pending' || item.status === 'pending_payment';
               const isVerifying = item.status === 'for_verification';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
-              const hasReceipt = item.receiptUrl;
               const isDropdownOpen = activeDropdown === item.id;
 
               return (
@@ -2073,27 +2038,7 @@ const Quotation = () => {
                           Action ▾
                         </button>
 
-                        {isDropdownOpen && (
-                          <div
-                            className="billing-customer-dropdown-menu"
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px',
-                              zIndex: 99999,
-                            }}
-                          >
-                            <button
-                              className="billing-customer-dropdown-item view-details"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                handleViewDetails(item);
-                              }}
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        )}
+                        {isDropdownOpen && renderActionMenu(item, false)}
                       </div>
                     ) : isPaid ? (
                       // For paid status - show dropdown with all actions
@@ -2105,50 +2050,7 @@ const Quotation = () => {
                           Action ▾
                         </button>
 
-                        {isDropdownOpen && (
-                          <div
-                            className="billing-customer-dropdown-menu"
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px',
-                              zIndex: 99999,
-                            }}
-                          >
-                            <button
-                              className="billing-customer-dropdown-item view-details"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                handleViewDetails(item);
-                              }}
-                            >
-                              View Details
-                            </button>
-
-                            {hasReceipt && (
-                              <>
-                                <button
-                                  className="billing-customer-dropdown-item view-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleViewReceipt(item);
-                                  }}
-                                >
-                                  View Receipt
-                                </button>
-                                <button
-                                  className="billing-customer-dropdown-item download-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleDownloadReceipt(item);
-                                  }}
-                                >
-                                  Download Receipt
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
+                        {isDropdownOpen && renderActionMenu(item, true)}
                       </div>
                     ) : (
                       <span className="billing-customer-status-text">{item.status}</span>

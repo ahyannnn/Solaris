@@ -939,7 +939,7 @@ body.dark-mode {
   display: block;
   width: 28px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.7);
+  background: #17212B;
   border-radius: 2px;
   transition: all var(--transition-base);
 }
@@ -1119,7 +1119,7 @@ body.dark-mode {
 }
 
 .hamburger-line {
-  background: rgba(255, 255, 255, 0.7) !important;
+  background: #17212B !important;
 }
 
 .mobile-hamburger-btn:hover .hamburger-line {
@@ -2069,11 +2069,11 @@ body.dark-mode .nav-item-layout-dashboard.active-layout-dashboard .notification-
 }
 
 body.dark-mode .mobile-hamburger-btn .hamburger-line {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.7) !important;
 }
 
 body.dark-mode .mobile-hamburger-btn:hover .hamburger-line {
-  background: var(--sidebar-accent);
+  background: var(--sidebar-accent) !important;
 }
 
 body.dark-mode .sidebar-overlay-layout-dashboard {

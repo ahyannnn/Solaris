@@ -462,6 +462,7 @@ body {
 
 .billing-customer-table {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -479,6 +480,7 @@ body {
   letter-spacing: 0.5px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
   transition: color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -506,11 +508,14 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .billing-customer-transaction-name {
   font-weight: 500;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
 }
 
@@ -548,6 +553,8 @@ body {
   font-family: monospace;
   font-size: 12px;
   color: var(--text-muted);
+  word-break: break-all;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
 }
 
@@ -560,6 +567,8 @@ body {
 .billing-customer-amount-main {
   font-weight: 600;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
 }
 
@@ -645,6 +654,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 /* Pay Now - ORANGE ONLY */
@@ -675,6 +686,12 @@ body {
 }
 
 /* Action Dropdown Trigger - GRAY (NOT ORANGE) */
+.billing-customer-dropdown-menu-container {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
 .billing-customer-dropdown-trigger-btn {
   padding: 6px 16px;
   background: var(--bg-section);
@@ -686,6 +703,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
 }
 
 .billing-customer-dropdown-trigger-btn:hover {
@@ -700,7 +718,7 @@ body {
 .billing-customer-dropdown-menu {
   position: fixed !important;
   min-width: 200px !important;
-  max-width: 250px !important;
+  max-width: min(250px, calc(100vw - 20px)) !important;
   background: var(--bg-dropdown) !important;
   border: 1px solid var(--border-dropdown) !important;
   border-radius: 10px !important;
@@ -708,7 +726,7 @@ body {
   z-index: 99999 !important;
   padding: 6px !important;
   overflow: hidden !important;
-  max-height: 300px !important;
+  max-height: min(300px, calc(100dvh - 40px)) !important;
   overflow-y: auto !important;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
@@ -725,6 +743,13 @@ body {
 .billing-customer-dropdown-menu::-webkit-scrollbar-thumb {
   background: #F39C12;
   border-radius: 4px;
+}
+
+/* Action menus render via portal to document.body (see renderActionMenu),
+   so they escape card/table stacking contexts and flip up near the
+   viewport bottom. Only viewport clamps are needed here. */
+.billing-customer-dropdown-menu {
+  max-height: min(280px, calc(100dvh - 80px)) !important;
 }
 
 /* Dropdown Items - DIFFERENT COLORS */
@@ -817,6 +842,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
   margin-bottom: 12px;
   gap: 8px;
 }
@@ -825,6 +851,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .billing-customer-mobile-card-title .billing-customer-ref-id {
@@ -832,13 +860,28 @@ body {
   font-size: 13px;
   color: var(--text-primary);
   font-weight: 600;
+  word-break: break-all;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
 }
 
 .billing-customer-mobile-card-title .billing-customer-ref-project {
   font-size: 12px;
   color: var(--text-muted);
+  word-break: break-word;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
+}
+
+.billing-customer-mobile-card-status {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.billing-customer-mobile-card-status .billing-customer-status-badge {
+  white-space: normal;
+  text-align: center;
+  max-width: 100%;
 }
 
 .billing-customer-mobile-card-body {
@@ -851,6 +894,8 @@ body {
 .billing-customer-mobile-card-item {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
   padding: 4px 0;
   border-bottom: 1px solid var(--border-color);
   transition: border-color 0.3s ease;
@@ -863,6 +908,7 @@ body {
 .billing-customer-mobile-card-item .billing-customer-label {
   font-size: 12px;
   color: var(--text-muted);
+  flex-shrink: 0;
   transition: color 0.3s ease;
 }
 
@@ -870,16 +916,32 @@ body {
   font-size: 13px;
   color: var(--text-secondary);
   text-align: right;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
+}
+
+.billing-customer-mobile-card-item .billing-customer-amount-main,
+.billing-customer-mobile-card-item .billing-customer-amount-balance {
+  display: block;
 }
 
 .billing-customer-mobile-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border-color);
   transition: border-color 0.3s ease;
+}
+
+.billing-customer-mobile-card-footer .billing-customer-transaction-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .billing-customer-mobile-card-footer .billing-customer-transaction-name {
@@ -1740,7 +1802,7 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE - UNCHANGED
+   RESPONSIVE - TABLETS GET CARDS (≤992px)
    ============================================ */
 @media (max-width: 1024px) {
   .billing-customer-stats-grid {
@@ -1748,9 +1810,10 @@ body {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .billing-customer-container {
     padding: 16px;
+    overflow-x: clip;
   }
 
   .billing-customer-header h1 {
@@ -1764,28 +1827,37 @@ body {
 
   .billing-customer-stat-card {
     padding: 12px 14px;
+    min-width: 0;
   }
 
   .billing-customer-stat-value {
     font-size: 20px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
+  .billing-customer-stat-sub {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* 3 tabs fit without scrolling on tablets/phones */
   .billing-customer-tabs {
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     width: 100%;
     padding: 4px;
     gap: 4px;
-    -webkit-overflow-scrolling: touch;
     border-radius: 8px;
   }
 
   .billing-customer-tab-btn {
-    padding: 8px 14px;
-    font-size: 12px;
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 10px 14px;
+    font-size: 13px;
     white-space: nowrap;
-    flex-shrink: 0;
+    min-height: 44px;
   }
 
   .billing-customer-filters {
@@ -1797,6 +1869,7 @@ body {
   .billing-customer-filter-group select {
     width: 100%;
     min-width: auto;
+    min-height: 44px;
   }
 
   .billing-customer-search-group {
@@ -1804,6 +1877,11 @@ body {
     flex-shrink: 1;
   }
 
+  .billing-customer-search-group input {
+    min-height: 44px;
+  }
+
+  /* Switch table → cards on tablets too */
   .billing-customer-table-container {
     display: none;
   }
@@ -1812,19 +1890,79 @@ body {
     display: flex;
   }
 
+  .billing-customer-mobile-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .billing-customer-mobile-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .billing-customer-mobile-card-footer .billing-customer-transaction-info {
+    width: 100%;
+  }
+
+  .billing-customer-mobile-card-footer .billing-customer-transaction-name {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .billing-customer-mobile-card-footer .billing-customer-paynow-btn,
+  .billing-customer-mobile-card-footer .billing-customer-dropdown-trigger-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .billing-customer-mobile-card-footer .billing-customer-dropdown-menu-container {
+    width: 100%;
+  }
+
+  .billing-customer-mobile-card-footer .billing-customer-no-action,
+  .billing-customer-mobile-card-footer .billing-customer-status-text {
+    text-align: center;
+    width: 100%;
+  }
+
+  .billing-customer-modal-overlay {
+    padding: 12px;
+  }
+
   .billing-customer-modal {
     max-width: 100%;
-    margin: 12px;
+    width: calc(100% - 24px);
+    margin: 12px auto;
     border-radius: 14px;
+    max-height: 92dvh;
   }
 
   .billing-customer-modal h3 {
     font-size: 18px;
-    padding: 16px 18px;
+    padding: 16px 52px 16px 18px;
   }
 
   .billing-customer-modal-scroll-content {
     padding: 16px 18px;
+    max-height: calc(92dvh - 80px);
+  }
+
+  .billing-customer-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .billing-customer-modal-actions .billing-customer-cancel-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .billing-customer-details-section p {
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .billing-customer-form-row {
@@ -1843,9 +1981,26 @@ body {
     font-size: 22px;
   }
 
+  .billing-customer-processing-overlay {
+    padding: 12px;
+  }
+
   .billing-customer-processing-modal {
     padding: 32px 24px;
-    margin: 16px;
+    margin: 16px auto;
+    width: calc(100% - 32px);
+    max-height: 92dvh;
+  }
+}
+
+@media (max-width: 768px) {
+  .billing-customer-tabs {
+    gap: 4px;
+  }
+
+  .billing-customer-tab-btn {
+    padding: 10px 12px;
+    font-size: 12px;
   }
 }
 
@@ -1883,9 +2038,16 @@ body {
     font-size: 10px;
   }
 
+  .billing-customer-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .billing-customer-tab-btn {
-    padding: 6px 10px;
-    font-size: 11px;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 44px;
   }
 
   .billing-customer-mobile-card {
@@ -1900,22 +2062,26 @@ body {
     font-size: 12px;
   }
 
-  .billing-customer-paynow-btn {
-    padding: 4px 12px;
-    font-size: 11px;
+  .billing-customer-mobile-card-header {
+    align-items: flex-start;
   }
 
   .billing-customer-modal {
     border-radius: 12px;
+    width: calc(100% - 16px);
   }
 
   .billing-customer-modal h3 {
     font-size: 16px;
-    padding: 14px 16px;
+    padding: 14px 48px 14px 16px;
   }
 
   .billing-customer-modal-scroll-content {
     padding: 14px 16px;
+  }
+
+  .billing-customer-modal-overlay {
+    padding: 8px;
   }
 
   .billing-customer-modal-close {
@@ -1942,7 +2108,8 @@ body {
   .billing-customer-paymongo-btn,
   .billing-customer-submit-transfer-btn {
     font-size: 14px;
-    padding: 10px;
+    padding: 12px;
+    min-height: 44px;
   }
 
   .billing-customer-success-page-card {

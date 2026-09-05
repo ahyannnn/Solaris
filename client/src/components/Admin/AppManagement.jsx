@@ -1,5 +1,6 @@
 // components/Admin/AppManagement.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FaPlus,
   FaEdit,
@@ -63,6 +64,33 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, []);
+
+  // Lock body scroll + close on Escape while any modal is open.
+  // Modals are portalled to document.body so position:fixed stays
+  // viewport-relative and isn't trapped by ancestor backdrop-filter
+  // (e.g. .system-config-admain glass effect which creates a
+  // containing block for fixed descendants).
+  useEffect(() => {
+    const anyModalOpen = showModal || showDeleteModal;
+    if (!anyModalOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        if (uploading || uploadStatus === 'uploading' || uploadStatus === 'waiting') return;
+        setShowModal(false);
+        setShowDeleteModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [showModal, showDeleteModal, uploading, uploadStatus]);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -471,8 +499,8 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
           MODALS
          ============================================ */}
 
-      {/* Add/Edit Modal */}
-      {showModal && (
+      {/* Add/Edit Modal - portalled to body so overlay covers full viewport */}
+      {showModal && createPortal(
         <div className="modal-overlay-app-admin" onClick={handleCloseModal}>
           <div className="modal-content-app-admin app-modal-app-admin" onClick={e => e.stopPropagation()}>
             <div className="modal-header-app-admin">
@@ -619,11 +647,12 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && appToDelete && (
+      {/* Delete Confirmation Modal - portalled to body */}
+      {showDeleteModal && appToDelete && createPortal(
         <div className="modal-overlay-app-admin" onClick={() => setShowDeleteModal(false)}>
           <div className="modal-content-app-admin" onClick={e => e.stopPropagation()}>
             <div className="modal-header-app-admin">
@@ -643,7 +672,8 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Toast Notification */}

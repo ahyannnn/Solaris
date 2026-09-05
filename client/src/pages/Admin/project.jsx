@@ -890,7 +890,6 @@ const ProjectManagement = () => {
             <div className="modal-projectmanagement detail-modal-projectmanagement" onClick={e => e.stopPropagation()}>
               <div className="modal-header-projectmanagement">
                 <h3>Project Details</h3>
-                <button className="modal-close-btn-projectmanagement" onClick={() => setShowDetailModal(false)}>×</button>
               </div>
               <div className="modal-body-projectmanagement">
                 <div className="detail-grid-projectmanagement">

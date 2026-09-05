@@ -172,7 +172,7 @@ body.dark-mode {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0 16px 0;
+  padding: 16px 16px 16px 16px;
   border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
   gap: 12px;
@@ -258,33 +258,49 @@ body.dark-mode {
    TABLE
    ============================================ */
 .app-table-wrapper-app-admin {
-  overflow-x: visible;
+  overflow-x: auto;
   overflow-y: visible;
   padding: 0 0 20px 0;
 }
 
 .app-table-app-admin {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
+  table-layout: auto;
   font-size: 13px;
 }
 
 .app-table-app-admin thead th {
   text-align: left;
-  padding: 12px 12px 12px 0;
+  vertical-align: middle;
+  padding: 12px 16px 12px 0;
   font-weight: 600;
   color: var(--text-muted);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
   transition: color 0.3s ease, border-color 0.3s ease;
 }
 
-.app-table-app-admin thead th.actions-col-app-admin {
-  text-align: right;
-  padding-right: 0;
+.app-table-app-admin thead th:first-child {
+  padding-left: 16px;
 }
+
+.app-table-app-admin thead th.actions-col-app-admin {
+  text-align: left;
+  padding-right: 16px;
+}
+
+/* Explicit column widths keep header/body aligned when
+   release-notes text length varies */
+.app-table-app-admin thead th:nth-child(1) { width: 14%; }
+.app-table-app-admin thead th:nth-child(2) { width: 36%; }
+.app-table-app-admin thead th:nth-child(3) { width: 20%; }
+.app-table-app-admin thead th:nth-child(4) { width: 15%; }
+.app-table-app-admin thead th:nth-child(5) { width: 15%; }
 
 .app-table-app-admin tbody tr {
   border-bottom: 1px solid var(--border-color);
@@ -300,11 +316,20 @@ body.dark-mode {
 }
 
 .app-table-app-admin tbody td {
-  padding: 14px 12px 14px 0;
+  padding: 14px 16px 14px 0;
   color: var(--text-secondary);
   vertical-align: middle;
   text-align: left;
   transition: color 0.3s ease;
+}
+
+.app-table-app-admin tbody td:first-child {
+  padding-left: 16px;
+}
+
+.app-table-app-admin tbody td:last-child {
+  text-align: left;
+  padding-right: 16px;
 }
 
 .published-row-app-admin {
@@ -317,20 +342,25 @@ body.dark-mode {
   gap: 8px;
   font-weight: 500;
   color: var(--text-primary);
+  white-space: nowrap;
+  line-height: 1.4;
   transition: color 0.3s ease;
 }
 
 .version-icon-app-admin {
   color: var(--version-icon-color);
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .release-notes-cell-app-admin {
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 320px;
   color: var(--text-secondary);
+  line-height: 1.4;
   transition: color 0.3s ease;
 }
 
@@ -340,11 +370,14 @@ body.dark-mode {
   gap: 6px;
   color: var(--text-muted);
   font-size: 13px;
+  white-space: nowrap;
+  line-height: 1.4;
   transition: color 0.3s ease;
 }
 
 .date-cell-app-admin svg {
   font-size: 13px;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -353,6 +386,7 @@ body.dark-mode {
 .status-badge-app-admin {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 4px 14px;
   border-radius: 20px;
@@ -360,6 +394,9 @@ body.dark-mode {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  line-height: 1.6;
+  vertical-align: middle;
 }
 
 .status-badge-app-admin.published {
@@ -379,17 +416,17 @@ body.dark-mode {
    ============================================ */
 .action-dropdown-container-app-admin {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: flex-end;
-  width: auto;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .action-dropdown-menu-app-admin {
   position: absolute !important;
   top: calc(100% + 5px) !important;
-  right: 0 !important;
-  left: auto !important;
+  left: 0 !important;
+  right: auto !important;
   min-width: 180px;
   max-width: 220px;
   background: var(--bg-dropdown);
@@ -517,20 +554,25 @@ body.dark-mode {
 
 /* ============================================
    MODALS - GLASS
+   NOTE: modal is portalled to document.body, so this overlay
+   is viewport-relative and always covers sidebar + header.
    ============================================ */
 .modal-overlay-app-admin {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   background: var(--overlay-bg);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .modal-content-app-admin {
@@ -538,8 +580,11 @@ body.dark-mode {
   border-radius: 18px;
   max-width: 600px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
+  margin: auto;
+  position: relative;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border-modal);
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -883,7 +928,7 @@ body.dark-mode {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    padding: 12px 0 16px 0;
+    padding: 12px 12px 16px 12px;
   }
 
   .app-header-info-app-admin h4 {
@@ -905,30 +950,44 @@ body.dark-mode {
 
   .app-table-app-admin thead th {
     font-size: 10px;
-    padding: 8px 8px 8px 0;
+    padding: 8px 10px 8px 0;
+  }
+
+  .app-table-app-admin thead th:first-child {
+    padding-left: 12px;
+  }
+
+  .app-table-app-admin thead th.actions-col-app-admin,
+  .app-table-app-admin tbody td:last-child {
+    padding-right: 12px;
   }
 
   .app-table-app-admin tbody td {
-    padding: 10px 8px 10px 0;
+    padding: 10px 10px 10px 0;
     font-size: 12px;
   }
 
+  .app-table-app-admin tbody td:first-child {
+    padding-left: 12px;
+  }
+
   .release-notes-cell-app-admin {
-    max-width: 100px;
+    max-width: 140px;
   }
 
   .action-dropdown-toggle-app-admin {
     padding: 4px 10px;
     font-size: 11px;
+    white-space: nowrap;
   }
 
-  .action-dropdown-toggle-app-admin span:not(.dropdown-arrow-app-admin) {
-    display: none;
+  .modal-overlay-app-admin {
+    padding: 12px;
   }
 
   .modal-content-app-admin {
     max-width: 95%;
-    margin: 10px;
+    margin: auto;
   }
 
   .modal-header-app-admin {
@@ -999,20 +1058,34 @@ body.dark-mode {
 
 @media (max-width: 480px) {
   .app-header-app-admin {
-    padding: 8px 0 12px 0;
+    padding: 8px 10px 12px 10px;
   }
 
   .app-table-wrapper-app-admin {
     padding: 0 0 8px 0;
   }
 
+  .app-table-app-admin thead th {
+    padding: 8px 8px 8px 0;
+  }
+
+  .app-table-app-admin thead th:first-child,
+  .app-table-app-admin tbody td:first-child {
+    padding-left: 10px;
+  }
+
+  .app-table-app-admin thead th.actions-col-app-admin,
+  .app-table-app-admin tbody td:last-child {
+    padding-right: 10px;
+  }
+
   .app-table-app-admin tbody td {
     font-size: 11px;
-    padding: 8px 4px 8px 0;
+    padding: 8px 8px 8px 0;
   }
 
   .release-notes-cell-app-admin {
-    max-width: 70px;
+    max-width: 90px;
   }
 
   .version-cell-app-admin {

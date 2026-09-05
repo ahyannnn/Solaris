@@ -16,6 +16,8 @@ const {
   getPreAssessmentById,
   assignEngineer,
   cancelPreAssessment,
+  getRefundPreview,
+  processRefund,
   getPaymentHistory,
   getPreAssessmentStats,
   // Engineer functions
@@ -23,7 +25,7 @@ const {
   updateSiteAssessment,
   uploadQuotationPDF,
   uploadSiteImages,
-getSystemRecommendations,
+ getSystemRecommendations,
   submitPayment,
   submitAssessmentReport,
   getAssessmentDocuments,
@@ -43,6 +45,7 @@ getSystemRecommendations,
 // ============ CUSTOMER ROUTES ============
 router.get('/payments', verifyToken, getPaymentHistory);
 router.get('/my-bookings', verifyToken, getMyPreAssessments);
+router.get('/:id/refund-preview', verifyToken, getRefundPreview);
 // Payment routes
 router.post('/submit-payment', verifyToken, upload.single('paymentProof'), submitPayment);
 router.post('/cash-payment', verifyToken, cashPayment);
@@ -55,6 +58,7 @@ router.put('/:id/verify-payment', verifyToken, admin, verifyPayment);
 router.put('/:id/assign-engineer', verifyToken, admin, assignEngineer);
 router.put('/:id/update-payment-status', verifyToken, admin, updatePaymentStatus);
 router.put('/:id/approve-booking', verifyToken, admin, approveBooking);
+router.put('/:id/process-refund', verifyToken, admin, processRefund);
 
 // ============ ENGINEER DEVICE FUNCTIONS ============
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);

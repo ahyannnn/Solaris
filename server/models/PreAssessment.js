@@ -81,7 +81,7 @@ discountPercentage: {
 
   paymentStatus: {
     type: String,
-    enum: ['pending', 'for_verification', 'paid', 'failed'],
+    enum: ['pending', 'for_verification', 'paid', 'failed', 'cancelled', 'refund_pending', 'refunded', 'no_refund'],
     default: 'pending'
   },
 
@@ -91,6 +91,27 @@ discountPercentage: {
       'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft',
       'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'],
     default: 'pending_review'
+  },
+
+  // ============ CANCELLATION & REFUND ============
+  cancellation: {
+    requestedAt: Date,
+    reason: String,
+    cancelledAt: Date,
+    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    refundPercentage: { type: Number, default: 0 },
+    refundAmount: { type: Number, default: 0 },
+    refundStatus: {
+      type: String,
+      enum: ['none', 'pending', 'processing', 'refunded', 'rejected', 'no_refund'],
+      default: 'none'
+    },
+    refundMethod: String,
+    refundReference: String,
+    refundProcessedAt: Date,
+    refundProcessedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    hoursBeforeDeployment: Number,
+    policyTier: String
   },
 
   // ============ IoT DEVICE INTEGRATION ============

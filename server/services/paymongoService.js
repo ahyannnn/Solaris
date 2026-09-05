@@ -392,6 +392,51 @@ class PayMongoService {
     }
   }
 
+  // Create refund for a PayMongo payment intent (card auto refund per Q2)
+  async refundPayment(paymentIntentId, amount, reason = 'requested_by_customer') {
+    try {
+      const amountCents = Math.round(amount * 100);
+      // PayMongo refund API requires payment_id; for intent we need to fetch payments then refund
+      const intent = await this.getPaymentIntent(paymentIntentId);
+      if (!intent.success) return intent;
+      let paymentId = intent.paymentDetails?.id || intent.paymentDetails?.attributes?.id;
+      // payments array may hold id differently
+      if (!paymentId && intent.metadata) {
+        // fallback: try to list payments via intent payments array
+        const raw = intent.paymentDetails;
+        if (raw && raw.id) paymentId = raw.id;
+      }
+      // If still no paymentId, attempt to refund via intent id directly (some configs allow)
+      const refundPayload = paymentId
+        ? { data: { attributes: { amount: amountCents, payment_id: paymentId, reason } } }
+        : { data: { attributes: { amount: amountCents, payment_id: paymentIntentId, reason } } };
+
+      const response = await axios.post(
+        `${this.baseURL}/refunds`,
+        refundPayload,
+        {
+          headers: {
+            Authorization: `Basic ${this.auth}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return {
+        success: true,
+        refundId: response.data.data.id,
+        amount: response.data.data.attributes.amount / 100,
+        status: response.data.data.attributes.status,
+        raw: response.data.data
+      };
+    } catch (error) {
+      console.error('PayMongo refund error:', JSON.stringify(error.response?.data, null, 2) || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.errors?.[0]?.detail || error.message || 'Failed to refund payment'
+      };
+    }
+  }
+
   // Get test card
   getTestCard() {
     return {

@@ -2734,7 +2734,7 @@ body.dark-mode {
 .req-dropdown-menu {
   position: fixed !important;
   min-width: 200px !important;
-  max-width: 250px !important;
+  max-width: min(250px, calc(100vw - 20px)) !important;
   background: var(--bg-dropdown) !important;
   border: 1px solid var(--border-dropdown) !important;
   border-radius: 10px !important;
@@ -2742,7 +2742,7 @@ body.dark-mode {
   z-index: 99999 !important;
   padding: 6px !important;
   overflow: hidden !important;
-  max-height: 300px !important;
+  max-height: min(300px, calc(100dvh - 40px)) !important;
   overflow-y: auto !important;
 }
 
@@ -3164,55 +3164,272 @@ body.dark-mode {
 }
 
 /* ============================================
-   MY REQUESTS TABLE - RESPONSIVE (horizontal scroll)
+   MY REQUESTS TABLE - RESPONSIVE (stacked cards ≤992px)
    ============================================ */
-@media (max-width: 768px) {
-  .req-table-cusset thead th,
-  .req-table-cusset tbody td {
-    padding: 10px 12px;
-    font-size: 12px;
+@media (max-width: 992px) {
+  /* Card-mode shell: remove table chrome, let cards breathe */
+  .req-table-container-cusset {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
   }
 
-  .req-modal-cusset {
-    max-width: 100%;
-    margin: 12px;
+  .req-table-wrapper-cusset {
+    overflow: visible;
+  }
+
+  .req-table-cusset {
+    min-width: 0;
+  }
+
+  .req-table-cusset thead {
+    display: none;
+  }
+
+  .req-table-cusset,
+  .req-table-cusset tbody,
+  .req-table-cusset tr,
+  .req-table-cusset td {
+    display: block;
+    width: 100%;
+  }
+
+  .req-table-cusset tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .req-table-cusset tbody tr {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    padding: 6px 2px;
+    margin: 0;
+  }
+
+  .req-table-cusset tbody tr:hover {
+    background: var(--bg-card);
+  }
+
+  .req-table-cusset tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px !important;
+    font-size: 13px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+    min-width: 0;
+  }
+
+  .req-table-cusset tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .req-table-cusset tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .req-ref-cusset,
+  .req-summary-cusset {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 60%;
+    text-align: right;
+  }
+
+  .req-table-cusset tbody td[data-label="Status"] .status-badge-schedule,
+  .req-table-cusset tbody td[data-label="Type"] .type-badge-page {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .req-action-cell-cusset {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .req-table-cusset tbody td[data-label="Actions"] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .req-table-cusset tbody td[data-label="Actions"]::before {
+    align-self: flex-start;
+  }
+
+  .req-dropdown-trigger-btn,
+  .req-accept-btn-cusset {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .req-dropdown-menu-container {
+    width: 100%;
+  }
+
+  /* Header + filters stack cleanly above cards */
+  .requests-page-header-cusset {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .requests-page-stats-cusset {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .request-filter-tabs-page-cusset {
+    gap: 8px;
+  }
+
+  .filter-tab-page-cusset {
+    flex: 1 1 auto;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Details / Accept / Cancel modals: full-width sheets */
+  .req-modal-overlay-cusset {
+    padding: 12px;
+  }
+
+  .req-modal-cusset,
+  .req-modal-cusset.req-accept-modal-cusset,
+  .req-modal-cusset.req-cancel-modal-cusset {
+    max-width: 100%;
+    width: calc(100% - 24px);
+    margin: 12px auto;
+    border-radius: 14px;
+    max-height: 92dvh;
   }
 
   .req-modal-cusset h3 {
     font-size: 18px;
-    padding: 16px 18px;
+    padding: 16px 52px 16px 18px;
   }
 
   .req-modal-scroll-cusset {
     padding: 16px 18px;
   }
 
-  .req-pdf-frame-cusset {
-    height: 300px;
+  .req-details-section-cusset p {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .req-total-line-cusset {
+    word-break: break-word;
+  }
+
+  .req-pay-option-cusset {
+    align-items: flex-start;
+    min-height: 44px;
+  }
+
+  .req-open-doc-btn-cusset {
+    width: 100%;
+    justify-content: center;
   }
 
   .req-modal-actions-cusset {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .req-modal-actions-cusset .req-cancel-btn-cusset,
   .req-modal-actions-cusset .req-confirm-btn-cusset {
     width: 100%;
+    min-height: 44px;
     justify-content: center;
+  }
+
+  .req-pdf-frame-cusset {
+    height: 300px;
+  }
+
+  .req-details-section-cusset textarea.schedule-form-input-cusset {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+  }
+}
+
+@media (max-width: 768px) {
+  .req-table-cusset tbody td {
+    padding: 10px 12px !important;
+    font-size: 12px;
+  }
+
+  .req-pdf-frame-cusset {
+    height: 300px;
   }
 }
 
 @media (max-width: 480px) {
+  .req-table-cusset tbody td {
+    align-items: flex-start;
+  }
+
+  .req-table-cusset tbody td[data-label="Actions"] {
+    align-items: stretch;
+  }
+
+  .req-table-cusset tbody td[data-label="Actions"]::before {
+    margin-bottom: 2px;
+  }
+
+  .req-ref-cusset,
+  .req-summary-cusset {
+    max-width: 100%;
+  }
+
   .req-action-cell-cusset {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .req-dropdown-trigger-btn,
-  .req-accept-btn-cusset {
+  .request-filter-tabs-page-cusset {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-tab-page-cusset {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .stat-badge-cusset {
     width: 100%;
     justify-content: center;
+  }
+
+  .req-modal-overlay-cusset {
+    padding: 8px;
+  }
+
+  .req-modal-cusset,
+  .req-modal-cusset.req-accept-modal-cusset,
+  .req-modal-cusset.req-cancel-modal-cusset {
+    width: calc(100% - 16px);
   }
 
   .req-pdf-frame-cusset {

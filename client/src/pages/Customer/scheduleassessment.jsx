@@ -1411,12 +1411,12 @@ const ScheduleAssessment = () => {
 
                       return (
                         <tr key={quote._id} className="req-table-row-cusset">
-                          <td><span className="req-ref-cusset">{quote.quotationReference}</span></td>
-                          <td><span className="type-badge-page free-quote">Free Quote</span></td>
-                          <td>{formatDate(quote.requestedAt)}</td>
-                          <td>{getFreeQuoteStatusBadge(quote.status)}</td>
-                          <td><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
-                          <td>
+                          <td data-label="Reference"><span className="req-ref-cusset">{quote.quotationReference}</span></td>
+                          <td data-label="Type"><span className="type-badge-page free-quote">Free Quote</span></td>
+                          <td data-label="Date">{formatDate(quote.requestedAt)}</td>
+                          <td data-label="Status">{getFreeQuoteStatusBadge(quote.status)}</td>
+                          <td data-label="Summary"><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td data-label="Actions">
                             <div className="req-action-cell-cusset">
                               {canAccept ? (
                                 <button
@@ -1507,12 +1507,12 @@ const ScheduleAssessment = () => {
 
                       return (
                         <tr key={assessment._id} className="req-table-row-cusset">
-                          <td><span className="req-ref-cusset">{assessment.bookingReference}</span></td>
-                          <td><span className="type-badge-page pre-assessment">Pre Assessment</span></td>
-                          <td>{formatDate(assessment.bookedAt || assessment.createdAt)}</td>
-                          <td>{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
-                          <td><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
-                          <td>
+                          <td data-label="Reference"><span className="req-ref-cusset">{assessment.bookingReference}</span></td>
+                          <td data-label="Type"><span className="type-badge-page pre-assessment">Pre Assessment</span></td>
+                          <td data-label="Date">{formatDate(assessment.bookedAt || assessment.createdAt)}</td>
+                          <td data-label="Status">{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
+                          <td data-label="Summary"><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td data-label="Actions">
                             <div className="req-action-cell-cusset">
                               {canAccept ? (
                                 <button

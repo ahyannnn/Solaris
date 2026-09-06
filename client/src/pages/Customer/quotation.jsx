@@ -70,6 +70,29 @@ const Quotation = () => {
     remarks: ''
   });
   const [proofFile, setProofFile] = useState(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState(null);
+
+  // Image preview for the uploaded proof (object URL revoked on change/unmount)
+  useEffect(() => {
+    if (proofFile && proofFile.type?.startsWith('image/')) {
+      const url = URL.createObjectURL(proofFile);
+      setProofPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setProofPreviewUrl(null);
+  }, [proofFile]);
+
+  const [paymentProofUrl, setPaymentProofUrl] = useState(null);
+
+  // Image preview for GCash screenshots (object URL revoked on change/unmount)
+  useEffect(() => {
+    if (paymentProof) {
+      const url = URL.createObjectURL(paymentProof);
+      setPaymentProofUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPaymentProofUrl(null);
+  }, [paymentProof]);
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const [showManualTransferForm, setShowManualTransferForm] = useState(false);
 
@@ -1415,9 +1438,18 @@ const Quotation = () => {
                     required
                   />
                   {proofFile ? (
-                    <span className="billing-customer-file-name">
-                      {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
-                    </span>
+                    <div className="billing-customer-proof-preview">
+                      {proofPreviewUrl && (
+                        <img
+                          src={proofPreviewUrl}
+                          alt="Proof of payment preview"
+                          className="billing-customer-proof-img"
+                        />
+                      )}
+                      <span className="billing-customer-proof-caption">
+                        {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </div>
                   ) : (
                     <>
                       <span className="upload-icon">
@@ -2268,6 +2300,18 @@ const Quotation = () => {
                     <div className="billing-customer-form-group">
                       <label>Upload Screenshot</label>
                       <input type="file" accept="image/*" onChange={handlePaymentProofChange} />
+                      {paymentProof && paymentProofUrl && (
+                        <div className="billing-customer-proof-preview">
+                          <img
+                            src={paymentProofUrl}
+                            alt="Payment screenshot preview"
+                            className="billing-customer-proof-img"
+                          />
+                          <span className="billing-customer-proof-caption">
+                            {paymentProof.name} ({(paymentProof.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <button className="billing-customer-confirm-btn" onClick={handleFullPaymentSubmit} disabled={isSubmitting}>
                       {isSubmitting ? 'Processing...' : 'Submit'}
@@ -2424,6 +2468,18 @@ const Quotation = () => {
                     <div className="billing-customer-form-group">
                       <label>Screenshot</label>
                       <input type="file" accept="image/*" onChange={handlePaymentProofChange} />
+                      {paymentProof && paymentProofUrl && (
+                        <div className="billing-customer-proof-preview">
+                          <img
+                            src={paymentProofUrl}
+                            alt="Payment screenshot preview"
+                            className="billing-customer-proof-img"
+                          />
+                          <span className="billing-customer-proof-caption">
+                            {paymentProof.name} ({(paymentProof.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <button className="billing-customer-confirm-btn" onClick={handlePaymentSubmit} disabled={isSubmitting}>
                       {isSubmitting ? 'Processing...' : 'Submit'}

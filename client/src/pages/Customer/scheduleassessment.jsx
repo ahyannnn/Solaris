@@ -465,13 +465,19 @@ const ScheduleAssessment = () => {
   }, []);
 
   useEffect(() => {
-    if (showPreAssessmentSuccess) {
+    if (showPreAssessmentSuccess || submitted) {
       window.scrollTo({
         top: 0,
         behavior: 'instant'
       });
+      // Mobile web view scrolls inside the dashboard content area, not the
+      // window — reset that scroller too or the success page opens midway.
+      const scroller = document.querySelector('.content-area-layout-dashboard');
+      if (scroller) {
+        scroller.scrollTo({ top: 0, behavior: 'instant' });
+      }
     }
-  }, [showPreAssessmentSuccess]);
+  }, [showPreAssessmentSuccess, submitted]);
 
   const fetchClientData = async () => {
     try {
@@ -2125,7 +2131,7 @@ const ScheduleAssessment = () => {
               <div className="form-section-body-cusset">
                 <div className="appliances-section-cusset">
                   <div className="appliances-header-cusset">
-                    <span className="appliances-count-cusset">{appliances.length} appliances added</span>
+                    <span className="appliances-count-cusset">{appliances.length} appliance{appliances.length !== 1 ? 's' : ''} added</span>
                     <button
                       type="button"
                       className="add-appliance-btn-cusset"
@@ -2736,7 +2742,7 @@ const ScheduleAssessment = () => {
               <div className="form-section-body-cusset">
                 <div className="appliances-section-cusset">
                   <div className="appliances-header-cusset">
-                    <span className="appliances-count-cusset">{appliances.length} appliances added</span>
+                    <span className="appliances-count-cusset">{appliances.length} appliance{appliances.length !== 1 ? 's' : ''} added</span>
                     <button
                       type="button"
                       className="add-appliance-btn-cusset"

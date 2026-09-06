@@ -548,9 +548,11 @@ body.dark-mode {
   border-color: rgba(243, 156, 18, 0.25);
 }
 
+/* Primary address is marked by its tag only — no orange card highlight
+   (all views, same as the mobile web version). */
 .cuset-address-card.cuset-primary {
-  border-color: var(--icon-color);
-  background: var(--bg-primary-address);
+  border-color: var(--border-card);
+  background: var(--bg-card);
 }
 
 .cuset-primary-tag {
@@ -1677,18 +1679,8 @@ body.dark-mode {
     cursor: not-allowed;
   }
 
-  /* Addresses tab (mobile): uniform cards — the Primary tag alone marks
-     the primary address, no orange card border. Address text flush left. */
-  .cuset-address-card.cuset-primary {
-    border-color: var(--border-card);
-    background: var(--bg-card);
-  }
-
-  .cuset-address-card.cuset-primary:hover {
-    border-color: var(--border-card);
-    box-shadow: var(--shadow-card);
-  }
-
+  /* Addresses tab (mobile): address text flush left. Primary cards are
+     uniform via the base rule above (tag alone marks primary). */
   .cuset-address-text,
   .cuset-address-text p {
     margin-left: 0;

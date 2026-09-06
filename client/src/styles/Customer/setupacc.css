@@ -997,3 +997,244 @@
     animation: none !important;
   }
 }
+
+/* ============================================ */
+/* MOBILE-APP SETUP LOOK (mobile view only) */
+/* Mirrors mobile setup screens: white centered */
+/* screen, circular logo, stacked filled fields. */
+/* Desktop / web version is intentionally untouched. */
+/* ============================================ */
+.new-setup-mobile-logo {
+  display: none;
+}
+
+.new-setup-select-chevron {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .new-setup-page {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #ffffff;
+    overflow-y: auto;
+  }
+
+  /* No branding banner on mobile — logo lives in the form */
+  .new-setup-branding {
+    display: none !important;
+  }
+
+  .new-setup-form-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    padding: 16px 28px 24px;
+    align-items: center;
+    overflow: visible;
+    background: #ffffff;
+  }
+
+  .new-setup-form-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+    height: auto;
+  }
+
+  .new-setup-mobile-logo {
+    display: block;
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #F1F5F9;
+    padding: 16px;
+    margin: 8px auto 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Centered headings like the mobile screens */
+  .new-setup-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .new-setup-form-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+  }
+
+  .new-setup-form-subtitle {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  /* Filled stacked fields */
+  .new-setup-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0;
+    margin-bottom: 8px;
+  }
+
+  .new-setup-input-wrapper,
+  .new-setup-select-wrapper {
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 12px;
+  }
+
+  .new-setup-input-wrapper:focus-within,
+  .new-setup-select-wrapper:focus-within {
+    border-color: #f39c12;
+    background: #ffffff;
+  }
+
+  .new-setup-input-wrapper:has(.new-setup-form-input.error),
+  .new-setup-select-wrapper:has(.new-setup-select.error) {
+    border-color: #EF4444;
+    border-width: 1.5px;
+  }
+
+  .new-setup-form-input,
+  .new-setup-select {
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 14px 14px 44px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #0F172A;
+  }
+
+  .new-setup-select {
+    padding-right: 36px;
+  }
+
+  .new-setup-form-input::placeholder {
+    color: #94A3B8;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .new-setup-form-input:hover,
+  .new-setup-select:hover {
+    background: transparent;
+    border: none;
+  }
+
+  .new-setup-form-input:focus,
+  .new-setup-select:focus {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .new-setup-form-input.error,
+  .new-setup-select.error {
+    background: transparent;
+    border: none;
+    animation: none;
+  }
+
+  .new-setup-input-icon,
+  .new-setup-select-icon {
+    left: 14px;
+    color: #64748B;
+    font-size: 20px;
+  }
+
+  .new-setup-input-wrapper:has(.new-setup-form-input.error) .new-setup-input-icon,
+  .new-setup-select-wrapper:has(.new-setup-select.error) .new-setup-select-icon {
+    color: #EF4444;
+  }
+
+  .new-setup-input-wrapper:focus-within .new-setup-input-icon,
+  .new-setup-select-wrapper:focus-within .new-setup-select-icon {
+    color: #f39c12;
+    transform: none;
+  }
+
+  .new-setup-error-message {
+    font-size: 12px;
+    font-weight: 500;
+    color: #EF4444;
+    margin: 6px 0 0 4px;
+  }
+
+  .new-setup-hint-text {
+    font-size: 12px;
+    margin: 6px 0 0 4px;
+  }
+
+  .new-setup-info-box {
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Primary buttons */
+  .new-setup-btn-next,
+  .new-setup-btn-submit,
+  .new-setup-btn-dashboard {
+    min-height: 52px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0;
+    width: 100%;
+  }
+
+  .new-setup-btn-next::before,
+  .new-setup-btn-submit::before {
+    display: none;
+  }
+
+  .new-setup-btn-next:hover:not(:disabled),
+  .new-setup-btn-submit:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .new-setup-form-actions {
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .new-setup-btn-back {
+    min-height: 52px;
+    border-radius: 14px;
+    font-size: 15px;
+  }
+
+  /* Birthday selects share the row equally so "Day" never cuts */
+  .new-setup-birthday-row {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  /* Dropdown chevron on the Account Type field */
+  .new-setup-select-chevron {
+    display: inline-flex;
+    position: absolute;
+    right: 14px;
+    color: #94A3B8;
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .new-setup-select-wrapper:has(.new-setup-select-chevron) > .new-setup-select {
+    padding-right: 40px;
+  }
+
+  /* Success screen stays centered */
+  .new-setup-success-container {
+    text-align: center;
+  }
+}

@@ -3551,3 +3551,97 @@ body.dark-mode {
     font-size: 13px;
   }
 }
+
+/* ============================================
+   BOOK FORM MOBILE FIXES (mobile view only)
+   - Section subtitles wrap instead of cutting
+   - 9-column appliance table becomes stacked cards
+   - Bottom clearance above the floating nav
+   Desktop / web version is intentionally untouched.
+   ============================================ */
+@media (max-width: 768px) {
+  .form-section-title-group-cusset {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .form-section-title-group-cusset p {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .schedule-container-cusset {
+    padding-bottom: 32px;
+  }
+
+  /* Appliance table → stacked cards */
+  .appliances-table-container-cusset {
+    overflow: visible;
+    border: none;
+  }
+
+  .appliances-table-cusset thead {
+    display: none;
+  }
+
+  .appliances-table-cusset,
+  .appliances-table-cusset tbody {
+    display: block;
+  }
+
+  .appliances-table-cusset tbody tr {
+    display: block;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 4px 14px;
+    margin-bottom: 12px;
+  }
+
+  .appliances-table-cusset tbody tr td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    text-align: right;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .appliances-table-cusset tbody tr td:last-child {
+    border-bottom: none;
+  }
+
+  .appliances-table-cusset tbody tr td::before {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  .appliances-table-cusset tbody tr td:nth-child(1)::before { content: 'Appliance'; }
+  .appliances-table-cusset tbody tr td:nth-child(2)::before { content: 'Power (W)'; }
+  .appliances-table-cusset tbody tr td:nth-child(3)::before { content: 'Qty'; }
+  .appliances-table-cusset tbody tr td:nth-child(4)::before { content: 'Day Hours'; }
+  .appliances-table-cusset tbody tr td:nth-child(5)::before { content: 'Night Hours'; }
+  .appliances-table-cusset tbody tr td:nth-child(6)::before { content: 'Type'; }
+  .appliances-table-cusset tbody tr td:nth-child(7)::before { content: 'Day Energy'; }
+  .appliances-table-cusset tbody tr td:nth-child(8)::before { content: 'Night Energy'; }
+  .appliances-table-cusset tbody tr td:nth-child(9)::before { content: 'Actions'; }
+
+  .appliances-table-cusset tbody tr td strong {
+    text-align: right;
+  }
+
+  .appliances-table-cusset tbody tr td > * {
+    min-width: 0;
+  }
+
+  .appliances-table-cusset .edit-appliance-btn,
+  .appliances-table-cusset .delete-appliance-btn {
+    margin-right: 0;
+    white-space: nowrap;
+  }
+}

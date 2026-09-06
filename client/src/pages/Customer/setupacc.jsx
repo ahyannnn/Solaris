@@ -13,6 +13,9 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaCalendarAlt,
+  FaCalendarDay,
+  FaCalendar,
+  FaChevronDown,
   FaBuilding,
   FaRoad,
   FaIndustry,
@@ -701,6 +704,10 @@ const SetupAccount = () => {
         {/* FORM SECTION - Step 1: Left, Step 2: Right, Step 3: Left */}
         <div className={`new-setup-form-container ${isFormLeft ? 'form-left' : 'form-right'}`}>
           <div className="new-setup-form-wrapper">
+            {/* Mobile-app look only (mirrors mobile setup screens) */}
+            {currentStep !== 3 && (
+              <img src={logo} alt="Salfer Engineering" className="new-setup-mobile-logo" />
+            )}
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <>
@@ -736,6 +743,7 @@ const SetupAccount = () => {
                         <option value="company">Company</option>
                         <option value="industrial">Industrial</option>
                       </select>
+                      <FaChevronDown className="new-setup-select-chevron" />
                     </div>
                     {errors.accountType && <span className="new-setup-error-message">{errors.accountType}</span>}
                   </div>
@@ -798,6 +806,7 @@ const SetupAccount = () => {
                       </div>
 
                       <div className="new-setup-select-wrapper">
+                        <FaCalendarDay className="new-setup-select-icon" />
                         <select
                           name="birthDay"
                           value={formData.birthDay}
@@ -812,6 +821,7 @@ const SetupAccount = () => {
                       </div>
 
                       <div className="new-setup-select-wrapper">
+                        <FaCalendar className="new-setup-select-icon" />
                         <select
                           name="birthYear"
                           value={formData.birthYear}

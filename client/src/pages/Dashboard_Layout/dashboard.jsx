@@ -1,5 +1,5 @@
 // pages/Dashboard_Layout/dashboard.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -87,6 +87,10 @@ const Dashboard = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [maintenanceStatus, setMaintenanceStatus] = useState({ isUnderMaintenance: false, title: '' });
   const [unreadCount, setUnreadCount] = useState(0);
+  // Red-dot action alerts (customer only): book needs accept-action,
+  // billing has pending payable.
+  const [bookNeedsAction, setBookNeedsAction] = useState(false);
+  const [billingPending, setBillingPending] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -197,6 +201,54 @@ const Dashboard = () => {
       console.error('Error fetching unread count:', error);
     }
   };
+
+  // Fetch red-dot action alerts (customer only, mirrors page predicates):
+  // Book = quotation ready to accept; Billing = pending payable.
+  // Stable identity (role via ref) so socket handlers never go stale.
+  const userRoleRef = useRef(userRole);
+  userRoleRef.current = userRole;
+  const fetchActionAlerts = useCallback(async () => {
+    if (userRoleRef.current !== 'user') return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const headers = { Authorization: `Bearer ${token}` };
+      const base = import.meta.env.VITE_API_URL;
+      const [quotesRes, assessmentsRes, invoicesRes] = await Promise.all([
+        axios.get(`${base}/api/free-quotes/my-quotes`, { headers }),
+        axios.get(`${base}/api/pre-assessments/my-bookings`, { headers }),
+        axios.get(`${base}/api/solar-invoices/my-invoices`, { headers }),
+      ]);
+
+      const quotes = quotesRes.data?.quotes || [];
+      const assessments = assessmentsRes.data?.assessments || [];
+      const invoices = invoicesRes.data?.invoices || [];
+
+      const needsAction =
+        assessments.some((a) => a?.assessmentStatus === 'quotation_generated') ||
+        quotes.some((q) => (q?.quotationFile || q?.quotationUrl) && q?.status !== 'accepted');
+
+      // Billable assessments only — mirrors the billing screens, which list
+      // an assessment only once it has an invoice (never while pending
+      // review). Otherwise bookings awaiting review would wrongly light the
+      // dot since their paymentStatus is already 'pending'.
+      const billableAssessments = assessments.filter((a) =>
+        a?.invoiceNumber != null && a?.assessmentStatus !== 'pending_review'
+      );
+      const isUnresolvedPayStatus = (s) =>
+        !['paid', 'for_verification', 'cancelled', 'failed'].includes(s);
+
+      const pendingPayable =
+        billableAssessments.some((a) => isUnresolvedPayStatus(a?.paymentStatus)) ||
+        invoices.some((inv) => inv?.paymentStatus === 'pending' && (inv?.balance ?? 1) > 0);
+
+      setBookNeedsAction(needsAction);
+      setBillingPending(pendingPayable);
+    } catch (error) {
+      console.error('Error fetching action alerts:', error);
+    }
+  }, []);
 
   // Fetch notifications for popover
   const fetchNotifications = async () => {
@@ -824,6 +876,10 @@ const Dashboard = () => {
       // 1. Update unread count immediately in real time
       setUnreadCount((prev) => prev + 1);
 
+      // 1b. Billing/assessment/quotation changes arrive as notifications —
+      // refresh the red-dot flags instantly instead of waiting for the poll.
+      fetchActionAlerts();
+
       // 2. Update notifications list for popover
       const processedNotif = {
         ...notification,
@@ -870,7 +926,7 @@ const Dashboard = () => {
       socketService.off('notifications:readAll', handleReadAll);
       socketService.off('notification:deleted', handleNotificationDeleted);
     };
-  }, [showNotificationToast]);
+  }, [showNotificationToast, fetchActionAlerts]);
 
   // Poll for unread count as fallback
   useEffect(() => {
@@ -879,6 +935,23 @@ const Dashboard = () => {
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, [initialized]);
+
+  // Poll red-dot action alerts as fallback (customer only)
+  useEffect(() => {
+    if (!initialized || userRole !== 'user') return;
+
+    fetchActionAlerts();
+    const interval = setInterval(fetchActionAlerts, 30000);
+    return () => clearInterval(interval);
+  }, [initialized, userRole, fetchActionAlerts]);
+
+  // Refresh alert flags immediately after in-app navigation (e.g. back
+  // from paying a bill or requesting an assessment) — no waiting for poll.
+  useEffect(() => {
+    if (!initialized || userRole !== 'user') return;
+
+    fetchActionAlerts();
+  }, [location.pathname, initialized, userRole, fetchActionAlerts]);
 
   // Fetch maintenance status (Admin only)
   useEffect(() => {
@@ -1150,6 +1223,10 @@ const Dashboard = () => {
                       {item.badge && unreadCount > 0 && (
                         <span className="notification-badge-sidebar">{unreadCount}</span>
                       )}
+                      {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
+                        (item.path === '/app/customer/billing' && billingPending)) && (
+                        <span className="nav-alert-dot" aria-label="Action needed" />
+                      )}
                     </button>
                   ))
                 )}
@@ -1338,6 +1415,10 @@ const Dashboard = () => {
                 {active && <span className="mobile-bottom-nav-label">{item.shortLabel || item.label}</span>}
                 {item.badge && unreadCount > 0 && (
                   <span className="notification-badge-sidebar floating">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                )}
+                {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
+                  (item.path === '/app/customer/billing' && billingPending)) && (
+                  <span className="nav-alert-dot floating" aria-label="Action needed" />
                 )}
               </button>
             );

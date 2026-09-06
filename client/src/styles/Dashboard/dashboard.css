@@ -2498,3 +2498,25 @@ body.dark-mode .mobile-sheet {
     color: #FFFFFF;
   }
 }
+
+/* ============================================
+   RED-DOT ACTION ALERTS (web only)
+   Book Assessment = quotation ready to accept;
+   Billing = pending payable. Customer sidebar +
+   bottom nav. Solid red reads in both themes.
+   ============================================ */
+.nav-alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.mobile-bottom-nav-item .nav-alert-dot.floating {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  margin: 0;
+}

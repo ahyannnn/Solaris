@@ -10,8 +10,6 @@ import {
   FaCog,
   FaBell,
   FaSignOutAlt,
-  FaBars,
-  FaTimes,
   FaClipboardList,
   FaProjectDiagram,
   FaFileInvoiceDollar,
@@ -31,6 +29,8 @@ import {
   FaExclamationTriangle,
   FaChevronDown,
   FaChevronUp,
+  FaChevronRight,
+  FaChevronLeft,
   FaLifeRing,
   FaUserCog,
   FaCheckCircle,
@@ -94,6 +94,9 @@ const Dashboard = () => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
   const buttonRef = useRef(null);
+  // Mobile stacked sheet: null | 'main' | 'settings' | 'support'
+  // (mirrors mobile PremiumProfileMenu -> Settings/Support modals)
+  const [mobileSheetView, setMobileSheetView] = useState(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
@@ -167,6 +170,7 @@ const Dashboard = () => {
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
         setShowNotifications(false);
+        setMobileSheetView(null);
       }
     };
 
@@ -221,8 +225,14 @@ const Dashboard = () => {
     }
   };
 
-  // Toggle notification popover
+  // Toggle notification popover, except customer mobile which goes straight
+  // to the notifications page (mirrors mobile _navigateToNotifications).
+  // Staff keep the popover since they keep the sidebar drawer.
   const toggleNotifications = () => {
+    if (userRole === 'user' && isMobile()) {
+      handleNavigation(getNotificationsPath());
+      return;
+    }
     if (!showNotifications) {
       fetchNotifications();
     }
@@ -569,6 +579,16 @@ const Dashboard = () => {
 
   const pageInfo = getPageInfo();
 
+  // Profile / Addresses / FAQs / Contact Info / Guides / Notifications act as
+  // pushed full screens on customer mobile (like the mobile app): dashboard
+  // header + bottom nav hidden, each page's own back button returns.
+  // Admin/Engineer keep the sidebar drawer on mobile, so no fullscreen.
+  const isFullScreenPage = userRole === 'user' && (
+    location.pathname.endsWith('/notifications') ||
+    location.pathname === '/app/customer/settings' ||
+    location.pathname === '/app/customer/support'
+  );
+
   // Get user initials from name
   const getUserInitials = (name) => {
     if (!name) return 'U';
@@ -683,7 +703,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
-            { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
+            { icon: <FaCalendarAlt />, label: 'Book Assessment', shortLabel: 'Book', path: '/app/customer/book-assessment' },
             { icon: <FaReceipt />, label: 'Billing', path: '/app/customer/billing' },
           ]
         },
@@ -736,6 +756,7 @@ const Dashboard = () => {
 
   const isAdmin = userRole === 'admin';
   const isEngineer = userRole === 'engineer';
+  const isCustomer = userRole === 'user';
   const isMobile = () => window.innerWidth <= 768;
 
   // Handle window resize for sidebar
@@ -882,6 +903,39 @@ const Dashboard = () => {
 
   const currentMenu = menuItems[userRole] || menuItems.admin;
 
+  // ---- Mobile bottom nav model (mirrors mobile dashboard_layout.dart) ----
+  // Customer: 4 main tabs. Admin/Engineer: first 4 + the rest in profile menu.
+  const mobileBottomNavItems = (() => {
+    const sections = currentMenu.sections || [];
+    const main = sections.find((s) => s.key === 'main');
+    if (userRole === 'engineer') {
+      const mgmt = sections.find((s) => s.key === 'management');
+      return [...(main?.items || []), ...((mgmt?.items || []).slice(0, 1))].slice(0, 4);
+    }
+    return (main?.items || []).slice(0, 4);
+  })();
+
+  // Items NOT in the bottom pill — reachable via the mobile profile menu
+  const mobileOverflowNavItems = (() => {
+    const sections = currentMenu.sections || [];
+    const pillPaths = new Set(mobileBottomNavItems.map((i) => i.path));
+    const items = [];
+    sections.forEach((s) => {
+      if (s.key === 'main' || s.isNested) return;
+      (s.items || []).forEach((i) => { if (!pillPaths.has(i.path)) items.push(i); });
+    });
+    if (userRole === 'engineer') {
+      const mgmt = sections.find((s) => s.key === 'management');
+      (mgmt?.items || []).slice(1).forEach((i) => { if (!pillPaths.has(i.path)) items.push(i); });
+    }
+    return items;
+  })();
+
+  // Customer Settings/Support submenus (mirrors mobile _settingsSubmenu/_supportSubmenu)
+  const customerSettingsSection = (menuItems.user.sections || []).find((s) => s.key === 'settings');
+  const customerSupportDropdown = (customerSettingsSection?.items || []).find((d) => d.key === 'support');
+  const customerSettingsDropdown = (customerSettingsSection?.items || []).find((d) => d.key === 'settingsSub');
+
   // Check if a path is active
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
@@ -918,6 +972,7 @@ const Dashboard = () => {
   };
 
   const handleLogoutClick = () => {
+    setMobileSheetView(null);
     setShowLogoutModal(true);
   };
 
@@ -941,6 +996,7 @@ const Dashboard = () => {
     if (isNavigating) return;
     setIsNavigating(true);
     setShowNotifications(false);
+    setMobileSheetView(null);
     navigate(path);
     if (isMobile()) {
       setSidebarOpen(false);
@@ -980,17 +1036,19 @@ const Dashboard = () => {
   };
 
   return (
-    <div className={`dashboard-layout-dashboard ${dashboardReady ? 'dashboard-ready' : ''}`}>
-      {/* Mobile Hamburger Button */}
-      <button
-        className={`mobile-hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open menu"
-      >
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
-        <span className="hamburger-line"></span>
-      </button>
+    <div className={`dashboard-layout-dashboard role-${userRole} ${dashboardReady ? 'dashboard-ready' : ''} ${isFullScreenPage ? 'on-fullscreen-page' : ''}`}>
+      {/* Hamburger (staff mobile only — customer uses the bottom nav) */}
+      {!isCustomer && (
+        <button
+          className={`mobile-hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </button>
+      )}
 
       {/* Sidebar Overlay */}
       <div
@@ -1118,7 +1176,19 @@ const Dashboard = () => {
         <header className="dashboard-header-layout-dashboard">
           <div className="header-left-layout-dashboard">
             <div className="page-header-info-layout-dashboard">
-              <h1 className="page-title-layout-dashboard">{pageInfo.title}</h1>
+              <div className="page-title-row-layout-dashboard">
+                <h1 className="page-title-layout-dashboard">{pageInfo.title}</h1>
+                {/* Customer mobile only: title arrow opens the stacked sheet modals */}
+                {isCustomer && (
+                  <button
+                    className="page-title-chevron-btn"
+                    onClick={() => setMobileSheetView('main')}
+                    aria-label="Open menu"
+                  >
+                    <FaChevronRight size={16} />
+                  </button>
+                )}
+              </div>
               <p className="page-description-layout-dashboard">{pageInfo.description}</p>
             </div>
           </div>
@@ -1228,6 +1298,7 @@ const Dashboard = () => {
               )}
             </div>
 
+            {/* Static user pill (not clickable) */}
             <div className="header-user-info-layout-dashboard">
               {/* Initials Avatar - replaces profile image */}
               <div className="header-user-initials-avatar">
@@ -1243,6 +1314,127 @@ const Dashboard = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Customer mobile bottom floating nav (mirrors mobile PremiumFloatingBottomNav).
+          Staff keep the hamburger + sidebar drawer. */}
+      {isCustomer && (
+      <nav className="mobile-bottom-nav-layout-dashboard" aria-label="Mobile navigation">
+        <div className="mobile-bottom-nav-pill">
+          {mobileBottomNavItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.path}
+                className={`mobile-bottom-nav-item ${active ? 'active' : ''}`}
+                onClick={() => handleNavigation(item.path)}
+                disabled={isNavigating}
+                aria-label={item.label}
+              >
+                {/* Dashboard uses the grid icon like mobile (dashboard_outlined);
+                    Book shows its short label — bottom nav only, sidebar keeps full items */}
+                <span className="mobile-bottom-nav-icon">
+                  {item.path === '/app/customer' ? <FaThLarge /> : item.icon}
+                </span>
+                {active && <span className="mobile-bottom-nav-label">{item.shortLabel || item.label}</span>}
+                {item.badge && unreadCount > 0 && (
+                  <span className="notification-badge-sidebar floating">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+      )}
+
+      {/* Mobile stacked sheet modals
+          (mirrors mobile PremiumProfileMenu -> PremiumSettingsModal/PremiumSupportModal) */}
+      {mobileSheetView && (
+        <div className="mobile-sheet-overlay" onClick={() => setMobileSheetView(null)}>
+          <div className="mobile-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-sheet-handle" />
+
+            {mobileSheetView === 'main' && (
+              <>
+                <div className="mobile-sheet-profile">
+                  <div className="header-user-initials-avatar large">
+                    {getUserInitials(userName)}
+                  </div>
+                  <div className="mobile-sheet-meta">
+                    <strong>{userName}</strong>
+                      <span>{userRole === 'admin' ? 'Administrator' : userRole === 'engineer' ? 'Engineer' : 'Customer'}</span>
+                    </div>
+                  </div>
+                {userRole === 'user' ? (
+                  <>
+                    <button className="mobile-sheet-item" onClick={() => setMobileSheetView('settings')} disabled={isNavigating}>
+                      <span className="mobile-sheet-icon"><FaUserCog /></span>Settings
+                      <FaChevronRight size={14} className="mobile-sheet-chevron" />
+                    </button>
+                    <button className="mobile-sheet-item" onClick={() => setMobileSheetView('support')} disabled={isNavigating}>
+                      <span className="mobile-sheet-icon"><FaLifeRing /></span>Support
+                      <FaChevronRight size={14} className="mobile-sheet-chevron" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {mobileOverflowNavItems.length > 0 && (
+                      <>
+                        <div className="mobile-sheet-section">More</div>
+                        {mobileOverflowNavItems.map((item) => (
+                          <button key={item.path} className={`mobile-sheet-item ${isActive(item.path) ? 'active' : ''}`} onClick={() => handleNavigation(item.path)} disabled={isNavigating}>
+                            <span className="mobile-sheet-icon">{item.icon}</span>{item.label}
+                            {item.badge && unreadCount > 0 && (
+                              <span className="notification-badge-sidebar">{unreadCount}</span>
+                            )}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+                <div className="mobile-sheet-divider" />
+                <button className="mobile-sheet-item logout" onClick={handleLogoutClick} disabled={isNavigating}>
+                  <span className="mobile-sheet-icon"><FaSignOutAlt /></span>Logout
+                </button>
+              </>
+            )}
+
+            {mobileSheetView === 'settings' && (
+              <>
+                <div className="mobile-sheet-titlebar">
+                  <button className="mobile-sheet-back" onClick={() => setMobileSheetView('main')} aria-label="Back">
+                    <FaChevronLeft size={14} />
+                  </button>
+                  <span className="mobile-sheet-title">Settings</span>
+                </div>
+                {(customerSettingsDropdown?.items || []).map((s) => (
+                  <button key={s.path} className="mobile-sheet-item" onClick={() => handleDropdownItemClick(s.path)} disabled={isNavigating}>
+                    <span className="mobile-sheet-icon">{s.icon}</span>{s.label}
+                    <FaChevronRight size={14} className="mobile-sheet-chevron" />
+                  </button>
+                ))}
+              </>
+            )}
+
+            {mobileSheetView === 'support' && (
+              <>
+                <div className="mobile-sheet-titlebar">
+                  <button className="mobile-sheet-back" onClick={() => setMobileSheetView('main')} aria-label="Back">
+                    <FaChevronLeft size={14} />
+                  </button>
+                  <span className="mobile-sheet-title">Support</span>
+                </div>
+                {(customerSupportDropdown?.items || []).map((s) => (
+                  <button key={s.path} className="mobile-sheet-item" onClick={() => handleDropdownItemClick(s.path)} disabled={isNavigating}>
+                    <span className="mobile-sheet-icon">{s.icon}</span>{s.label}
+                    <FaChevronRight size={14} className="mobile-sheet-chevron" />
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Logout Modal */}
       {showLogoutModal && (

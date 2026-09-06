@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
+  FaArrowLeft,
   FaBell,
   FaCheck,
   FaCheckDouble,
@@ -50,6 +51,14 @@ const Notifications = () => {
 
   const getUserRole = () => {
     return localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+  };
+
+  // Mobile back button target (role dashboard)
+  const getDashboardPath = () => {
+    const role = getUserRole();
+    if (role === 'admin') return '/app/admin';
+    if (role === 'engineer') return '/app/engineer';
+    return '/app/customer';
   };
 
   // Real-time socket events
@@ -467,6 +476,10 @@ const Notifications = () => {
         {/* Header */}
         <header className="notif-header">
           <div className="notif-header-left">
+            {/* Mobile only: back to dashboard */}
+            <button className="notif-back-btn" onClick={() => navigate(getDashboardPath())} aria-label="Back to dashboard">
+              <FaArrowLeft />
+            </button>
             <div className="notif-header-icon-wrapper">
               <FaBell className="notif-header-icon" />
               {unreadCount > 0 && <span className="notif-header-dot"></span>}

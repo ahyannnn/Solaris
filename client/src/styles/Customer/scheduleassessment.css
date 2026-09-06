@@ -3443,3 +3443,116 @@ body.dark-mode {
   box-shadow: none !important;
   border-color: var(--border-color) !important;
 }
+
+/* ============================================
+   VIEW REQUESTS ROW — mobile-style full-width row
+   (mirrors mobile service_selection_screen.dart).
+   Web color scheme retained (vars adapt to dark mode).
+   ============================================ */
+.svc-sel-requests-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  margin-bottom: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.svc-sel-requests-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(243, 156, 18, 0.25);
+}
+
+.svc-sel-requests-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--bg-icon-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.svc-sel-requests-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.svc-sel-requests-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.svc-sel-requests-text small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.svc-sel-requests-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.svc-sel-count-pill {
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #F39C12;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.svc-sel-chevron {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+/* Keep both card buttons on the same baseline: cards stretch to equal
+   height and buttons are bottom-pinned; pending notes float below the
+   button so they never push it out of alignment. */
+.service-selection-grid-cusset {
+  align-items: stretch;
+}
+
+.card-button-container-cusset {
+  position: relative;
+}
+
+.svc-sel-pending-note {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: block;
+  margin-top: 8px;
+  color: #f59e0b;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .svc-sel-requests-text strong {
+    font-size: 13px;
+  }
+}

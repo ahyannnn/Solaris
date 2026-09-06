@@ -734,6 +734,10 @@ const CustomerSettings = () => {
       <div className="cuset-page">
         {/* Header */}
         <div className="cuset-header">
+          {/* Mobile only: back to dashboard */}
+          <button className="cuset-back-btn" onClick={() => navigate('/app/customer')} aria-label="Back to dashboard">
+            <FaArrowLeft />
+          </button>
           <div className="cuset-header-content">
             <h1>Account Settings</h1>
             <p>

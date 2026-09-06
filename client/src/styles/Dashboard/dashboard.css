@@ -1122,6 +1122,16 @@ body.dark-mode {
   background: rgba(255, 255, 255, 0.7) !important;
 }
 
+/* Staff hamburger floats over the light page background on mobile, so the
+   lines follow the theme text color instead of staying white. */
+.mobile-hamburger-btn .hamburger-line {
+  background: var(--text-primary) !important;
+}
+
+body.dark-mode .mobile-hamburger-btn .hamburger-line {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
 .mobile-hamburger-btn:hover .hamburger-line {
   background: var(--sidebar-accent) !important;
 }
@@ -2117,5 +2127,374 @@ body.dark-mode .notification-popover-body::-webkit-scrollbar-thumb {
     height: 32px;
     font-size: 0.85rem;
     padding: 0.35rem;
+  }
+}
+
+/* ============================================
+   MOBILE NAV-BAR MODE (<=768px only)
+   Mirrors mobile dashboard_layout.dart:
+   title + chevron header, floating pill bottom nav,
+   profile sheet menu — using the WEB color scheme.
+   Desktop (>768px) sidebar is intentionally untouched.
+   ============================================ */
+
+/* Base (all sizes): mobile nav hidden, title chevron hidden */
+.mobile-bottom-nav-layout-dashboard {
+  display: none;
+}
+
+.page-title-row-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.page-title-chevron-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-primary);
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   MOBILE STACKED SHEET MODALS
+   Mirrors mobile PremiumProfileMenu /
+   PremiumSettingsModal / PremiumSupportModal.
+   Desktop: never shown (trigger is mobile-only).
+   ============================================ */
+.mobile-sheet-overlay {
+  display: none;
+}
+
+.header-user-initials-avatar.large {
+  width: 46px;
+  height: 46px;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.mobile-sheet {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem 0.75rem calc(1rem + env(safe-area-inset-bottom));
+  max-height: 72vh;
+  overflow-y: auto;
+  animation: mobileSheetUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mobileSheetUp {
+  from {
+    opacity: 0.5;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-medium);
+  margin: 0.35rem auto 0.6rem;
+}
+
+.mobile-sheet-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.25rem 0.7rem;
+}
+
+.mobile-sheet-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-sheet-meta strong {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-sheet-meta span {
+  font-size: 0.78rem;
+  font-family: var(--font-family);
+  color: var(--text-secondary);
+}
+
+.mobile-sheet-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.25rem 0.7rem;
+}
+
+.mobile-sheet-title {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.mobile-sheet-back,
+.mobile-sheet-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--header-user-bg);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-sheet-section {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: var(--font-family);
+  color: var(--text-muted);
+  padding: 0.55rem 0.35rem 0.25rem;
+}
+
+.mobile-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.65rem 0.35rem;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+  letter-spacing: -0.2px;
+}
+
+.mobile-sheet-item.active {
+  color: var(--sidebar-accent);
+}
+
+.mobile-sheet-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--header-user-bg);
+  border: 1px solid var(--header-user-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.mobile-sheet-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.mobile-sheet-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 0.45rem 0.1rem;
+}
+
+.mobile-sheet-item.logout {
+  color: #EF4444;
+}
+
+.mobile-sheet-item.logout .mobile-sheet-icon {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+body.dark-mode .mobile-sheet {
+  background: #1A2533;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  /* Customer mobile: no hamburger / no sidebar — bottom nav replaces them.
+     Staff keep the hamburger + sidebar drawer. */
+  .role-user .mobile-hamburger-btn,
+  .role-user .sidebar-layout-dashboard,
+  .role-user .sidebar-overlay-layout-dashboard {
+    display: none !important;
+  }
+
+  /* Customer header no longer reserves hamburger space */
+  .role-user .dashboard-header-layout-dashboard {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Customer mobile shows title + chevron (mirrors mobile PremiumAppBar).
+     Overrides the older rule that hid the title on mobile. */
+  .role-user .page-title-layout-dashboard {
+    display: block !important;
+    font-size: 1.05rem;
+  }
+
+  .page-description-layout-dashboard {
+    display: none !important;
+  }
+
+  /* Staff mobile header: page title hidden, only the initials avatar shows
+     (the full name stays hidden by the older mobile rule). */
+  .role-admin .page-title-row-layout-dashboard,
+  .role-engineer .page-title-row-layout-dashboard {
+    display: none !important;
+  }
+
+  /* Room for the floating pill (customer only) */
+  .role-user .content-area-layout-dashboard {
+    padding-bottom: 120px;
+  }
+
+  /* Mobile title chevron (mirrors mobile onProfileTap) */
+  .page-title-chevron-btn {
+    display: inline-flex;
+  }
+
+  /* Floating pill bottom nav (mirrors PremiumFloatingBottomNav) */
+  .mobile-bottom-nav-layout-dashboard {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900;
+    padding: 0 20px calc(12px + env(safe-area-inset-bottom));
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .mobile-bottom-nav-pill {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    min-height: 68px;
+    max-height: 76px;
+    padding: 8px;
+    gap: 2px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: 36px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-bottom-nav-item {
+    position: relative;
+    flex: 1;
+    height: 48px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 24px;
+    color: var(--text-muted);
+    font-family: var(--font-family);
+    padding: 0 6px;
+    min-width: 0;
+    transition: background var(--transition-base), color var(--transition-base);
+  }
+
+  .mobile-bottom-nav-item.active {
+    flex: 2;
+    background: rgba(243, 156, 18, 0.14);
+    color: var(--text-primary);
+    padding: 0 14px;
+  }
+
+  .mobile-bottom-nav-item.active .mobile-bottom-nav-icon {
+    color: var(--sidebar-accent);
+  }
+
+  .mobile-bottom-nav-icon {
+    font-size: 20px;
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .mobile-bottom-nav-item:not(.active) .mobile-bottom-nav-icon {
+    font-size: 22px;
+  }
+
+  .mobile-bottom-nav-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .notification-badge-sidebar.floating {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    margin: 0;
+  }
+
+  /* Stacked sheet overlay (mirrors mobile modal bottom sheets) */
+  .mobile-sheet-overlay {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-sheet {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* Full-screen pages on mobile (mirrors mobile pushed routes):
+     notifications, profile, addresses, FAQs, contact info, guides —
+     dashboard header + bottom nav hidden, page's own back button returns. */
+  .on-fullscreen-page .dashboard-header-layout-dashboard,
+  .on-fullscreen-page .mobile-bottom-nav-layout-dashboard {
+    display: none !important;
+  }
+
+  .on-fullscreen-page .content-area-layout-dashboard {
+    padding-bottom: 1rem;
+  }
+
+  body.dark-mode .mobile-bottom-nav-item.active {
+    background: rgba(243, 156, 18, 0.18);
+    color: #FFFFFF;
   }
 }

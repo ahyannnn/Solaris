@@ -30,7 +30,8 @@ import {
   FaClock,
   FaFilter,
   FaSearch,
-  FaSolarPanel
+  FaSolarPanel,
+  FaFolderOpen
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -1960,6 +1961,8 @@ const ScheduleAssessment = () => {
   );
 
   // ============ SERVICE SELECTION PAGE ============
+  // Web 2-column cards restored as-is; only the View Requests control uses
+  // the mobile-style full-width row (mirrors service_selection_screen.dart).
   if (currentStep === 'service-selection') {
     return (
       <>
@@ -1970,12 +1973,20 @@ const ScheduleAssessment = () => {
               <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
               <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
             </div>
-            <div className="schedule-header-action-cusset">
-              <button className="view-requests-btn-cusset" onClick={() => setCurrentStep('my-requests')}>
-                View My Requests {totalRequests > 0 && <span className="request-count">{totalRequests}</span>}
-              </button>
-            </div>
           </div>
+
+          {/* View All Requests row (mobile-style) */}
+          <button className="svc-sel-requests-row" onClick={() => setCurrentStep('my-requests')}>
+            <span className="svc-sel-requests-icon"><FaFolderOpen /></span>
+            <span className="svc-sel-requests-text">
+              <strong>View All Requests</strong>
+              <small>{totalRequests > 0 ? `You have ${totalRequests} request(s)` : 'No requests yet'}</small>
+            </span>
+            <span className="svc-sel-requests-right">
+              {totalRequests > 0 && <span className="svc-sel-count-pill">{totalRequests}</span>}
+              <FaChevronRight className="svc-sel-chevron" />
+            </span>
+          </button>
 
           <div className="service-selection-grid-cusset">
             <div className="service-card-cusset">
@@ -1999,9 +2010,15 @@ const ScheduleAssessment = () => {
                     setFreeQuoteValidationErrors({});
                     setFreeQuoteTermsAccepted(false);
                   }}
+                  disabled={hasPendingFreeQuote}
                 >
-                  Get Free Quote
+                  {hasPendingFreeQuote ? 'Already Requested' : 'Get Free Quote'}
                 </button>
+                {hasPendingFreeQuote && (
+                  <small className="svc-sel-pending-note">
+                    You have a pending free quote request
+                  </small>
+                )}
               </div>
             </div>
 
@@ -2026,7 +2043,7 @@ const ScheduleAssessment = () => {
                   {hasPendingPreAssessment ? 'Already Booked' : 'Book Pre Assessment'}
                 </button>
                 {hasPendingPreAssessment && (
-                  <small style={{ display: 'block', marginTop: '8px', color: '#f59e0b', fontSize: '12px' }}>
+                  <small className="svc-sel-pending-note">
                     You have a pending pre-assessment request
                   </small>
                 )}

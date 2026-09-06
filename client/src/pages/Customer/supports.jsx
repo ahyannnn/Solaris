@@ -21,6 +21,7 @@ import {
   FaTimes,
   FaHeadset,
   FaInfoCircle,
+  FaArrowLeft,
   FaArrowRight,
   FaBookOpen,
   FaExternalLinkAlt
@@ -533,6 +534,10 @@ const Supports = () => {
 
       <div className="cusup-container">
         <div className="cusup-header">
+          {/* Mobile only: back to dashboard */}
+          <button className="cusup-back-btn" onClick={() => navigate('/app/customer')} aria-label="Back to dashboard">
+            <FaArrowLeft />
+          </button>
           <div className="cusup-header-content">
             <h1>Support Center</h1>
             <p>How can we help you today?</p>

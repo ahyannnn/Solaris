@@ -102,9 +102,10 @@ const SiteAssessment = () => {
     fetchStats();
 
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
+      // Ignore taps on toggles/menus — their onClick owns open/close.
+      // Otherwise mousedown pre-closes and the following click re-opens.
+      if (event.target.closest?.('[data-action-menu],[data-action-toggle]')) return;
+      setOpenDropdownId(null);
     };
 
     const handleScroll = () => {
@@ -365,8 +366,8 @@ const SiteAssessment = () => {
       return;
     }
 
-    // Validate device
-    if (!selectedDeviceId) {
+    // Validate device (pre-assessments only — free quotes assign engineer only)
+    if (activeTab !== 'free-quotes' && !selectedDeviceId) {
       showToast('Please select an IoT device', 'warning');
       return;
     }
@@ -444,14 +445,22 @@ const SiteAssessment = () => {
     }
   };
 
-  const handleDropdownClick = (event, itemId) => {
+  const handleDropdownClick = (event, itemId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
+    const item = filteredItems.find(i => i._id === itemId);
+    const actionCount = item ? getAvailableActions(item).length : 4;
+    const estimatedHeight = Math.min(300, actionCount * 44 + 12);
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    // Bottom cards always flip upward; others auto-flip only when cut off.
+    const shouldFlip = forceFlip || (spaceBelow < estimatedHeight + 10 && spaceAbove > spaceBelow);
     setDropdownPosition({
-      top: buttonRect.bottom + 5,
+      top: shouldFlip ? Math.max(10, buttonRect.top - estimatedHeight - 5) : buttonRect.bottom + 5,
       right: window.innerWidth - buttonRect.right - 10,
+      maxHeight: shouldFlip ? Math.max(120, Math.min(300, spaceAbove - 16)) : Math.min(300, Math.max(120, spaceBelow - 10)),
     });
-    setOpenDropdownId(openDropdownId === itemId ? null : itemId);
+    setOpenDropdownId((prev) => (prev === itemId ? null : itemId));
   };
 
   const formatCurrency = (amount) => {
@@ -632,7 +641,7 @@ const SiteAssessment = () => {
     } else {
       if (item.status === 'pending') {
         actions.push(
-          { label: 'Assign Engineer', icon: <FaUserCog />, action: () => { setSelectedItem(item); setShowAssignEngineerModal(true); setOpenDropdownId(null); }, color: 'primary' }
+          { label: 'Assign Engineer', icon: <FaUserCog />, action: () => handleOpenAssignModal(item), color: 'primary' }
         );
       }
       if (item.status === 'assigned') {
@@ -837,7 +846,7 @@ const SiteAssessment = () => {
         </div>
 
         {/* --- TABLE --- */}
-        <div className="billing-customer-table-container">
+        <div className="site-table-container-adminbills_">
           <div className="table-responsive-adminbills_">
             <table className="data-table-adminbills_">
               <thead>
@@ -855,12 +864,12 @@ const SiteAssessment = () => {
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="empty-state-adminbills_">
+                    <td colSpan="9" data-label="" className="empty-state-adminbills_">
                       No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found
                     </td>
                   </tr>
                 ) : (
-                  filteredItems.map(item => {
+                  filteredItems.map((item, idx, arr) => {
                     const actions = getAvailableActions(item);
                     const isOpen = openDropdownId === item._id;
 
@@ -898,8 +907,9 @@ const SiteAssessment = () => {
                           <div className="action-dropdown-container-adminbills_">
                             <button
                               className="action-dropdown-toggle-adminbills_"
+                              data-action-toggle
                               ref={el => buttonRefs.current[item._id] = el}
-                              onClick={(e) => handleDropdownClick(e, item._id)}
+                              onClick={(e) => handleDropdownClick(e, item._id, idx >= arr.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-adminbills_ ${isOpen ? 'open-adminbills_' : ''}`} />
                             </button>
@@ -907,12 +917,14 @@ const SiteAssessment = () => {
                             {isOpen && (
                               <div
                                 className="action-dropdown-menu-adminbills_"
+                                data-action-menu
                                 ref={dropdownRef}
                                 style={{
                                   position: 'fixed',
                                   top: dropdownPosition.top,
                                   right: dropdownPosition.right,
                                   zIndex: 9999,
+                                  maxHeight: dropdownPosition.maxHeight,
                                 }}
                               >
                                 {actions.map((action, idx) => (
@@ -926,6 +938,7 @@ const SiteAssessment = () => {
                                       className={`dropdown-item-adminbills_ ${action.color || ''}`}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        setOpenDropdownId(null);
                                         action.action();
                                       }}
                                     >
@@ -1160,7 +1173,7 @@ const SiteAssessment = () => {
                   <>
                     <button
                       className="assign-btn-adminbills_"
-                      onClick={handleProceedToIoT}
+                      onClick={activeTab === 'free-quotes' ? handleFinalAssign : handleProceedToIoT}
                       disabled={!selectedEngineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
                     >
                       {isSubmitting ? 'Processing...' : 'Assign Engineer'}

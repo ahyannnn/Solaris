@@ -209,9 +209,10 @@ const AdminBilling = () => {
     fetchStats();
 
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
+      // Ignore taps on toggles/menus — their onClick owns open/close.
+      // Otherwise mousedown pre-closes and the following click re-opens.
+      if (event.target.closest?.('[data-action-menu],[data-action-toggle]')) return;
+      setOpenDropdownId(null);
     };
 
     const handleScroll = () => {
@@ -227,14 +228,20 @@ const AdminBilling = () => {
     };
   }, [activeTab]);
 
-  const handleDropdownClick = (event, itemId) => {
+  const handleDropdownClick = (event, itemId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
+    const estimatedHeight = Math.min(300, 5 * 44 + 12);
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    // Bottom cards always flip upward; others auto-flip only when cut off.
+    const shouldFlip = forceFlip || (spaceBelow < estimatedHeight + 10 && spaceAbove > spaceBelow);
     setDropdownPosition({
-      top: buttonRect.bottom + 5,
+      top: shouldFlip ? Math.max(10, buttonRect.top - estimatedHeight - 5) : buttonRect.bottom + 5,
       right: window.innerWidth - buttonRect.right - 10,
+      maxHeight: shouldFlip ? Math.max(120, Math.min(300, spaceAbove - 16)) : Math.min(300, Math.max(120, spaceBelow - 10)),
     });
-    setOpenDropdownId(openDropdownId === itemId ? null : itemId);
+    setOpenDropdownId((prev) => (prev === itemId ? null : itemId));
   };
 
   const fetchProjects = useCallback(async () => {
@@ -1584,9 +1591,9 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {filteredAssessments.length === 0 ? (
-                      <tr><td colSpan="10" className="empty-state-adminbilling">No pre-assessments found</td></tr>
+                      <tr><td colSpan="10" data-label="" className="empty-state-adminbilling">No pre-assessments found</td></tr>
                     ) : (
-                      getCurrentPageItems(filteredAssessments, currentPage).map(assessment => {
+                      getCurrentPageItems(filteredAssessments, currentPage).map((assessment, idx, arr) => {
                         const actions = getPreAssessmentActions(assessment);
                         const isOpen = openDropdownId === assessment._id;
                         const autoVerified = (assessment.paymentGateway === 'paymongo' || assessment.autoVerified === true) && assessment.paymentStatus === 'paid';
@@ -1620,24 +1627,27 @@ const AdminBilling = () => {
                                 <div className="action-dropdown-container-adminbilling">
                                   <button
                                     className="action-dropdown-toggle-adminbilling"
+                                    data-action-toggle
                                     ref={el => buttonRefs.current[assessment._id] = el}
-                                    onClick={(e) => handleDropdownClick(e, assessment._id)}
+                                    onClick={(e) => handleDropdownClick(e, assessment._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                   </button>
                                   {isOpen && (
                                     <div
                                       className="action-dropdown-menu-adminbilling"
+                                      data-action-menu
                                       ref={dropdownRef}
                                       style={{
                                         position: 'fixed',
                                         top: dropdownPosition.top,
                                         right: dropdownPosition.right,
                                         zIndex: 9999,
+                                        maxHeight: dropdownPosition.maxHeight,
                                       }}
                                     >
                                       {actions.map((action, idx) => (
-                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
+                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); action.action(); }}>
                                           <span>{action.label}</span>
                                         </button>
                                       ))}
@@ -1707,9 +1717,9 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {filteredSolarInvoices.length === 0 ? (
-                      <tr><td colSpan="11" className="empty-state-adminbilling">No solar invoices found</td></tr>
+                      <tr><td colSpan="11" data-label="" className="empty-state-adminbilling">No solar invoices found</td></tr>
                     ) : (
-                      getCurrentPageItems(filteredSolarInvoices, currentPage).map(invoice => {
+                      getCurrentPageItems(filteredSolarInvoices, currentPage).map((invoice, idx, arr) => {
                         const actions = getSolarInvoiceActions(invoice);
                         const isOpen = openDropdownId === invoice._id;
                         const autoVerified = invoice.paymentStatus === 'paid' && invoice.payments?.some(p => p.method === 'paymongo');
@@ -1741,24 +1751,27 @@ const AdminBilling = () => {
                                 <div className="action-dropdown-container-adminbilling">
                                   <button
                                     className="action-dropdown-toggle-adminbilling"
+                                    data-action-toggle
                                     ref={el => buttonRefs.current[invoice._id] = el}
-                                    onClick={(e) => handleDropdownClick(e, invoice._id)}
+                                    onClick={(e) => handleDropdownClick(e, invoice._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                   </button>
                                   {isOpen && (
                                     <div
                                       className="action-dropdown-menu-adminbilling"
+                                      data-action-menu
                                       ref={dropdownRef}
                                       style={{
                                         position: 'fixed',
                                         top: dropdownPosition.top,
                                         right: dropdownPosition.right,
                                         zIndex: 9999,
+                                        maxHeight: dropdownPosition.maxHeight,
                                       }}
                                     >
                                       {actions.map((action, idx) => (
-                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
+                                        <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); action.action(); }}>
                                           <span>{action.label}</span>
                                         </button>
                                       ))}
@@ -1824,11 +1837,11 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {filteredBankTransfers.length === 0 ? (
-                      <tr><td colSpan="8" className="empty-state-adminbilling">
+                      <tr><td colSpan="8" data-label="" className="empty-state-adminbilling">
                         <FaExclamationTriangle /> No bank transfer submissions found
                       </td></tr>
                     ) : (
-                      getCurrentPageItems(filteredBankTransfers, bankTransferPage).map(payment => {
+                      getCurrentPageItems(filteredBankTransfers, bankTransferPage).map((payment, idx, arr) => {
                         const actions = getBankTransferActions(payment);
                         const isOpen = openDropdownId === payment._id;
 
@@ -1849,24 +1862,27 @@ const AdminBilling = () => {
                               <div className="action-dropdown-container-adminbilling">
                                 <button
                                   className="action-dropdown-toggle-adminbilling"
+                                  data-action-toggle
                                   ref={el => buttonRefs.current[payment._id] = el}
-                                  onClick={(e) => handleDropdownClick(e, payment._id)}
+                                  onClick={(e) => handleDropdownClick(e, payment._id, idx >= arr.length - 2)}
                                 >
                                   Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
                                 </button>
                                 {isOpen && (
                                   <div
                                     className="action-dropdown-menu-adminbilling"
+                                    data-action-menu
                                     ref={dropdownRef}
                                     style={{
                                       position: 'fixed',
                                       top: dropdownPosition.top,
                                       right: dropdownPosition.right,
                                       zIndex: 9999,
+                                      maxHeight: dropdownPosition.maxHeight,
                                     }}
                                   >
                                     {actions.map((action, idx) => (
-                                      <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={action.action}>
+                                      <button key={idx} className={`dropdown-item-adminbilling ${action.color || ''}`} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); action.action(); }}>
                                         <span>{action.label}</span>
                                       </button>
                                     ))}
@@ -1933,7 +1949,7 @@ const AdminBilling = () => {
                   </thead>
                   <tbody>
                     {filteredTransactions.length === 0 ? (
-                      <tr><td colSpan="9" className="empty-state-adminbilling">No transactions found</td></tr>
+                      <tr><td colSpan="9" data-label="" className="empty-state-adminbilling">No transactions found</td></tr>
                     ) : (
                       getCurrentPageItems(filteredTransactions, transactionPage).map(transaction => (
                         <tr key={transaction.id}>

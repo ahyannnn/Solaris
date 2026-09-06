@@ -440,23 +440,23 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
 
                 return (
                   <tr key={app._id} className={isPublished ? 'published-row-app-admin' : ''}>
-                    <td>
+                    <td data-label="Version">
                       <div className="version-cell-app-admin">
                         <FaAndroid className="version-icon-app-admin" /> v{app.version}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Release Notes">
                       <div className="release-notes-cell-app-admin" title={app.releaseNotes}>
                         {app.releaseNotes}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Release Date">
                       <div className="date-cell-app-admin">
                         <FaCalendarAlt /> {formatDate(app.releaseDate)}
                       </div>
                     </td>
-                    <td>{getStatusBadge(app.status)}</td>
-                    <td>
+                    <td data-label="Status">{getStatusBadge(app.status)}</td>
+                    <td data-label="Actions">
                       <div className="action-dropdown-container-app-admin">
                         <button
                           className="action-dropdown-toggle-app-admin"

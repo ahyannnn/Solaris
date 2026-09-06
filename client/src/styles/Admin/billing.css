@@ -1790,6 +1790,9 @@ body.dark-mode {
   .admin-billing {
     padding-inline: 14px;
     padding-top: 12px;
+    overflow-x: clip;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .billing-header-adminbilling {
     padding: 0 0 16px 0;
@@ -1830,43 +1833,115 @@ body.dark-mode {
   .refresh-btn-adminbilling {
     justify-content: center;
   }
+  .payments-table-container-adminbilling {
+    overflow: visible;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .table-responsive-adminbilling {
+    overflow: visible;
+  }
+  .payments-table-adminbilling {
+    min-width: 0;
+  }
   .payments-table-adminbilling thead {
     display: none;
   }
-  .payments-table-adminbilling tbody td {
+  .payments-table-adminbilling,
+  .payments-table-adminbilling tbody,
+  .payments-table-adminbilling tr,
+  .payments-table-adminbilling td {
     display: block;
-    padding: 8px 12px;
+    width: 100%;
+  }
+  .payments-table-adminbilling tbody tr {
+    display: block;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .payments-table-adminbilling tbody tr:hover {
+    background: var(--bg-surface);
+  }
+  .payments-table-adminbilling tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
+    min-width: 0;
   }
   .payments-table-adminbilling tbody td:last-child {
     border-bottom: none;
   }
   .payments-table-adminbilling tbody td[data-label]::before {
-    content: attr(data-label) ": ";
-    font-weight: 600;
-    color: var(--text-muted);
+    content: attr(data-label);
     font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-block;
-    width: 100px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+    max-width: 45%;
   }
-  .payments-table-adminbilling tbody tr {
+  .payments-table-adminbilling tbody td > *,
+  .payments-table-adminbilling tbody td .ref-cell-adminbilling,
+  .payments-table-adminbilling tbody td .amount-adminbilling,
+  .payments-table-adminbilling tbody td .customer-cell-adminbilling {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .payments-table-adminbilling tbody td .status-badge-adminbilling,
+  .payments-table-adminbilling tbody td .gateway-badge-adminbilling,
+  .payments-table-adminbilling tbody td .invoice-type-adminbilling,
+  .payments-table-adminbilling tbody td .transaction-type-adminbilling,
+  .payments-table-adminbilling tbody td .verified-badge-adminbilling,
+  .payments-table-adminbilling tbody td .failed-badge-adminbilling {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 58%;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .payments-table-adminbilling tbody td.empty-state-adminbilling {
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+    justify-content: center;
   }
-  .payments-table-adminbilling tbody tr:last-child {
-    border-bottom: none;
-  }
-  .amount-adminbilling {
-    display: inline-block;
+  .payments-table-adminbilling tbody td.empty-state-adminbilling::before {
+    content: none;
   }
   .receipt-cell-adminbilling {
-    text-align: left;
+    text-align: right;
+    justify-content: flex-end;
+    margin-left: auto;
+    min-width: 0;
+    flex: 1;
   }
   .action-dropdown-container-adminbilling {
-    display: inline-block;
+    display: inline-flex;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+  .action-dropdown-menu-adminbilling {
+    max-width: calc(100vw - 28px);
   }
   .modal-content-adminbilling {
     max-width: 100%;
@@ -1931,6 +2006,18 @@ body.dark-mode {
   .admin-billing {
     padding-inline: 10px;
   }
+  .payments-table-adminbilling tbody td {
+    padding: 8px 0;
+    font-size: 11px;
+    gap: 10px;
+  }
+  .payments-table-adminbilling tbody td[data-label]::before {
+    font-size: 10px;
+  }
+  .payments-table-adminbilling tbody tr {
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
   .tab-btn-adminbilling {
     font-size: 12px;
     padding: 8px 12px;
@@ -1974,6 +2061,33 @@ body.dark-mode {
 @media (max-width: 360px) {
   .admin-billing {
     padding-inline: 6px;
+  }
+  .payments-table-adminbilling tbody td {
+    padding: 6px 0;
+    font-size: 10px;
+  }
+  .payments-table-adminbilling tbody td[data-label]::before {
+    font-size: 10px;
+  }
+  .payments-table-adminbilling tbody td[data-label="Customer"],
+  .payments-table-adminbilling tbody td[data-label="Reference"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+  }
+  .payments-table-adminbilling tbody td[data-label="Customer"]::before,
+  .payments-table-adminbilling tbody td[data-label="Reference"]::before {
+    max-width: 100%;
+  }
+  .payments-table-adminbilling tbody td[data-label="Customer"] > *,
+  .payments-table-adminbilling tbody td[data-label="Reference"] > *,
+  .payments-table-adminbilling tbody td[data-label="Customer"] .customer-cell-adminbilling {
+    margin-left: 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
   }
   .tab-btn-adminbilling {
     font-size: 11px;

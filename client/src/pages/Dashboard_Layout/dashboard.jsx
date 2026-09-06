@@ -1093,18 +1093,12 @@ const Dashboard = () => {
     return paths[userRole] || '/app/customer/notifications';
   };
 
-  // Handle click on notification item
+  // Clicking a notification only marks it as read — no redirection.
+  // Use "View All Notifications" (or the Notifications page) to navigate.
   const handleNotificationClick = (notification) => {
     // Mark as read if unread
     if (!notification.isRead) {
       markAsRead(notification._id);
-    }
-    
-    // Navigate based on notification link or role
-    if (notification.link) {
-      handleNavigation(notification.link);
-    } else {
-      handleNavigation(getNotificationsPath());
     }
   };
 

@@ -459,21 +459,21 @@ const IoTDevice = () => {
                   {paginatedDevices.map(device => {
                     return (
                       <tr key={device._id}>
-                        <td>
+                        <td data-label="Device">
                           <div className="device-cell-iotdevicead">
                             <div className="device-name-iotdevicead">{device.deviceName}</div>
                             <div className="device-id-iotdevicead">{device.deviceId}</div>
                           </div>
                         </td>
-                        <td>
+                        <td data-label="Client">
                           <div className="client-cell-iotdevicead">
                             <div className="client-name-iotdevicead">{device.clientName}</div>
                           </div>
                         </td>
-                        <td>
+                        <td data-label="Reference">
                           <div className="ref-cell-iotdevicead">{device.bookingReference}</div>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td data-label="Action" style={{ textAlign: 'center' }}>
                           <button
                             className="view-btn-iotdevicead"
                             onClick={() => handleViewDeviceData(device)}
@@ -584,27 +584,33 @@ const IoTDevice = () => {
                     <div className="chart-container-iotdevicead">
                       <h4>Solar Irradiance (W/m²)</h4>
                       <div className="chart-iotdevicead">
-                        <ResponsiveContainer width="100%" height={300}>
-                          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
                             <XAxis
                               dataKey="timestamp"
                               tickFormatter={formatAxisDate}
                               domain={['auto', 'auto']}
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 10 }}
+                              tickMargin={8}
+                              minTickGap={24}
+                              interval="preserveStartEnd"
                             />
                             <YAxis
                               domain={[0, 'auto']}
+                              width={44}
                               label={{
                                 value: 'Irradiance (W/m²)',
                                 angle: -90,
                                 position: 'insideLeft',
+                                offset: 10,
                                 style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 10 }}
+                              tickMargin={4}
                             />
                             <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                            <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-primary, #17212B)' }} />
+                            <Legend verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '11px', color: 'var(--text-primary, #17212B)', paddingTop: '8px' }} />
                             <Area type="monotone" dataKey="irradiance" stroke="#f97316" fill="#fed7aa" name="Irradiance" isAnimationActive={false} activeDot={{ r: 6, strokeWidth: 2 }} />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -614,40 +620,49 @@ const IoTDevice = () => {
                     <div className="chart-container-iotdevicead">
                       <h4>Temperature (°C) & Humidity (%)</h4>
                       <div className="chart-iotdevicead">
-                        <ResponsiveContainer width="100%" height={300}>
-                          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #EEF0ED)" />
                             <XAxis
                               dataKey="timestamp"
                               tickFormatter={formatAxisDate}
                               domain={['auto', 'auto']}
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 10 }}
+                              tickMargin={8}
+                              minTickGap={24}
+                              interval="preserveStartEnd"
                             />
                             <YAxis
                               yAxisId="left"
                               domain={[0, 50]}
+                              width={42}
                               label={{
                                 value: 'Temperature (°C)',
                                 angle: -90,
                                 position: 'insideLeft',
+                                offset: 10,
                                 style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 10 }}
+                              tickMargin={4}
                             />
                             <YAxis
                               yAxisId="right"
                               orientation="right"
                               domain={[0, 100]}
+                              width={42}
                               label={{
                                 value: 'Humidity (%)',
                                 angle: 90,
                                 position: 'insideRight',
+                                offset: 10,
                                 style: { fontSize: '11px', fill: 'var(--text-secondary, #64748b)' }
                               }}
-                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11 }}
+                              tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 10 }}
+                              tickMargin={4}
                             />
                             <Tooltip content={<CustomChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 4' }} />
-                            <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-primary, #17212B)' }} />
+                            <Legend verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '11px', color: 'var(--text-primary, #17212B)', paddingTop: '8px' }} />
                             <Line
                               yAxisId="left"
                               type="monotone"

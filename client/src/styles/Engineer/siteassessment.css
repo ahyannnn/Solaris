@@ -3065,34 +3065,132 @@ body.dark-mode {
   .status-filter-dropdown-enad {
     min-width: auto;
   }
+  .assessments-table-container-enad {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .assessments-table-enad {
+    background: transparent;
+    display: block;
+    table-layout: auto;
+  }
+  .assessments-table-enad th:nth-child(n),
+  .assessments-table-enad td:nth-child(n) {
+    width: auto;
+    min-width: 0;
+  }
   .assessments-table-enad thead {
     display: none;
   }
-  .assessments-table-enad tbody td {
+  .assessments-table-enad tbody {
     display: block;
-    padding: 8px 12px;
+    background: transparent;
+  }
+  .assessments-table-enad tbody tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    padding: 12px 12px 14px 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .assessments-table-enad tbody tr:last-child {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .assessments-table-enad tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 14px;
+    border-bottom: none;
+    border-top: none;
+  }
+  .assessments-table-enad tbody td:not(:first-child):not(:last-child) {
+    background: var(--bg-primary);
+  }
+  .assessments-table-enad tbody td:first-child + td {
+    border-radius: 12px 12px 0 0;
+  }
+  .assessments-table-enad tbody td:nth-last-child(2) {
+    border-radius: 0 0 12px 12px;
+  }
+  .assessments-table-enad tbody td:not(:first-child):not(:last-child):not(:nth-last-child(2)) {
     border-bottom: 1px solid var(--border-color);
+  }
+  .assessments-table-enad tbody td:first-child {
+    border-top: none;
+    display: block;
+    text-align: center;
+    padding-top: 14px;
+    padding-bottom: 12px;
   }
   .assessments-table-enad tbody td:last-child {
     border-bottom: none;
   }
   .assessments-table-enad tbody td::before {
     content: attr(data-label);
-    font-weight: 600;
+    font-weight: 400;
     color: var(--text-muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-block;
-    width: 100px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
+    flex: 0 0 92px;
+    width: 92px;
+    text-align: left;
+    margin-bottom: 0;
+    padding-top: 2px;
   }
-  .assessments-table-enad tbody tr {
+  .assessments-table-enad tbody td:first-child::before {
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
+    width: auto;
+    flex: none;
+    text-align: center;
+    margin-bottom: 6px;
+    padding-top: 0;
   }
-  .assessments-table-enad tbody tr:last-child {
-    border-bottom: none;
+  .assessments-table-enad tbody td > * {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .assessments-table-enad tbody td:first-child > * {
+    text-align: center;
+  }
+  .assessments-table-enad tbody td[data-label="Actions"] {
+    display: block;
+    text-align: center;
+    padding-top: 12px;
+  }
+  .assessments-table-enad tbody td[data-label="Actions"]::before {
+    display: none;
+  }
+  .ref-text-enad {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .client-name-enad,
+  .date-cell-enad {
+    font-weight: 600;
+  }
+  .type-badge-enad,
+  .status-badge-enad {
+    margin-left: auto;
+  }
+  .client-info-enad {
+    align-items: flex-end;
+    text-align: right;
+    width: 100%;
+  }
+  .view-btn-enad {
+    width: 100%;
   }
   .actions-cell-enad {
     display: flex;
@@ -3217,13 +3315,24 @@ body.dark-mode {
     padding: 4px 10px;
     font-size: 11px;
   }
+  .assessments-table-enad tbody tr {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    padding: 10px 10px 12px 10px;
+  }
   .assessments-table-enad tbody td {
     font-size: 12px;
-    padding: 6px 10px;
+    padding: 8px 10px;
+    gap: 10px;
   }
   .assessments-table-enad tbody td::before {
+    flex-basis: 80px;
     width: 80px;
-    font-size: 10px;
+    font-size: 12px;
+    margin-bottom: 0;
+  }
+  .ref-text-enad {
+    font-size: 14px;
   }
   .view-btn-enad {
     padding: 4px 12px;
@@ -3352,7 +3461,7 @@ body.dark-mode {
   }
   .assessments-table-enad tbody td {
     font-size: 11px;
-    padding: 4px 8px;
+    padding: 8px 10px;
   }
   .image-grid-enad {
     grid-template-columns: 1fr 1fr;

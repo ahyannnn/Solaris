@@ -1053,34 +1053,140 @@ body.dark-mode {
   .refresh-btn {
     justify-content: center;
   }
+  .table-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .schedule-table {
+    background: transparent;
+  }
   .schedule-table thead {
     display: none;
   }
-  .schedule-table tbody td {
+  .schedule-table tbody {
     display: block;
-    padding: 8px 12px;
+    background: transparent;
+  }
+  .schedule-table tbody tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    padding: 12px 12px 14px 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .schedule-table tbody tr:last-child {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .schedule-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 14px;
+    border-bottom: none;
+    border-top: none;
+  }
+  .schedule-table tbody td:not(:first-child):not(:last-child) {
+    background: var(--bg-primary);
+  }
+  .schedule-table tbody td:first-child + td {
+    border-radius: 12px 12px 0 0;
+  }
+  .schedule-table tbody td:nth-last-child(2) {
+    border-radius: 0 0 12px 12px;
+  }
+  .schedule-table tbody td:not(:first-child):not(:last-child):not(:nth-last-child(2)) {
     border-bottom: 1px solid var(--border-color);
+  }
+  .schedule-table tbody td:first-child {
+    border-top: none;
+    display: block;
+    text-align: center;
+    padding-top: 14px;
+    padding-bottom: 12px;
   }
   .schedule-table tbody td:last-child {
     border-bottom: none;
   }
   .schedule-table tbody td::before {
     content: attr(data-label);
-    font-weight: 600;
+    font-weight: 400;
     color: var(--text-muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-block;
-    width: 100px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
+    flex: 0 0 92px;
+    width: 92px;
+    text-align: left;
+    margin-bottom: 0;
+    padding-top: 2px;
   }
-  .schedule-table tbody tr {
+  .schedule-table tbody td:first-child::before {
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
+    width: auto;
+    flex: none;
+    text-align: center;
+    margin-bottom: 6px;
+    padding-top: 0;
   }
-  .schedule-table tbody tr:last-child {
-    border-bottom: none;
+  .schedule-table tbody td > * {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .schedule-table tbody td:first-child > * {
+    text-align: center;
+  }
+  .schedule-table tbody td[data-label="Client"] .client-cell {
+    align-items: flex-end;
+    text-align: right;
+    width: 100%;
+  }
+  .schedule-table tbody td[data-label="Client"] .client-name {
+    text-align: right;
+    width: 100%;
+  }
+  .schedule-table tbody td[data-label="Client"] .client-contact {
+    justify-content: flex-end;
+    margin-left: auto;
+    text-align: right;
+  }
+  .schedule-table tbody td[data-label="Action"] {
+    display: block;
+    text-align: center !important;
+    padding-top: 12px;
+  }
+  .schedule-table tbody td[data-label="Action"]::before {
+    display: none;
+  }
+  .schedule-table tbody td[data-label="Type"] .type-badge,
+  .schedule-table tbody td[data-label="Status"] .status-badge {
+    margin-left: auto;
+  }
+  .title-cell .schedule-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .client-cell .client-name,
+  .date-cell .date-row {
+    font-weight: 600;
+  }
+  .title-cell .schedule-id {
+    text-align: center;
+  }
+  .view-details-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 14px;
   }
   .modal-content {
     max-width: 100%;
@@ -1162,6 +1268,22 @@ body.dark-mode {
   .tab-btn {
     padding: 6px 14px;
     font-size: 11px;
+  }
+  .schedule-table tbody tr {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    padding: 10px 10px 12px 10px;
+  }
+  .schedule-table tbody td {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+  .schedule-table tbody td::before {
+    flex-basis: 80px;
+    width: 80px;
+  }
+  .title-cell .schedule-title {
+    font-size: 14px;
   }
   .page-btn,
   .page-number {

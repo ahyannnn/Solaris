@@ -272,6 +272,13 @@ const EngineerSchedule = () => {
         };
       });
 
+      // Sort newest first (descending by scheduledDate)
+      enrichedData.sort((a, b) => {
+        const dateA = new Date(a.scheduledDate || a.createdAt || 0).getTime() || 0;
+        const dateB = new Date(b.scheduledDate || b.createdAt || 0).getTime() || 0;
+        return dateB - dateA;
+      });
+
       setAllSchedules(enrichedData);
       // Calculate stats from enriched data
       calculateStatsFromEnrichedData(enrichedData);
@@ -329,6 +336,13 @@ const EngineerSchedule = () => {
         projectReference: project.projectReference,
         _projectData: project
       }));
+
+      // Sort newest first (descending by scheduledDate)
+      transformedSchedules.sort((a, b) => {
+        const dateA = new Date(a.scheduledDate || a.createdAt || 0).getTime() || 0;
+        const dateB = new Date(b.scheduledDate || b.createdAt || 0).getTime() || 0;
+        return dateB - dateA;
+      });
 
       setAllSchedules(transformedSchedules);
       // Calculate stats from transformed data
@@ -404,6 +418,13 @@ const EngineerSchedule = () => {
         return searchableText.includes(searchLower);
       });
     }
+
+    // Ensure newest first (descending by scheduledDate)
+    filtered = [...filtered].sort((a, b) => {
+      const dateA = new Date(a.scheduledDate || a.createdAt || 0).getTime() || 0;
+      const dateB = new Date(b.scheduledDate || b.createdAt || 0).getTime() || 0;
+      return dateB - dateA;
+    });
 
     const totalFiltered = filtered.length;
     const totalFilteredPages = Math.ceil(totalFiltered / itemsPerPage) || 1;

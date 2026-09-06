@@ -2043,27 +2043,27 @@ const MyAssessments = () => {
                       const TypeConfig = getTypeConfig(item.type);
                       return (
                         <tr key={`${item.type}-${item.id}`} className="assessment-table-row-enad" onClick={() => handleSelectItem(item)}>
-                          <td className="ref-cell-enad">
+                          <td className="ref-cell-enad" data-label="Reference">
                             <span className="ref-text-enad">{item.bookingReference || item.quotationReference}</span>
                           </td>
-                          <td className="client-cell-enad">
+                          <td className="client-cell-enad" data-label="Client">
                             <div className="client-info-enad">
                               <span className="client-name-enad">{item.clientName} {item.clientLastName}</span>
                               <span className="client-type-enad">{item.clientType || 'Residential'}</span>
                             </div>
                           </td>
-                          <td className="type-cell-enad">
+                          <td className="type-cell-enad" data-label="Type">
                             <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
                           </td>
-                          <td className="status-cell-enad">
+                          <td className="status-cell-enad" data-label="Status">
                             <span className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</span>
                           </td>
-                          <td className="address-cell-enad">
+                          <td className="address-cell-enad" data-label="Address">
                             <span className="address-text-enad" title={getFullAddress(item.address)}>
                               {getFullAddress(item.address)}
                             </span>
                           </td>
-                          <td className="date-cell-enad">
+                          <td className="date-cell-enad" data-label="Date">
                             {formatDate(item.siteVisitDate || item.requestedAt)}
                           </td>
                           <td data-label="Actions" style={{ textAlign: 'center' }}>

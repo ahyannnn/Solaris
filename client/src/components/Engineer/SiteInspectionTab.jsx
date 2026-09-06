@@ -470,17 +470,17 @@ const SiteInspectionTab = ({
               <tbody>
                 {siteInspectionData.appliances?.map((appliance, index) => (
                   <tr key={index}>
-                    <td><strong>{appliance.name}</strong></td>
-                    <td>{appliance.powerWatts} W</td>
-                    <td>{appliance.quantity}</td>
-                    <td>{appliance.dayHours || 0} hrs</td>
-                    <td>{appliance.nightHours || 0} hrs</td>
-                    <td>
+                    <td data-label="Appliance"><strong>{appliance.name}</strong></td>
+                    <td data-label="Power (W)">{appliance.powerWatts} W</td>
+                    <td data-label="Qty">{appliance.quantity}</td>
+                    <td data-label="Day Hrs">{appliance.dayHours || 0} hrs</td>
+                    <td data-label="Night Hrs">{appliance.nightHours || 0} hrs</td>
+                    <td data-label="Type">
                       <span className="appliance-type-badge-enad">
                         {appliance.isMotor ? 'Motor' : 'Non-Motor'}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Actions">
                       <button className="edit-appliance-btn-enad" onClick={() => editSiteAppliance(appliance, index)}>
                         Edit
                       </button>

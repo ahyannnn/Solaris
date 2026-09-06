@@ -1408,7 +1408,7 @@ body.dark-mode {
   .devices-table-iotdevicead tbody td::before {
     content: attr(data-label);
     font-weight: 400;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-size: 13px;
     text-transform: none;
     letter-spacing: 0;
@@ -1446,7 +1446,10 @@ body.dark-mode {
   }
   .client-name-iotdevicead,
   .ref-cell-iotdevicead {
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
   }
 
   .device-id-iotdevicead {
@@ -1466,8 +1469,19 @@ body.dark-mode {
 
   .view-btn-iotdevicead {
     width: 100%;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    padding: 9px 14px;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .view-btn-iotdevicead:hover {
+    transform: none;
+    box-shadow: none;
   }
 
   .modal-content-iotdevicead.data-modal-iotdevicead {
@@ -1631,7 +1645,7 @@ body.dark-mode {
   }
 
   .devices-table-iotdevicead tbody td::before {
-    font-size: 12px;
+    font-size: 13px;
     margin-bottom: 0;
     flex-basis: 80px;
     width: 80px;
@@ -1642,8 +1656,8 @@ body.dark-mode {
   }
 
   .view-btn-iotdevicead {
-    padding: 9px 14px;
-    font-size: 12px;
+    padding: 0 12px;
+    font-size: 13px;
   }
 
   .modal-content-iotdevicead {

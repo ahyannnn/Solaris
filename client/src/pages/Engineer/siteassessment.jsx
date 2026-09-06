@@ -1,12 +1,13 @@
 // pages/Engineer/MyAssessments.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
   FaClipboardList,
   FaClock,
   FaSyncAlt,
-  FaCheckCircle
+  FaCheckCircle,
+  FaChevronDown
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 
@@ -27,6 +28,17 @@ import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
 
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 
+// Detail-view tabs: first two stay visible on mobile, the rest move under "More"
+const DETAIL_TABS = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'site-inspection', label: 'Site Inspection' },
+  { key: 'quotation', label: 'Quotation' },
+  { key: 'documents', label: 'Documents' },
+  { key: 'comments', label: 'Comments' },
+];
+const VISIBLE_DETAIL_TABS = DETAIL_TABS.slice(0, 2);
+const OVERFLOW_DETAIL_TABS = DETAIL_TABS.slice(2);
+
 const MyAssessments = () => {
   const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
@@ -38,6 +50,8 @@ const MyAssessments = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showMoreTabs, setShowMoreTabs] = useState(false);
+  const tabsMoreRef = useRef(null);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -1588,6 +1602,7 @@ const MyAssessments = () => {
       fetchPreAssessmentDetails(item.id);
     }
     setActiveTab('overview');
+    setShowMoreTabs(false);
   };
 
   const handleBackToList = () => {
@@ -1778,6 +1793,25 @@ const MyAssessments = () => {
     fetchAllAssessments();
     fetchSystemConfig();
   }, []);
+
+  // Close the "More" tabs menu on outside tap or Escape
+  useEffect(() => {
+    if (!showMoreTabs) return;
+    const handlePointerDown = (e) => {
+      if (tabsMoreRef.current && !tabsMoreRef.current.contains(e.target)) {
+        setShowMoreTabs(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowMoreTabs(false);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showMoreTabs]);
 
   useEffect(() => {
     let filtered = [...allAssessments];
@@ -2543,11 +2577,48 @@ const MyAssessments = () => {
             </div>
 
             <div className="tabs-enad">
-              <button onClick={() => setActiveTab('overview')} className={`tab-btn-enad ${activeTab === 'overview' ? 'active-enad' : ''}`}>Overview</button>
-              <button onClick={() => setActiveTab('site-inspection')} className={`tab-btn-enad ${activeTab === 'site-inspection' ? 'active-enad' : ''}`}>Site Inspection</button>
-              <button onClick={() => setActiveTab('quotation')} className={`tab-btn-enad ${activeTab === 'quotation' ? 'active-enad' : ''}`}>Quotation</button>
-              <button onClick={() => setActiveTab('documents')} className={`tab-btn-enad ${activeTab === 'documents' ? 'active-enad' : ''}`}>Documents</button>
-              <button onClick={() => setActiveTab('comments')} className={`tab-btn-enad ${activeTab === 'comments' ? 'active-enad' : ''}`}>Comments</button>
+              {VISIBLE_DETAIL_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                  className={`tab-btn-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              {OVERFLOW_DETAIL_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                  className={`tab-btn-enad overflow-tab ${activeTab === tab.key ? 'active-enad' : ''}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              <div className="tabs-more-enad" ref={tabsMoreRef}>
+                <button
+                  className={`tab-btn-enad ${OVERFLOW_DETAIL_TABS.some(t => t.key === activeTab) ? 'active-enad' : ''}`}
+                  aria-haspopup="menu"
+                  aria-expanded={showMoreTabs}
+                  onClick={() => setShowMoreTabs(v => !v)}
+                >
+                  More <FaChevronDown className={`tabs-more-chevron ${showMoreTabs ? 'open' : ''}`} />
+                </button>
+                {showMoreTabs && (
+                  <div className="tabs-more-menu-enad" role="menu">
+                    {OVERFLOW_DETAIL_TABS.map(tab => (
+                      <button
+                        key={tab.key}
+                        role="menuitem"
+                        className={`tabs-more-item-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
+                        onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Overview Tab */}

@@ -169,6 +169,11 @@ body.dark-mode {
   font-size: 1rem;
 }
 
+/* Mobile only: section title beside back (mirrors mobile AppBar) */
+.cusup-header-title-mobile {
+  display: none;
+}
+
 .cusup-header-icon {
   display: none;
 }
@@ -961,12 +966,54 @@ body.dark-mode {
   .cusup-header {
     flex-direction: row;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.75rem;
     padding: 1rem 0 1rem 0;
   }
 
   .cusup-back-btn {
     display: inline-flex;
+  }
+
+  /* Mobile header: back + section title only */
+  .cusup-header-content {
+    display: none;
+  }
+
+  .cusup-header-title-mobile {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+  }
+
+  /* Plain section headings like the mobile screen */
+  .cusup-section-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 16px;
+  }
+
+  .cusup-section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .cusup-section-header svg {
+    display: none;
+  }
+
+  /* Long text wraps instead of pushing content off-screen */
+  .cusup-faq-answer,
+  .cusup-ticket-subject,
+  .cusup-ticket-description,
+  .cusup-guide-info,
+  .cusup-info-card {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   
   .cusup-header-content h1 {

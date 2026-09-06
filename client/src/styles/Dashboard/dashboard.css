@@ -19,8 +19,8 @@
   --sidebar-accent: #F39C12;
   --sidebar-accent-hover: #E67E22;
 
-  /* Main Content Colors - LIGHT SOLAR THEME */
-  --bg-primary: #F4F1EC;
+  /* Main Content Colors - matches mobile dashboard (#F7F7F8) */
+  --bg-primary: #F7F7F8;
   --bg-elevated: #FFFFFF;
   --bg-surface: #FAF8F5;
 

@@ -538,6 +538,14 @@ const Supports = () => {
           <button className="cusup-back-btn" onClick={() => navigate('/app/customer')} aria-label="Back to dashboard">
             <FaArrowLeft />
           </button>
+          {/* Mobile only: section title beside back (mirrors mobile AppBar) */}
+          <span className="cusup-header-title-mobile">
+            {activeTab === 'faq' ? 'FAQs'
+              : activeTab === 'info' ? 'Contact Info'
+              : activeTab === 'guides' ? 'Guides'
+              : activeTab === 'tickets' ? 'Support Tickets'
+              : 'Contact Us'}
+          </span>
           <div className="cusup-header-content">
             <h1>Support Center</h1>
             <p>How can we help you today?</p>

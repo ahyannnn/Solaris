@@ -524,13 +524,21 @@ const CustomerSettings = () => {
       .join(' ');
   };
 
+  // Initials for the mobile profile avatar (mirrors mobile app)
+  const getInitials = () => {
+    const first = (profileData.firstName || '').trim().charAt(0);
+    const last = (profileData.lastName || '').trim().charAt(0);
+    return ((first + last) || 'U').toUpperCase();
+  };
+
   // ========== PROFILE TAB ==========
   const ProfileTab = () => (
     <div className="cuset-profile-tab">
       {/* Profile Card */}
       <div className="cuset-profile-card">
         <div className="cuset-profile-avatar">
-          <FaUserCircle />
+          <FaUserCircle className="cuset-avatar-icon" />
+          <span className="cuset-avatar-initials">{getInitials()}</span>
         </div>
         <div className="cuset-profile-details">
           <h2>{getFullName() || 'No Name Set'}</h2>
@@ -616,15 +624,28 @@ const CustomerSettings = () => {
             </div>
             <div className="cuset-form-field">
               <label><FaEnvelope /> Email</label>
-              <input
-                type="email"
-                value={profileData.email}
-                disabled
-                className="cuset-disabled"
-              />
+              <div className="cuset-email-lock-wrap">
+                <input
+                  type="email"
+                  value={profileData.email}
+                  disabled
+                  className="cuset-disabled"
+                />
+                <span className="cuset-locked-pill">Locked</span>
+              </div>
+              <small className="cuset-email-note">Email cannot be changed</small>
             </div>
           </div>
         </div>
+
+        {/* Mobile-only bottom save (mirrors mobile app) */}
+        <button
+          className="cuset-btn-save-bottom"
+          onClick={saveProfile}
+          disabled={saving || !hasProfileChanges()}
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
       </div>
     </div>
   );
@@ -738,6 +759,10 @@ const CustomerSettings = () => {
           <button className="cuset-back-btn" onClick={() => navigate('/app/customer')} aria-label="Back to dashboard">
             <FaArrowLeft />
           </button>
+          {/* Mobile only: section title beside back (mirrors mobile AppBar) */}
+          <span className="cuset-header-title-mobile">
+            {currentTab === 'addresses' ? 'My Addresses' : 'Profile Section'}
+          </span>
           <div className="cuset-header-content">
             <h1>Account Settings</h1>
             <p>

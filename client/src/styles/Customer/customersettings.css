@@ -1119,6 +1119,9 @@ body.dark-mode {
 
   .cuset-layout {
     flex-direction: column;
+    /* stretch (not flex-start): children must fill the width or the
+       column collapses and leaves white space on the right */
+    align-items: stretch;
   }
 
   .cuset-header {
@@ -1422,5 +1425,275 @@ body.dark-mode {
 
   .cuset-modal-content {
     animation: none !important;
+  }
+}
+
+/* ============================================ */
+/* MOBILE-APP PROFILE LOOK (mobile view only) */
+/* Mirrors the mobile Profile Section: horizontal */
+/* profile card, plain heading, filled fields, */
+/* bottom save button. Desktop untouched. */
+/* ============================================ */
+.cuset-avatar-initials,
+.cuset-btn-save-bottom,
+.cuset-locked-pill,
+.cuset-email-note,
+.cuset-header-title-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mobile header: back + section title only (mirrors mobile AppBar) */
+  .cuset-header {
+    justify-content: flex-start;
+  }
+
+  .cuset-header-content {
+    display: none;
+  }
+
+  .cuset-header-title-mobile {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+  }
+
+  /* Profile card: avatar left, details right */
+  .cuset-profile-card {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .cuset-profile-card:hover {
+    box-shadow: var(--shadow-card);
+    border-color: var(--border-card);
+  }
+
+  .cuset-profile-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 22px;
+    background: #F2F2F3;
+    color: #111111;
+  }
+
+  body.dark-mode .cuset-profile-avatar {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  .cuset-avatar-icon {
+    display: none;
+  }
+
+  .cuset-avatar-initials {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .cuset-profile-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cuset-profile-details h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .cuset-profile-email {
+    font-size: 13px;
+    overflow-wrap: break-word;
+  }
+
+  .cuset-profile-badges {
+    justify-content: flex-start;
+  }
+
+  .cuset-badge {
+    background: #F2F2F3;
+    color: #111111;
+    border: none;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  body.dark-mode .cuset-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  .cuset-badge svg {
+    display: none;
+  }
+
+  /* Form: no card, plain heading */
+  .cuset-form-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+  }
+
+  .cuset-form-container:hover {
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .cuset-form-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 16px;
+  }
+
+  .cuset-form-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .cuset-form-header h3 svg {
+    display: none;
+  }
+
+  /* Header save hides — bottom button takes over */
+  .cuset-form-header .cuset-btn-save {
+    display: none;
+  }
+
+  /* Plain labels like the mobile screen */
+  .cuset-form-field label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .cuset-form-field label svg,
+  .cuset-form-field .cuset-required {
+    display: none;
+  }
+
+  /* Filled inputs like the mobile screen — visible fill + edge so they
+     read as tappable */
+  .cuset-form-field input {
+    background: #E9EDF2;
+    border: 1px solid #D5DBE4;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  body.dark-mode .cuset-form-field input {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .cuset-form-field input:focus {
+    background: #FFFFFF;
+    border-color: var(--icon-color);
+    box-shadow: none;
+  }
+
+  body.dark-mode .cuset-form-field input:focus {
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  .cuset-form-field input.error {
+    border-color: var(--error-color);
+    background: #FEF2F2;
+  }
+
+  .cuset-form-field input.cuset-disabled {
+    opacity: 1;
+  }
+
+  /* Email locked pill + note */
+  .cuset-email-lock-wrap {
+    position: relative;
+  }
+
+  .cuset-email-lock-wrap input {
+    padding-right: 78px;
+  }
+
+  .cuset-locked-pill {
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #EFEFEF;
+    color: #111111;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    line-height: 1;
+  }
+
+  body.dark-mode .cuset-locked-pill {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  .cuset-email-note {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* Bottom save button (web orange scheme) */
+  .cuset-btn-save-bottom {
+    display: flex;
+    width: 100%;
+    height: 52px;
+    margin-top: 20px;
+    align-items: center;
+    justify-content: center;
+    background: var(--icon-color);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+  }
+
+  .cuset-btn-save-bottom:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Addresses tab (mobile): uniform cards — the Primary tag alone marks
+     the primary address, no orange card border. Address text flush left. */
+  .cuset-address-card.cuset-primary {
+    border-color: var(--border-card);
+    background: var(--bg-card);
+  }
+
+  .cuset-address-card.cuset-primary:hover {
+    border-color: var(--border-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .cuset-address-text,
+  .cuset-address-text p {
+    margin-left: 0;
+    padding-left: 0;
+    text-indent: 0;
+    text-align: left;
   }
 }

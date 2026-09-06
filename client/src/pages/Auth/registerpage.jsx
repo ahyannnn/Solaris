@@ -762,6 +762,8 @@ const RegisterPage = () => {
           className={`new-register-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
         >
           <div className="new-register-form-wrapper">
+            {/* Mobile-app look only (mirrors mobile register_screen.dart) */}
+            <img src={logo} alt="Salfer Engineering" className="new-register-mobile-logo" />
             {currentStep === 1 && (
               <>
                 <div className="new-register-form-header">

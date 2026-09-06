@@ -1488,3 +1488,288 @@
     animation: none !important;
   }
 }
+
+/* ============================================ */
+/* MOBILE-APP REGISTER LOOK (mobile view only) */
+/* Mirrors mobile register_screen.dart: white centered */
+/* screen, circular logo, stacked filled fields. */
+/* Desktop / web version is intentionally untouched. */
+/* ============================================ */
+.new-register-mobile-logo {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .new-register-page {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #ffffff;
+    overflow-y: auto;
+  }
+
+  /* No branding banner on mobile — logo lives in the form */
+  .new-register-branding {
+    display: none !important;
+  }
+
+  .new-register-form-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    padding: 16px 28px 24px;
+    align-items: center;
+    overflow: visible;
+    background: #ffffff;
+  }
+
+  .new-register-form-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+    height: auto;
+  }
+
+  .new-register-mobile-logo {
+    display: block;
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 50%;
+    border: 2px solid #F1F5F9;
+    padding: 16px;
+    margin: 8px auto 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Centered headings like the mobile screen */
+  .new-register-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .new-register-form-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+  }
+
+  .new-register-form-subtitle {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  /* Filled stacked fields */
+  .new-register-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0;
+    margin-bottom: 8px;
+  }
+
+  .new-register-input-wrapper {
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 12px;
+  }
+
+  .new-register-input-wrapper:focus-within {
+    border-color: #f39c12;
+    background: #ffffff;
+  }
+
+  .new-register-input-wrapper:has(.new-register-input-error) {
+    border-color: #EF4444;
+    border-width: 1.5px;
+  }
+
+  .new-register-form-input {
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 44px 14px 44px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #0F172A;
+  }
+
+  .new-register-form-input::placeholder {
+    color: #94A3B8;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .new-register-form-input:hover {
+    background: transparent;
+    border: none;
+  }
+
+  .new-register-form-input:focus {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .new-register-form-input.new-register-input-error {
+    background: transparent;
+    border: none;
+    animation: none;
+  }
+
+  .new-register-input-icon {
+    left: 14px;
+    color: #64748B;
+    font-size: 20px;
+  }
+
+  .new-register-input-wrapper:has(.new-register-input-error) .new-register-input-icon {
+    color: #EF4444;
+  }
+
+  .new-register-input-wrapper:focus-within .new-register-input-icon {
+    color: #f39c12;
+    transform: none;
+  }
+
+  .new-register-password-toggle {
+    right: 8px;
+    color: #94A3B8;
+    font-size: 20px;
+  }
+
+  .new-register-password-toggle:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .new-register-error-message {
+    font-size: 12px;
+    font-weight: 500;
+    color: #EF4444;
+    margin: 6px 0 0 4px;
+  }
+
+  .new-register-success-message {
+    font-size: 12px;
+    font-weight: 500;
+    margin: 6px 0 0 4px;
+  }
+
+  .new-register-checking-message {
+    font-size: 12px;
+    margin: 6px 0 0 4px;
+  }
+
+  /* General error box */
+  .new-register-general-error {
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    border-radius: 12px;
+    color: #B91C1C;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    opacity: 1;
+    animation: none;
+  }
+
+  /* Primary buttons */
+  .new-register-submit-btn {
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .new-register-submit-btn::before {
+    display: none;
+  }
+
+  .new-register-submit-btn:hover:not(:disabled),
+  .new-register-submit-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  /* Code boxes like the mobile 6-digit inputs */
+  .new-register-code-inputs {
+    gap: 8px;
+  }
+
+  .new-register-code-input {
+    width: 48px;
+    height: 56px;
+    font-size: 20px;
+    font-weight: 700;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 14px;
+    background: #F8FAFC;
+    color: #0F172A;
+  }
+
+  .new-register-code-input:focus {
+    transform: none;
+    background: #ffffff;
+  }
+
+  .new-register-code-input.new-register-input-error {
+    background: #FEF2F2;
+    animation: none;
+  }
+
+  /* Divider + Google */
+  .new-register-social-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #94A3B8;
+  }
+
+  .new-register-social-btn {
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1.5px solid #E2E8F0;
+    font-size: 15px;
+  }
+
+  .new-register-social-btn::before {
+    display: none;
+  }
+
+  .new-register-social-btn:hover:not(:disabled),
+  .new-register-social-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  /* Prompts + resend + back links */
+  .new-register-login-prompt {
+    margin-top: 28px;
+    text-align: center;
+  }
+
+  .new-register-login-text {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  .new-register-resend-text {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  .new-register-resend-link {
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .new-register-success-container {
+    text-align: center;
+  }
+}

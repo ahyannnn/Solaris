@@ -3535,17 +3535,12 @@ body.dark-mode {
   align-items: stretch;
 }
 
-.card-button-container-cusset {
-  position: relative;
-}
-
+/* Pending-note slot: always reserves the same space inside the card so
+   both buttons stay on one baseline, whether or not a note is showing. */
 .svc-sel-pending-note {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   display: block;
   margin-top: 8px;
+  min-height: 18px;
   color: #f59e0b;
   font-size: 12px;
   text-align: center;

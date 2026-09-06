@@ -2014,11 +2014,9 @@ const ScheduleAssessment = () => {
                 >
                   {hasPendingFreeQuote ? 'Already Requested' : 'Get Free Quote'}
                 </button>
-                {hasPendingFreeQuote && (
-                  <small className="svc-sel-pending-note">
-                    You have a pending free quote request
-                  </small>
-                )}
+                <small className="svc-sel-pending-note">
+                  {hasPendingFreeQuote ? 'You have a pending free quote request' : ''}
+                </small>
               </div>
             </div>
 
@@ -2042,11 +2040,9 @@ const ScheduleAssessment = () => {
                 >
                   {hasPendingPreAssessment ? 'Already Booked' : 'Book Pre Assessment'}
                 </button>
-                {hasPendingPreAssessment && (
-                  <small className="svc-sel-pending-note">
-                    You have a pending pre-assessment request
-                  </small>
-                )}
+                <small className="svc-sel-pending-note">
+                  {hasPendingPreAssessment ? 'You have a pending pre-assessment request' : ''}
+                </small>
               </div>
             </div>
           </div>

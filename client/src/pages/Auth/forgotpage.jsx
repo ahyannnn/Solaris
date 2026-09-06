@@ -507,6 +507,10 @@ const ForgotPasswordPage = () => {
           className={`new-forgot-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
         >
           <div className="new-forgot-form-wrapper">
+            {/* Mobile-app look only (mirrors mobile forgot_screen.dart logo) */}
+            {step !== 4 && (
+              <img src={logo} alt="Salfer Engineering" className="new-forgot-mobile-logo" />
+            )}
             {/* Step 1: Email */}
             {step === 1 && (
               <>

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/quotation.css';
-import { FaUpload } from 'react-icons/fa';
+import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, FaChevronDown, FaSearch } from 'react-icons/fa';
 
 // =========================================
 // CARD INPUT FORMATTING HELPERS
@@ -1795,6 +1795,7 @@ const Quotation = () => {
           </div>
 
           <div className="billing-customer-search-group">
+            <FaSearch className="billing-customer-search-icon" />
             <input
               type="text"
               placeholder="Search by reference, invoice, or project..."
@@ -1815,6 +1816,24 @@ const Quotation = () => {
               Clear
             </button>
           )}
+
+          {/* Mobile-only status pills (mirrors mobile BillingFilters) */}
+          <div className="billing-customer-status-pills">
+            {[
+              { value: 'all', label: 'All Status' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'paid', label: 'Paid' },
+              { value: 'for_verification', label: 'Verifying' },
+            ].map((pill) => (
+              <button
+                key={pill.value}
+                className={`billing-customer-status-pill ${statusFilter === pill.value ? 'active' : ''}`}
+                onClick={() => setStatusFilter(pill.value)}
+              >
+                {pill.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="billing-customer-results-count">
@@ -2028,6 +2047,12 @@ const Quotation = () => {
                       <span className="billing-customer-label">Transaction</span>
                       <span className="billing-customer-value">{item.description}</span>
                     </div>
+                    {!isPreAssessment && item.invoiceType && (
+                      <div className="billing-customer-mobile-card-item">
+                        <span className="billing-customer-label">Type</span>
+                        <span className="billing-customer-value">{getInvoiceTypeLabel(item)}</span>
+                      </div>
+                    )}
                     <div className="billing-customer-mobile-card-item">
                       <span className="billing-customer-label">Amount</span>
                       <span className="billing-customer-value">
@@ -2048,9 +2073,6 @@ const Quotation = () => {
                   </div>
 
                   <div className="billing-customer-mobile-card-footer">
-                    <div className="billing-customer-transaction-info">
-                      <span className="billing-customer-transaction-name">{item.description}</span>
-                    </div>
                     {isPending ? (
                       !isPayNowButtonDisabled ? (
                         <button
@@ -2058,7 +2080,7 @@ const Quotation = () => {
                           onClick={() => handlePayNowClick(item)}
                           disabled={isSubmitting}
                         >
-                          Pay Now
+                          <FaWallet className="billing-customer-btn-icon" /> Pay Now
                         </button>
                       ) : (
                         <span className="billing-customer-no-action">—</span>
@@ -2070,7 +2092,7 @@ const Quotation = () => {
                           className="billing-customer-dropdown-trigger-btn"
                           onClick={(e) => toggleDropdown(item.id, e)}
                         >
-                          Action ▾
+                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
                         </button>
 
                         {isDropdownOpen && (
@@ -2090,7 +2112,7 @@ const Quotation = () => {
                                 handleViewDetails(item);
                               }}
                             >
-                              View Details
+                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
                             </button>
                           </div>
                         )}
@@ -2102,7 +2124,7 @@ const Quotation = () => {
                           className="billing-customer-dropdown-trigger-btn"
                           onClick={(e) => toggleDropdown(item.id, e)}
                         >
-                          Action ▾
+                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
                         </button>
 
                         {isDropdownOpen && (
@@ -2122,7 +2144,7 @@ const Quotation = () => {
                                 handleViewDetails(item);
                               }}
                             >
-                              View Details
+                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
                             </button>
 
                             {hasReceipt && (
@@ -2134,7 +2156,7 @@ const Quotation = () => {
                                     handleViewReceipt(item);
                                   }}
                                 >
-                                  View Receipt
+                                  <FaReceipt className="billing-customer-dropdown-item-icon" /> View Receipt
                                 </button>
                                 <button
                                   className="billing-customer-dropdown-item download-receipt"
@@ -2143,7 +2165,7 @@ const Quotation = () => {
                                     handleDownloadReceipt(item);
                                   }}
                                 >
-                                  Download Receipt
+                                  <FaDownload className="billing-customer-dropdown-item-icon" /> Download Receipt
                                 </button>
                               </>
                             )}
@@ -2154,6 +2176,11 @@ const Quotation = () => {
                       <span className="billing-customer-status-text">{item.status}</span>
                     )}
                   </div>
+                  {isVerifying && (
+                    <div className="billing-customer-mobile-verifying">
+                      <FaClock /> Verifying...
+                    </div>
+                  )}
                 </div>
               );
             })

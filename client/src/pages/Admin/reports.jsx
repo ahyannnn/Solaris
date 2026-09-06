@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
-import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes } from 'react-icons/fa';
+import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
 import logo from '../../assets/Salfare_Logo.png';
@@ -40,6 +40,7 @@ const Reports = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedAssessment, setSelectedAssessment] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
+  const [showMoreTabs, setShowMoreTabs] = useState(false);
 
   // Data for reports
   const [assessments, setAssessments] = useState([]);
@@ -343,31 +344,60 @@ const Reports = () => {
       
 
         {/* Report Type Tabs */}
-        <div className="report-tabs-reports">
+        <div className={`report-tabs-reports ${showMoreTabs ? 'show-more-reports' : ''}`}>
           <button
             className={`tab-btn-reports ${activeTab === 'site-assessment' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('site-assessment'); setReportData(null); }}
+            onClick={() => { setActiveTab('site-assessment'); setReportData(null); setShowMoreTabs(false); }}
           >
             Site Assessment
           </button>
           <button
             className={`tab-btn-reports ${activeTab === 'project-summary' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('project-summary'); setReportData(null); }}
+            onClick={() => { setActiveTab('project-summary'); setReportData(null); setShowMoreTabs(false); }}
           >
             Project Summary
           </button>
           <button
-            className={`tab-btn-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('financial'); setReportData(null); }}
+            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
+            onClick={() => { setActiveTab('financial'); setReportData(null); setShowMoreTabs(false); }}
           >
             Financial
           </button>
           <button
-            className={`tab-btn-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('clients'); setReportData(null); }}
+            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
+            onClick={() => { setActiveTab('clients'); setReportData(null); setShowMoreTabs(false); }}
           >
             Clients
           </button>
+          <div className="more-wrap-reports">
+            <button
+              className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients') ? 'active-reports' : ''}`}
+              onClick={() => setShowMoreTabs((v) => !v)}
+              aria-expanded={showMoreTabs}
+              aria-haspopup="true"
+              type="button"
+            >
+              More <FaChevronDown className={`more-chevron-reports ${showMoreTabs ? 'open' : ''}`} />
+            </button>
+            {showMoreTabs && (
+              <div className="more-menu-reports" role="menu">
+                <button
+                  role="menuitem"
+                  className={`more-item-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
+                  onClick={() => { setActiveTab('financial'); setReportData(null); setShowMoreTabs(false); }}
+                >
+                  Financial
+                </button>
+                <button
+                  role="menuitem"
+                  className={`more-item-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
+                  onClick={() => { setActiveTab('clients'); setReportData(null); setShowMoreTabs(false); }}
+                >
+                  Clients
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Report Controls */}
@@ -446,15 +476,15 @@ const Reports = () => {
 
                       return (
                         <tr key={assessment._id}>
-                          <td className="ref-cell-reports">{assessment.bookingReference}</td>
-                          <td className="client-cell-reports">{assessment.clientName || 'N/A'}</td>
-                          <td>{assessment.clientContact || 'N/A'}</td>
-                          <td>
+                          <td data-label="Booking Ref" className="ref-cell-reports">{assessment.bookingReference}</td>
+                          <td data-label="Client Name" className="client-cell-reports">{assessment.clientName || 'N/A'}</td>
+                          <td data-label="Contact">{assessment.clientContact || 'N/A'}</td>
+                          <td data-label="Type">
                             <span className="property-type-badge-reports">
                               {assessment.propertyType || 'N/A'}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="Status">
                             <span className="status-badge-reports">
                               {statusDisplay}
                             </span>
@@ -502,16 +532,16 @@ const Reports = () => {
                   <tbody>
                     {(reportData?.report?.projects || []).map(project => (
                       <tr key={project._id}>
-                        <td className="ref-cell-reports">{project.projectReference}</td>
-                        <td className="client-cell-reports">{project.clientName || 'N/A'}</td>
-                        <td>{project.clientContact || 'N/A'}</td>
-                        <td>
+                        <td data-label="Project Ref" className="ref-cell-reports">{project.projectReference}</td>
+                        <td data-label="Client Name" className="client-cell-reports">{project.clientName || 'N/A'}</td>
+                        <td data-label="Contact">{project.clientContact || 'N/A'}</td>
+                        <td data-label="System Type">
                           <span className="system-type-badge-reports">
                             {project.systemType || 'N/A'}
                           </span>
                         </td>
-                        <td>{project.systemSize || 'N/A'} kWp</td>
-                        <td>
+                        <td data-label="System Size">{project.systemSize || 'N/A'} kWp</td>
+                        <td data-label="Status">
                           <span className={`project-status-badge-reports ${project.status}`}>
                             {project.status === 'in_progress' ? 'In Progress' :
                               project.status === 'completed' ? 'Completed' :
@@ -563,20 +593,20 @@ const Reports = () => {
                   <tbody>
                     {(reportData?.report?.payments || []).map((transaction, idx) => (
                       <tr key={idx}>
-                        <td className="ref-cell-reports">{transaction.reference || transaction.projectName}</td>
-                        <td className="client-cell-reports">{transaction.clientName || transaction.client || 'N/A'}</td>
-                        <td className="amount-reports">{formatCurrency(transaction.amount)}</td>
-                        <td>
+                        <td data-label="Reference" className="ref-cell-reports">{transaction.reference || transaction.projectName}</td>
+                        <td data-label="Client Name" className="client-cell-reports">{transaction.clientName || transaction.client || 'N/A'}</td>
+                        <td data-label="Amount" className="amount-reports">{formatCurrency(transaction.amount)}</td>
+                        <td data-label="Method">
                           <span className={`payment-method-reports ${transaction.method?.toLowerCase()}`}>
                             {transaction.paymentMethod || transaction.method || 'N/A'}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Status">
                           <span className="status-badge-reports">
                             {transaction.status}
                           </span>
                         </td>
-                        <td>{formatDate(transaction.date)}</td>
+                        <td data-label="Date">{formatDate(transaction.date)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -619,24 +649,24 @@ const Reports = () => {
                     {(reportData?.report?.clients || []).length > 0 ? (
                       (reportData?.report?.clients || []).map(client => (
                         <tr key={client._id}>
-                          <td className="client-cell-reports">
+                          <td data-label="Name" className="client-cell-reports">
                             <strong>{client.clientName || 'N/A'}</strong>
                           </td>
-                          <td>{client.clientContact || 'N/A'}</td>
-                          <td>{client.email || 'N/A'}</td>
-                          <td>
+                          <td data-label="Contact">{client.clientContact || 'N/A'}</td>
+                          <td data-label="Email">{client.email || 'N/A'}</td>
+                          <td data-label="Client Type">
                             <span className="client-type-badge-reports">
                             {client.clientType || 'Residential'}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="Address">
                             {client.address || 'N/A'}
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="empty-state-reports">No clients found</td>
+                        <td colSpan="5" data-label="" className="empty-state-reports">No clients found</td>
                       </tr>
                     )}
                   </tbody>
@@ -715,15 +745,15 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.assessments.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell-reports">{item.bookingReference || 'N/A'}</td>
-                              <td className="client-cell-reports">{item.clientName || 'N/A'}</td>
-                              <td>{item.clientContact || 'N/A'}</td>
-                              <td>
+                              <td data-label="Booking Ref" className="ref-cell-reports">{item.bookingReference || 'N/A'}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
+                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                              <td data-label="Type">
                                 <span className="property-type-badge-reports">
                                   {item.propertyType || 'N/A'}
                                 </span>
                               </td>
-                              <td>
+                              <td data-label="Status">
                                 <span className="status-badge-reports">
                                   {item.statusDisplay || item.assessmentStatus || 'N/A'}
                                 </span>
@@ -758,16 +788,16 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.projects.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell-reports">{item.projectReference || 'N/A'}</td>
-                              <td className="client-cell-reports">{item.clientName || 'N/A'}</td>
-                              <td>{item.clientContact || 'N/A'}</td>
-                              <td>
+                              <td data-label="Project Ref" className="ref-cell-reports">{item.projectReference || 'N/A'}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
+                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                              <td data-label="System Type">
                                 <span className="system-type-badge-reports">
                                   {item.systemType || 'N/A'}
                                 </span>
                               </td>
-                              <td>{item.systemSize || 'N/A'} kWp</td>
-                              <td>
+                              <td data-label="System Size">{item.systemSize || 'N/A'} kWp</td>
+                              <td data-label="Status">
                                 <span className={`project-status-badge-reports ${item.status?.toLowerCase()}`}>
                                   {item.status || 'N/A'}
                                 </span>
@@ -802,20 +832,20 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.payments.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="ref-cell-reports">{item.reference || item.projectName || 'N/A'}</td>
-                              <td className="client-cell-reports">{item.clientName || item.client || 'N/A'}</td>
-                              <td className="amount-reports">{formatCurrency(item.amount || 0)}</td>
-                              <td>
+                              <td data-label="Reference" className="ref-cell-reports">{item.reference || item.projectName || 'N/A'}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || item.client || 'N/A'}</td>
+                              <td data-label="Amount" className="amount-reports">{formatCurrency(item.amount || 0)}</td>
+                              <td data-label="Method">
                                 <span className={`payment-method-reports ${(item.method || item.paymentMethod || '').toLowerCase()}`}>
                                   {item.method || item.paymentMethod || 'N/A'}
                                 </span>
                               </td>
-                              <td>
+                              <td data-label="Status">
                                 <span className="status-badge-reports">
                                   {item.status || 'N/A'}
                                 </span>
                               </td>
-                              <td>{item.date ? formatDate(item.date) : 'N/A'}</td>
+                              <td data-label="Date">{item.date ? formatDate(item.date) : 'N/A'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -845,15 +875,15 @@ const Reports = () => {
                         <tbody>
                           {reportData.report.clients.slice(0, 10).map((item, index) => (
                             <tr key={index}>
-                              <td className="client-cell-reports"><strong>{item.clientName || 'N/A'}</strong></td>
-                              <td>{item.clientContact || 'N/A'}</td>
-                              <td>{item.email || 'N/A'}</td>
-                              <td>
+                              <td data-label="Name" className="client-cell-reports"><strong>{item.clientName || 'N/A'}</strong></td>
+                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                              <td data-label="Email">{item.email || 'N/A'}</td>
+                              <td data-label="Client Type">
                                 <span className="client-type-badge-reports">
                                   {item.clientType || 'Residential'}
                                 </span>
                               </td>
-                              <td>
+                              <td data-label="Address">
                                 {item.address || 'N/A'}
                               </td>
                             </tr>

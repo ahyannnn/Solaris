@@ -1438,6 +1438,9 @@ body.dark-mode {
   .user-management-usermanagement {
     padding-inline: 14px;
     padding-top: 12px;
+    overflow-x: clip;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .user-management-header-usermanagement {
     padding: 0 0 16px 0;
@@ -1450,18 +1453,24 @@ body.dark-mode {
   .user-tabs-usermanagement {
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
+    overflow: hidden;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 4px;
     gap: 4px;
-    -webkit-overflow-scrolling: touch;
     border-radius: 8px;
   }
   .tab-btn-usermanagement {
-    padding: 8px 14px;
+    padding: 8px 10px;
     font-size: 12px;
     white-space: nowrap;
-    flex-shrink: 0;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-shrink: 1;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tab-badge-usermanagement {
     min-width: 18px;
@@ -1489,41 +1498,133 @@ body.dark-mode {
   .filter-role-usermanagement {
     min-width: auto;
   }
+  .users-table-container-usermanagement {
+    overflow: visible;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .users-table-usermanagement {
+    min-width: 0;
+  }
   .users-table-usermanagement thead {
     display: none;
   }
-  .users-table-usermanagement tbody td {
+  .users-table-usermanagement,
+  .users-table-usermanagement tbody,
+  .users-table-usermanagement tr,
+  .users-table-usermanagement td {
     display: block;
-    padding: 8px 12px;
+    width: 100%;
+  }
+  .users-table-usermanagement tbody tr {
+    display: block;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .users-table-usermanagement tbody tr:hover {
+    background: var(--bg-surface);
+  }
+  .users-table-usermanagement tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
+    min-width: 0;
   }
   .users-table-usermanagement tbody td:last-child {
     border-bottom: none;
   }
   .users-table-usermanagement tbody td::before {
     content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-muted);
     font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-block;
-    width: 100px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+    max-width: 45%;
   }
-  .users-table-usermanagement tbody tr {
+  .users-table-usermanagement tbody td > *,
+  .users-table-usermanagement tbody td .user-name-usermanagement,
+  .users-table-usermanagement tbody td .email-text-usermanagement {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .users-table-usermanagement tbody td .role-badge-usermanagement,
+  .users-table-usermanagement tbody td .status-badge-usermanagement {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 58%;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .users-table-usermanagement tbody td[data-label="Action"] .action-badge-usermanagement,
+  .users-table-usermanagement tbody td[data-label="Module"] .module-badge-usermanagement {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 55%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: right;
+    line-height: 1.4;
+    margin-left: auto;
+  }
+  .users-table-usermanagement tbody td[data-label="Module"] .module-badge-usermanagement svg {
+    flex-shrink: 0;
+  }
+  .users-table-usermanagement tbody td.empty-state-usermanagement {
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+    justify-content: center;
   }
-  .users-table-usermanagement tbody tr:last-child {
-    border-bottom: none;
+  .users-table-usermanagement tbody td.empty-state-usermanagement::before {
+    content: none;
   }
   .user-cell-content-usermanagement {
     display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-left: auto;
+    min-width: 0;
+    flex: 1;
   }
   .email-cell-usermanagement {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+    min-width: 0;
+    flex: 1;
+  }
+  .email-icon-usermanagement,
+  .timestamp-icon-usermanagement,
+  .user-avatar-usermanagement {
+    flex-shrink: 0;
+  }
+  .action-dropdown-menu-usermanagement {
+    max-width: calc(100vw - 28px);
   }
   .modal-content-usermanagement {
     max-width: 100%;
@@ -1598,6 +1699,18 @@ body.dark-mode {
     padding: 6px 10px;
     font-size: 11px;
   }
+  .users-table-usermanagement tbody td {
+    padding: 8px 0;
+    font-size: 11px;
+    gap: 10px;
+  }
+  .users-table-usermanagement tbody td::before {
+    font-size: 10px;
+  }
+  .users-table-usermanagement tbody tr {
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
   .page-btn-usermanagement,
   .page-number-usermanagement {
     font-size: 12px;
@@ -1651,6 +1764,36 @@ body.dark-mode {
 @media (max-width: 360px) {
   .user-management-usermanagement {
     padding-inline: 6px;
+  }
+  .users-table-usermanagement tbody td {
+    padding: 6px 0;
+    font-size: 10px;
+  }
+  .users-table-usermanagement tbody td::before {
+    font-size: 10px;
+  }
+  .users-table-usermanagement tbody td[data-label="Email"],
+  .users-table-usermanagement tbody td[data-label="Timestamp"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+  }
+  .users-table-usermanagement tbody td[data-label="Email"]::before,
+  .users-table-usermanagement tbody td[data-label="Timestamp"]::before {
+    max-width: 100%;
+  }
+  .users-table-usermanagement tbody td[data-label="Email"] > *,
+  .users-table-usermanagement tbody td[data-label="Timestamp"] > *,
+  .users-table-usermanagement tbody td[data-label="Email"] .user-cell-content-usermanagement,
+  .users-table-usermanagement tbody td[data-label="Timestamp"] .user-cell-content-usermanagement,
+  .users-table-usermanagement tbody td[data-label="Email"] .email-cell-usermanagement,
+  .users-table-usermanagement tbody td[data-label="Timestamp"] .timestamp-cell-usermanagement {
+    margin-left: 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
   }
   .user-stats-grid-usermanagement {
     grid-template-columns: 1fr 1fr;

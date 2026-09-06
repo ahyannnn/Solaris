@@ -441,6 +441,12 @@ body.dark-mode {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
+/* Last row opens upward — no room below, and scrolling would dismiss the menu */
+.app-table-app-admin tbody tr:last-child .action-dropdown-menu-app-admin {
+  top: auto !important;
+  bottom: calc(100% + 5px);
+}
+
 .action-dropdown-toggle-app-admin {
   display: inline-flex;
   align-items: center;
@@ -946,39 +952,170 @@ body.dark-mode {
 
   .app-table-wrapper-app-admin {
     padding: 0 0 12px 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
   }
 
-  .app-table-app-admin thead th {
-    font-size: 10px;
-    padding: 8px 10px 8px 0;
+  .app-table-app-admin {
+    min-width: 0;
+    width: 100%;
+    display: block;
+    background: transparent;
   }
 
-  .app-table-app-admin thead th:first-child {
-    padding-left: 12px;
+  .app-table-app-admin thead {
+    display: none;
   }
 
-  .app-table-app-admin thead th.actions-col-app-admin,
-  .app-table-app-admin tbody td:last-child {
-    padding-right: 12px;
+  .app-table-app-admin tbody {
+    display: block;
+    background: transparent;
+  }
+
+  .app-table-app-admin tbody tr {
+    display: block;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    padding: 12px 12px 14px 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-card);
+  }
+
+  .app-table-app-admin tbody tr:last-child {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-card);
+  }
+
+  .app-table-app-admin tbody tr:hover {
+    background: var(--bg-card);
   }
 
   .app-table-app-admin tbody td {
-    padding: 10px 10px 10px 0;
-    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 14px;
+    border-bottom: none;
+    font-size: 13px;
+  }
+
+  .app-table-app-admin tbody td:not(:first-child):not(:last-child) {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    margin-bottom: 8px;
   }
 
   .app-table-app-admin tbody td:first-child {
-    padding-left: 12px;
+    display: block;
+    text-align: center;
+    padding-top: 14px;
+    padding-bottom: 12px;
+  }
+
+  .app-table-app-admin tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .app-table-app-admin tbody td::before {
+    content: attr(data-label);
+    font-weight: 400;
+    color: var(--text-secondary);
+    font-size: 13px;
+    flex: 0 0 92px;
+    width: 92px;
+    text-align: left;
+    margin-bottom: 0;
+    padding-top: 2px;
+  }
+
+  .app-table-app-admin tbody td:first-child::before {
+    display: block;
+    width: auto;
+    flex: none;
+    text-align: center;
+    margin-bottom: 6px;
+    padding-top: 0;
+  }
+
+  .app-table-app-admin tbody td:not([data-label="Actions"]) > * {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .app-table-app-admin tbody td:first-child > * {
+    text-align: center;
+  }
+
+  .version-cell-app-admin {
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
   }
 
   .release-notes-cell-app-admin {
-    max-width: 140px;
+    white-space: normal;
+    max-width: none;
+  }
+
+  .date-cell-app-admin {
+    justify-content: flex-end;
+    margin-left: auto;
+    white-space: normal;
+  }
+
+  .app-table-app-admin tbody td:not([data-label="Actions"]) > .status-badge-app-admin {
+    flex: none;
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .app-table-app-admin tbody td[data-label="Actions"] {
+    display: block;
+    text-align: center;
+    padding-top: 8px;
+  }
+
+  .app-table-app-admin tbody td[data-label="Actions"]::before {
+    display: none;
+  }
+
+  .action-dropdown-container-app-admin {
+    width: 100%;
   }
 
   .action-dropdown-toggle-app-admin {
-    padding: 4px 10px;
-    font-size: 11px;
-    white-space: nowrap;
+    width: 100%;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .action-dropdown-toggle-app-admin:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .app-table-app-admin thead {
+    display: none;
   }
 
   .modal-overlay-app-admin {
@@ -1065,39 +1202,19 @@ body.dark-mode {
     padding: 0 0 8px 0;
   }
 
-  .app-table-app-admin thead th {
-    padding: 8px 8px 8px 0;
+  .app-table-app-admin tbody tr {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    padding: 10px 10px 12px 10px;
   }
 
-  .app-table-app-admin thead th:first-child,
-  .app-table-app-admin tbody td:first-child {
-    padding-left: 10px;
-  }
-
-  .app-table-app-admin thead th.actions-col-app-admin,
-  .app-table-app-admin tbody td:last-child {
-    padding-right: 10px;
-  }
-
-  .app-table-app-admin tbody td {
-    font-size: 11px;
-    padding: 8px 8px 8px 0;
-  }
-
-  .release-notes-cell-app-admin {
-    max-width: 90px;
-  }
-
-  .version-cell-app-admin {
-    font-size: 11px;
+  .app-table-app-admin tbody td::before {
+    flex-basis: 80px;
+    width: 80px;
   }
 
   .version-icon-app-admin {
     font-size: 13px;
-  }
-
-  .date-cell-app-admin {
-    font-size: 11px;
   }
 
   .date-cell-app-admin svg {

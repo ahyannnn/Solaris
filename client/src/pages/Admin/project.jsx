@@ -130,9 +130,10 @@ const ProjectManagement = () => {
     fetchStats();
 
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
+      // Ignore taps on toggles/menus — their onClick owns open/close.
+      // Otherwise mousedown pre-closes and the following click re-opens.
+      if (event.target.closest?.('[data-action-menu],[data-action-toggle]')) return;
+      setOpenDropdownId(null);
     };
 
     const handleScroll = () => {
@@ -350,14 +351,22 @@ const ProjectManagement = () => {
     }
   };
 
-  const handleDropdownClick = (event, projectId) => {
+  const handleDropdownClick = (event, projectId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
+    const project = projects.find(p => p._id === projectId);
+    const actionCount = project ? getAvailableActions(project).length : 4;
+    const estimatedHeight = Math.min(300, actionCount * 44 + 12);
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    // Bottom cards always flip upward; others auto-flip only when cut off.
+    const shouldFlip = forceFlip || (spaceBelow < estimatedHeight + 10 && spaceAbove > spaceBelow);
     setDropdownPosition({
-      top: buttonRect.bottom + 5,
+      top: shouldFlip ? Math.max(10, buttonRect.top - estimatedHeight - 5) : buttonRect.bottom + 5,
       right: window.innerWidth - buttonRect.right - 10,
+      maxHeight: shouldFlip ? Math.max(120, Math.min(300, spaceAbove - 16)) : Math.min(300, Math.max(120, spaceBelow - 10)),
     });
-    setOpenDropdownId(openDropdownId === projectId ? null : projectId);
+    setOpenDropdownId((prev) => (prev === projectId ? null : projectId));
   };
 
   const formatDate = (date) => {
@@ -775,19 +784,19 @@ const ProjectManagement = () => {
               </thead>
               <tbody>
                 {filteredProjects.length === 0 ? (
-                  <tr><td colSpan="7" className="empty-state-projectmanagement">No projects found</td></tr>
+                  <tr><td colSpan="7" data-label="" className="empty-state-projectmanagement">No projects found</td></tr>
                 ) : (
-                  filteredProjects.map(project => {
+                  filteredProjects.map((project, idx) => {
                     const actions = getAvailableActions(project);
                     const isOpen = openDropdownId === project._id;
 
                     return (
                       <tr key={project._id}>
-                        <td className="project-cell-projectmanagement">
+                        <td data-label="Project" className="project-cell-projectmanagement">
                           <div className="project-name-projectmanagement">{project.projectName}</div>
                           <div className="project-ref-projectmanagement">{project.projectReference}</div>
                         </td>
-                        <td>
+                        <td data-label="Client">
                           <div>
                             <strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong>
                           </div>
@@ -795,16 +804,17 @@ const ProjectManagement = () => {
                             <small>{project.clientId?.contactNumber}</small>
                           </div>
                         </td>
-                        <td>{project.systemSize} kW</td>
-                        <td className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>
-                        <td className="amount-projectmanagement">{formatCurrency(project.amountPaid)}</td>
-                        <td>{getStatusBadge(project.status)}</td>
-                        <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <td data-label="Size">{project.systemSize} kW</td>
+                        <td data-label="Total" className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>
+                        <td data-label="Paid" className="amount-projectmanagement">{formatCurrency(project.amountPaid)}</td>
+                        <td data-label="Status">{getStatusBadge(project.status)}</td>
+                        <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
                           <div className="action-dropdown-container-projectmanagement">
                             <button
                               className="action-dropdown-toggle-projectmanagement"
+                              data-action-toggle
                               ref={el => buttonRefs.current[project._id] = el}
-                              onClick={(e) => handleDropdownClick(e, project._id)}
+                              onClick={(e) => handleDropdownClick(e, project._id, idx >= filteredProjects.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
                             </button>
@@ -812,12 +822,14 @@ const ProjectManagement = () => {
                             {isOpen && (
                               <div
                                 className="action-dropdown-menu-projectmanagement"
+                                data-action-menu
                                 ref={dropdownRef}
                                 style={{
                                   position: 'fixed',
                                   top: dropdownPosition.top,
                                   right: dropdownPosition.right,
                                   zIndex: 9999,
+                                  maxHeight: dropdownPosition.maxHeight,
                                 }}
                               >
                                 {actions.map((action, idx) => (

@@ -1191,6 +1191,9 @@ body.dark-mode {
   .project-management {
     padding-inline: 14px;
     padding-top: 12px;
+    overflow-x: clip;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .project-header-projectmanagement {
     padding: 0 0 16px 0;
@@ -1206,38 +1209,111 @@ body.dark-mode {
   }
   .filter-group-projectmanagement {
     min-width: auto;
+    max-width: 100%;
+  }
+  .filter-group-projectmanagement select {
+    max-width: 100%;
   }
   .refresh-btn-projectmanagement {
     justify-content: center;
   }
+  .project-table-container-projectmanagement {
+    overflow: visible;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .table-wrapper-projectmanagement {
+    overflow: visible;
+  }
+  .project-table-projectmanagement {
+    min-width: 0;
+  }
   .project-table-projectmanagement thead {
     display: none;
   }
-  .project-table-projectmanagement tbody td {
+  .project-table-projectmanagement,
+  .project-table-projectmanagement tbody,
+  .project-table-projectmanagement tr,
+  .project-table-projectmanagement td {
     display: block;
-    padding: 8px 12px;
+    width: 100%;
+  }
+  .project-table-projectmanagement tbody tr {
+    display: block;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .project-table-projectmanagement tbody tr:hover {
+    background: var(--bg-surface);
+  }
+  .project-table-projectmanagement tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
+    min-width: 0;
   }
   .project-table-projectmanagement tbody td:last-child {
     border-bottom: none;
   }
   .project-table-projectmanagement tbody td::before {
     content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-muted);
     font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-block;
-    width: 100px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+    max-width: 45%;
   }
-  .project-table-projectmanagement tbody tr {
+  .project-table-projectmanagement tbody td > *,
+  .project-table-projectmanagement tbody td .project-name-projectmanagement,
+  .project-table-projectmanagement tbody td .amount-projectmanagement {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .project-table-projectmanagement tbody td .status-badge-projectmanagement {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 58%;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .project-table-projectmanagement tbody td.empty-state-projectmanagement {
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+    justify-content: center;
   }
-  .project-table-projectmanagement tbody tr:last-child {
-    border-bottom: none;
+  .project-table-projectmanagement tbody td.empty-state-projectmanagement::before {
+    content: none;
+  }
+  .project-cell-projectmanagement {
+    margin-left: auto;
+    min-width: 0;
+    flex: 1;
+    text-align: right;
+  }
+  .action-dropdown-menu-projectmanagement {
+    max-width: calc(100vw - 28px);
   }
   .amount-projectmanagement {
     display: inline-block;
@@ -1294,6 +1370,18 @@ body.dark-mode {
   .project-chart-wrapper-projectmanagement {
     height: 150px;
   }
+  .project-table-projectmanagement tbody td {
+    padding: 8px 0;
+    font-size: 11px;
+    gap: 10px;
+  }
+  .project-table-projectmanagement tbody td::before {
+    font-size: 10px;
+  }
+  .project-table-projectmanagement tbody tr {
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
   .page-btn-projectmanagement,
   .page-number-projectmanagement {
     font-size: 12px;
@@ -1319,6 +1407,32 @@ body.dark-mode {
   }
   .project-chart-wrapper-projectmanagement {
     height: 130px;
+  }
+  .project-table-projectmanagement tbody td {
+    padding: 6px 0;
+    font-size: 10px;
+  }
+  .project-table-projectmanagement tbody td::before {
+    font-size: 10px;
+  }
+  .project-table-projectmanagement tbody td[data-label="Project"],
+  .project-table-projectmanagement tbody td[data-label="Client"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+  }
+  .project-table-projectmanagement tbody td[data-label="Project"]::before,
+  .project-table-projectmanagement tbody td[data-label="Client"]::before {
+    max-width: 100%;
+  }
+  .project-table-projectmanagement tbody td[data-label="Project"] > *,
+  .project-table-projectmanagement tbody td[data-label="Client"] > *,
+  .project-table-projectmanagement tbody td[data-label="Project"] .project-cell-projectmanagement {
+    margin-left: 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
   }
 }
 

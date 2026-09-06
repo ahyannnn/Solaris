@@ -469,7 +469,7 @@ body.dark-mode {
 /* ============================================
    TABLE - GLASS
    ============================================ */
-.billing-customer-table-container {
+.site-table-container-adminbills_ {
   background: var(--bg-card);
   border-radius: 14px;
   border: 1px solid var(--border-card);
@@ -1360,6 +1360,9 @@ body.dark-mode {
   .site-assessment-adminbills_ {
     padding-inline: 14px;
     padding-top: 12px;
+    overflow-x: clip;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .header-adminbills_ {
     padding: 0 0 16px 0;
@@ -1367,18 +1370,24 @@ body.dark-mode {
   .tabs-adminbills_ {
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
+    overflow: hidden;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 4px;
     gap: 4px;
-    -webkit-overflow-scrolling: touch;
     border-radius: 8px;
   }
   .tab-btn-adminbills_ {
-    padding: 8px 14px;
+    padding: 8px 10px;
     font-size: 12px;
     white-space: nowrap;
-    flex-shrink: 0;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-shrink: 1;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .toolbar-adminbills_ {
     flex-direction: column;
@@ -1395,12 +1404,106 @@ body.dark-mode {
   .refresh-btn-adminbills_ {
     justify-content: center;
   }
+  .site-table-container-adminbills_ {
+    overflow: visible;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
   .data-table-adminbills_ {
     font-size: 12px;
+    min-width: 0;
   }
-  .data-table-adminbills_ thead th,
+  .data-table-adminbills_ thead {
+    display: none;
+  }
+  .data-table-adminbills_,
+  .data-table-adminbills_ tbody,
+  .data-table-adminbills_ tr,
+  .data-table-adminbills_ td {
+    display: block;
+    width: 100%;
+  }
+  .data-table-adminbills_ tbody tr {
+    display: block;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .data-table-adminbills_ tbody tr:hover {
+    background: var(--bg-surface);
+  }
   .data-table-adminbills_ tbody td {
-    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    min-width: 0;
+  }
+  .data-table-adminbills_ tbody td:last-child {
+    border-bottom: none;
+  }
+  .data-table-adminbills_ tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+    max-width: 45%;
+  }
+  .data-table-adminbills_ tbody td > *,
+  .data-table-adminbills_ tbody td .ref-cell-adminbills_,
+  .data-table-adminbills_ tbody td .client-cell-adminbills_,
+  .data-table-adminbills_ tbody td .amount-cell-adminbills_ {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .data-table-adminbills_ tbody td .status-badge-adminbills_ {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 58%;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .data-table-adminbills_ tbody td.empty-state-adminbills_ {
+    display: block;
+    text-align: center;
+    justify-content: center;
+  }
+  .data-table-adminbills_ tbody td.empty-state-adminbills_::before {
+    content: none;
+  }
+  .action-dropdown-container-adminbills_ {
+    display: inline-flex;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+  .action-dropdown-menu-adminbills_ {
+    max-width: calc(100vw - 28px);
+  }
+  .dropdown-item-adminbills_ {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .chart-area-adminbills_ {
     padding: 14px 16px;
@@ -1453,14 +1556,25 @@ body.dark-mode {
     padding: 6px 10px;
     font-size: 11px;
   }
+  .data-table-adminbills_ tbody td {
+    padding: 8px 0;
+    font-size: 11px;
+    gap: 10px;
+  }
+  .data-table-adminbills_ tbody td::before {
+    font-size: 10px;
+  }
+  .data-table-adminbills_ tbody tr {
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
   .tab-badge-adminbills_ {
     min-width: 18px;
     height: 18px;
     font-size: 10px;
     padding: 0 6px;
   }
-  .data-table-adminbills_ thead th,
-  .data-table-adminbills_ tbody td {
+  .data-table-adminbills_ thead th {
     padding: 8px 10px;
     font-size: 11px;
   }
@@ -1538,10 +1652,33 @@ body.dark-mode {
     padding: 4px 8px;
     font-size: 10px;
   }
-  .data-table-adminbills_ thead th,
   .data-table-adminbills_ tbody td {
-    padding: 6px 8px;
+    padding: 6px 0;
     font-size: 10px;
+  }
+  .data-table-adminbills_ tbody td::before {
+    font-size: 10px;
+  }
+  .data-table-adminbills_ tbody td[data-label="Client"],
+  .data-table-adminbills_ tbody td[data-label="Contact"],
+  .data-table-adminbills_ tbody td[data-label="Reference"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+  }
+  .data-table-adminbills_ tbody td[data-label="Client"]::before,
+  .data-table-adminbills_ tbody td[data-label="Contact"]::before,
+  .data-table-adminbills_ tbody td[data-label="Reference"]::before {
+    max-width: 100%;
+  }
+  .data-table-adminbills_ tbody td[data-label="Client"] > *,
+  .data-table-adminbills_ tbody td[data-label="Contact"] > *,
+  .data-table-adminbills_ tbody td[data-label="Reference"] > * {
+    margin-left: 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
   }
   .chart-wrapper-adminbills_ {
     height: 120px;

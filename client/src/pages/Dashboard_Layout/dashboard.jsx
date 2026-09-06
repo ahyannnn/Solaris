@@ -964,6 +964,23 @@ const Dashboard = () => {
     return false;
   };
 
+  // Find which sidebar item is active (for the header section indicator)
+  const getActiveSidebarItem = () => {
+    const sections = currentMenu.sections || [];
+    for (const section of sections) {
+      for (const item of section.items || []) {
+        if (item.items) {
+          const sub = item.items.find((subItem) => subItem.path && isActive(subItem.path));
+          if (sub) return sub;
+        }
+        if (item.path && isActive(item.path)) return item;
+      }
+    }
+    return null;
+  };
+
+  const activeSidebarItem = getActiveSidebarItem();
+
   // Check if a dropdown button should be highlighted
   const isDropdownActive = (item) => {
     if (!item || !item.items) return false;
@@ -1190,6 +1207,9 @@ const Dashboard = () => {
                 )}
               </div>
               <p className="page-description-layout-dashboard">{pageInfo.description}</p>
+              {!isCustomer && activeSidebarItem && (
+                <span className="header-active-section-layout-dashboard">{activeSidebarItem.label}</span>
+              )}
             </div>
           </div>
 

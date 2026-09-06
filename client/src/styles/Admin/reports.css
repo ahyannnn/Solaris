@@ -187,6 +187,9 @@ body.dark-mode {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text-primary);
   transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: clip;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ============================================
@@ -248,6 +251,23 @@ body.dark-mode {
   background: var(--icon-color);
   color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.more-tab-btn-reports {
+  display: none;
+}
+
+.more-wrap-reports {
+  display: none;
+}
+
+.more-chevron-reports {
+  font-size: 10px;
+  transition: transform 200ms ease;
+}
+
+.more-chevron-reports.open {
+  transform: rotate(180deg);
 }
 
 /* ============================================
@@ -995,22 +1015,86 @@ body.dark-mode .project-status-badge-reports.approved {
   .report-tabs-reports {
     display: flex;
     flex-wrap: nowrap;
-    overflow-x: auto;
+    overflow: visible;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 4px;
     gap: 4px;
-    -webkit-overflow-scrolling: touch;
     border-radius: 8px;
+    position: relative;
+    z-index: 200;
+    isolation: isolate;
   }
   .tab-btn-reports {
-    padding: 8px 14px;
+    padding: 8px 10px;
     font-size: 12px;
     white-space: nowrap;
-    flex-shrink: 0;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-shrink: 1;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .more-tab-btn-reports {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+  .desktop-tab-reports {
+    display: none;
+  }
+  .more-wrap-reports {
+    display: inline-flex;
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .more-menu-reports {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    max-width: calc(100vw - 28px);
+    background: var(--bg-dropdown);
+    border: 1px solid var(--border-medium);
+    border-radius: 10px;
+    box-shadow: var(--shadow-dropdown);
+    padding: 6px;
+    z-index: 201;
+  }
+  .more-item-reports {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+    transition: all 200ms ease;
+  }
+  .more-item-reports:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+  }
+  .more-item-reports.active-reports {
+    background: var(--icon-color);
+    color: #FFFFFF;
   }
   .report-controls-reports {
     padding: 14px 16px;
     border-radius: 10px;
+    position: relative;
+    z-index: 1;
   }
   .date-inputs-reports input[type="date"] {
     font-size: 13px;
@@ -1026,12 +1110,97 @@ body.dark-mode .project-status-badge-reports.approved {
   .report-section-reports p {
     font-size: 13px;
   }
+  /* --- Mobile card tables: label left, value right --- */
+  .table-container-reports {
+    overflow: visible;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
   .reports-table-reports {
     font-size: 12px;
+    min-width: 0;
   }
-  .reports-table-reports thead th,
+  .reports-table-reports thead {
+    display: none;
+  }
+  .reports-table-reports,
+  .reports-table-reports tbody,
+  .reports-table-reports tr,
+  .reports-table-reports td {
+    display: block;
+    width: 100%;
+  }
+  .reports-table-reports tbody tr {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-medium);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .reports-table-reports tbody tr:hover {
+    background: var(--bg-surface);
+  }
+  .reports-table-reports tbody tr:last-child {
+    border-bottom: 1px solid var(--border-color);
+  }
   .reports-table-reports tbody td {
-    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    min-width: 0;
+  }
+  .reports-table-reports tbody td:last-child {
+    border-bottom: none;
+  }
+  .reports-table-reports tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+    max-width: 45%;
+  }
+  .reports-table-reports tbody td > *,
+  .reports-table-reports tbody td.ref-cell-reports,
+  .reports-table-reports tbody td.client-cell-reports,
+  .reports-table-reports tbody td.amount-reports {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .reports-table-reports tbody td .status-badge-reports,
+  .reports-table-reports tbody td .property-type-badge-reports,
+  .reports-table-reports tbody td .system-type-badge-reports,
+  .reports-table-reports tbody td .client-type-badge-reports,
+  .reports-table-reports tbody td .project-status-badge-reports,
+  .reports-table-reports tbody td .payment-method-reports {
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 58%;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .reports-table-reports tbody td.empty-state-reports {
+    display: block;
+    text-align: center;
+    justify-content: center;
+  }
+  .reports-table-reports tbody td.empty-state-reports::before {
+    content: none;
   }
   .report-actions-reports {
     flex-direction: column;
@@ -1098,10 +1267,17 @@ body.dark-mode .project-status-badge-reports.approved {
   .report-section-reports h2 {
     font-size: 16px;
   }
-  .reports-table-reports thead th,
   .reports-table-reports tbody td {
-    padding: 8px 10px;
+    padding: 8px 0;
     font-size: 11px;
+    gap: 10px;
+  }
+  .reports-table-reports tbody td::before {
+    font-size: 10px;
+  }
+  .reports-table-reports tbody tr {
+    padding: 4px 12px;
+    margin-bottom: 10px;
   }
   .ref-cell-reports {
     font-size: 11px;
@@ -1150,10 +1326,36 @@ body.dark-mode .project-status-badge-reports.approved {
     padding: 4px 8px;
     font-size: 10px;
   }
-  .reports-table-reports thead th,
   .reports-table-reports tbody td {
-    padding: 6px 8px;
+    padding: 6px 0;
     font-size: 10px;
+  }
+  .reports-table-reports tbody td::before {
+    font-size: 10px;
+  }
+  /* Stack long values below label on tiny screens */
+  .reports-table-reports tbody td[data-label="Email"],
+  .reports-table-reports tbody td[data-label="Address"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+  }
+  .reports-table-reports tbody td[data-label="Email"]::before,
+  .reports-table-reports tbody td[data-label="Address"]::before {
+    max-width: 100%;
+  }
+  .reports-table-reports tbody td[data-label="Email"],
+  .reports-table-reports tbody td[data-label="Address"] {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .reports-table-reports tbody td[data-label="Email"] > *,
+  .reports-table-reports tbody td[data-label="Address"] > * {
+    margin-left: 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
   }
 }
 

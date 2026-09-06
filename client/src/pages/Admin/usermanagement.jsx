@@ -296,9 +296,10 @@ const UserManagement = () => {
     }
 
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
+      // Ignore taps on toggles/menus — their onClick owns open/close.
+      // Otherwise mousedown pre-closes and the following click re-opens.
+      if (event.target.closest?.('[data-action-menu],[data-action-toggle]')) return;
+      setOpenDropdownId(null);
     };
 
     const handleScroll = () => {
@@ -330,14 +331,22 @@ const UserManagement = () => {
   // HANDLERS
   // ============================================
 
-  const handleDropdownClick = (event, userId) => {
+  const handleDropdownClick = (event, userId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
+    const user = users.find(u => u._id === userId);
+    const actionCount = user ? getAvailableActions(user).length : 5;
+    const estimatedHeight = Math.min(300, actionCount * 44 + 12);
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    // Bottom cards always flip upward; others auto-flip only when cut off.
+    const shouldFlip = forceFlip || (spaceBelow < estimatedHeight + 10 && spaceAbove > spaceBelow);
     setDropdownPosition({
-      top: buttonRect.bottom + 5,
+      top: shouldFlip ? Math.max(10, buttonRect.top - estimatedHeight - 5) : buttonRect.bottom + 5,
       right: window.innerWidth - buttonRect.right - 10,
+      maxHeight: shouldFlip ? Math.max(120, Math.min(300, spaceAbove - 16)) : Math.min(300, Math.max(120, spaceBelow - 10)),
     });
-    setOpenDropdownId(openDropdownId === userId ? null : userId);
+    setOpenDropdownId((prev) => (prev === userId ? null : userId));
   };
 
   const handleSearch = (e) => {
@@ -867,18 +876,18 @@ const UserManagement = () => {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="empty-state-usermanagement">
+                    <td colSpan="6" data-label="" className="empty-state-usermanagement">
                       <p>No users found</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map(user => {
+                  filteredUsers.map((user, idx) => {
                     const actions = getAvailableActions(user);
                     const isOpen = openDropdownId === user._id;
 
                     return (
                       <tr key={user._id}>
-                        <td>
+                        <td data-label="User">
                           <div className="user-cell-content-usermanagement">
                             <div className="user-avatar-usermanagement">
                               {user.clientInfo?.firstName ? (
@@ -890,31 +899,34 @@ const UserManagement = () => {
                             <div className="user-name-usermanagement">{user.fullName || '—'}</div>
                           </div>
                         </td>
-                        <td className="email-cell-usermanagement">
+                        <td data-label="Email" className="email-cell-usermanagement">
                           <FaEnvelope className="email-icon-usermanagement" />
                           <span className="email-text-usermanagement">{user.email}</span>
                         </td>
-                        <td>{getRoleBadge(user.role)}</td>
-                        <td>{getStatusBadge(user.isActive)}</td>
-                        <td>{formatDate(user.createdAt)}</td>
-                        <td style={{ textAlign: 'center', position: 'relative' }}>
+                        <td data-label="Role">{getRoleBadge(user.role)}</td>
+                        <td data-label="Status">{getStatusBadge(user.isActive)}</td>
+                        <td data-label="Created">{formatDate(user.createdAt)}</td>
+                        <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
                           <div className="action-dropdown-container-usermanagement">
                             <button
                               className="action-dropdown-toggle-usermanagement"
+                              data-action-toggle
                               ref={el => buttonRefs.current[user._id] = el}
-                              onClick={(e) => handleDropdownClick(e, user._id)}
+                              onClick={(e) => handleDropdownClick(e, user._id, idx >= filteredUsers.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-usermanagement ${isOpen ? 'open-usermanagement' : ''}`} />
                             </button>
                             {isOpen && (
                               <div
                                 className="action-dropdown-menu-usermanagement"
+                                data-action-menu
                                 ref={dropdownRef}
                                 style={{
                                   position: 'fixed',
                                   top: dropdownPosition.top,
                                   right: dropdownPosition.right,
                                   zIndex: 9999,
+                                  maxHeight: dropdownPosition.maxHeight,
                                 }}
                               >
                                 {actions.map((action, idx) => (
@@ -994,7 +1006,7 @@ const UserManagement = () => {
               <tbody>
                 {filteredAuditLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="empty-state-usermanagement">
+                    <td colSpan="5" data-label="" className="empty-state-usermanagement">
                       <p>No audit logs found</p>
                     </td>
                   </tr>
@@ -1020,7 +1032,7 @@ const UserManagement = () => {
 
                     return (
                       <tr key={log._id}>
-                        <td>
+                        <td data-label="User">
                           <div className="user-cell-content-usermanagement">
                             <div className="user-avatar-usermanagement small-avatar-usermanagement">
                               <div className="avatar-initials-usermanagement">{userInitials}</div>
@@ -1028,14 +1040,14 @@ const UserManagement = () => {
                             <div className="user-name-usermanagement">{userDisplayName}</div>
                           </div>
                         </td>
-                        <td>{getRoleBadge(log.role)}</td>
-                        <td>
+                        <td data-label="Role">{getRoleBadge(log.role)}</td>
+                        <td data-label="Module">
                           <span className="module-badge-usermanagement">
                             {getModuleIcon(log.module)} {log.module}
                           </span>
                         </td>
-                        <td>{getActionBadge(log.action)}</td>
-                        <td>
+                        <td data-label="Action">{getActionBadge(log.action)}</td>
+                        <td data-label="Timestamp">
                           <div className="timestamp-cell-usermanagement">
                             <FaCalendarAlt className="timestamp-icon-usermanagement" />
                             <span>{formatDateTime(log.createdAt)}</span>

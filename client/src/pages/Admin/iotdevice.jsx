@@ -38,6 +38,8 @@ const IoTDevice = () => {
 
   // --- Tabs ---
   const [activeTab, setActiveTab] = useState('all');
+  const [showMoreTabs, setShowMoreTabs] = useState(false);
+  const tabsMoreRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -109,9 +111,10 @@ const IoTDevice = () => {
     fetchStats();
 
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
-      }
+      // Ignore taps on toggles/menus — their onClick owns open/close.
+      // Otherwise mousedown pre-closes and the following click re-opens.
+      if (event.target.closest?.('[data-action-menu],[data-action-toggle]')) return;
+      setOpenDropdownId(null);
     };
 
     const handleScroll = () => {
@@ -126,6 +129,25 @@ const IoTDevice = () => {
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, [activeTab, currentPage]);
+
+  // Close the tabs dropdown on outside tap or Escape
+  useEffect(() => {
+    if (!showMoreTabs) return;
+    const handleTabsOutside = (e) => {
+      if (tabsMoreRef.current && !tabsMoreRef.current.contains(e.target)) {
+        setShowMoreTabs(false);
+      }
+    };
+    const handleTabsKey = (e) => {
+      if (e.key === 'Escape') setShowMoreTabs(false);
+    };
+    document.addEventListener('mousedown', handleTabsOutside);
+    document.addEventListener('keydown', handleTabsKey);
+    return () => {
+      document.removeEventListener('mousedown', handleTabsOutside);
+      document.removeEventListener('keydown', handleTabsKey);
+    };
+  }, [showMoreTabs]);
 
   const fetchDevices = async () => {
     try {
@@ -309,14 +331,22 @@ const IoTDevice = () => {
     setShowDeleteModal(true);
   };
 
-  const handleDropdownClick = (event, deviceId) => {
+  const handleDropdownClick = (event, deviceId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
+    const device = devices.find(d => d._id === deviceId);
+    const actionCount = device ? getAvailableActions(device).length : 3;
+    const estimatedHeight = Math.min(300, actionCount * 44 + 12);
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+    // Bottom cards always flip upward; others auto-flip only when cut off.
+    const shouldFlip = forceFlip || (spaceBelow < estimatedHeight + 10 && spaceAbove > spaceBelow);
     setDropdownPosition({
-      top: buttonRect.bottom + 5,
+      top: shouldFlip ? Math.max(10, buttonRect.top - estimatedHeight - 5) : buttonRect.bottom + 5,
       right: window.innerWidth - buttonRect.right - 10,
+      maxHeight: shouldFlip ? Math.max(120, Math.min(300, spaceAbove - 16)) : Math.min(300, Math.max(120, spaceBelow - 10)),
     });
-    setOpenDropdownId(openDropdownId === deviceId ? null : deviceId);
+    setOpenDropdownId((prev) => (prev === deviceId ? null : deviceId));
   };
 
   const getStatusBadge = (status) => {
@@ -532,26 +562,64 @@ const IoTDevice = () => {
             <span className="iot-tab-badge-iotdevice">{stats.available}</span>
           </button>
           <button
-            className={`iot-tab-btn-iotdevice ${activeTab === 'assigned' ? 'active-iotdevice' : ''}`}
+            className={`iot-tab-btn-iotdevice desktop-tab-iotdevice ${activeTab === 'assigned' ? 'active-iotdevice' : ''}`}
             onClick={() => { setActiveTab('assigned'); setCurrentPage(1); }}
           >
             Assigned
             <span className="iot-tab-badge-iotdevice">{stats.assigned}</span>
           </button>
           <button
-            className={`iot-tab-btn-iotdevice ${activeTab === 'deployed' ? 'active-iotdevice' : ''}`}
+            className={`iot-tab-btn-iotdevice desktop-tab-iotdevice ${activeTab === 'deployed' ? 'active-iotdevice' : ''}`}
             onClick={() => { setActiveTab('deployed'); setCurrentPage(1); }}
           >
             Deployed
             <span className="iot-tab-badge-iotdevice">{stats.deployed}</span>
           </button>
           <button
-            className={`iot-tab-btn-iotdevice ${activeTab === 'maintenance' ? 'active-iotdevice' : ''}`}
+            className={`iot-tab-btn-iotdevice desktop-tab-iotdevice ${activeTab === 'maintenance' ? 'active-iotdevice' : ''}`}
             onClick={() => { setActiveTab('maintenance'); setCurrentPage(1); }}
           >
             Maintenance
             <span className="iot-tab-badge-iotdevice">{stats.maintenance}</span>
           </button>
+          <div className="iot-tabs-dropdown-iotdevice" ref={tabsMoreRef}>
+            <button
+              className="iot-tabs-toggle-iotdevice"
+              aria-haspopup="menu"
+              aria-expanded={showMoreTabs}
+              onClick={() => setShowMoreTabs((v) => !v)}
+              type="button"
+            >
+              <span className="iot-tabs-toggle-label-iotdevice">
+                {activeTab === 'all' ? 'All Devices' : activeTab === 'available' ? 'Available' : activeTab === 'assigned' ? 'Assigned' : activeTab === 'deployed' ? 'Deployed' : 'Maintenance'}
+                <span className="iot-tab-badge-iotdevice">
+                  {activeTab === 'all' ? stats.total : activeTab === 'available' ? stats.available : activeTab === 'assigned' ? stats.assigned : activeTab === 'deployed' ? stats.deployed : stats.maintenance}
+                </span>
+              </span>
+              <FaChevronDown className={`iot-tabs-toggle-chevron-iotdevice ${showMoreTabs ? 'open-iotdevice' : ''}`} />
+            </button>
+            {showMoreTabs && (
+              <div className="iot-tabs-menu-iotdevice" role="menu">
+                {[
+                  { key: 'all', label: 'All Devices', count: stats.total },
+                  { key: 'available', label: 'Available', count: stats.available },
+                  { key: 'assigned', label: 'Assigned', count: stats.assigned },
+                  { key: 'deployed', label: 'Deployed', count: stats.deployed },
+                  { key: 'maintenance', label: 'Maintenance', count: stats.maintenance },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    role="menuitem"
+                    className={`iot-tabs-menu-item-iotdevice ${activeTab === tab.key ? 'active-iotdevice' : ''}`}
+                    onClick={() => { setActiveTab(tab.key); setCurrentPage(1); setShowMoreTabs(false); }}
+                  >
+                    {tab.label}
+                    <span className="iot-tab-badge-iotdevice">{tab.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* --- TOOLBAR --- */}
@@ -598,20 +666,20 @@ const IoTDevice = () => {
               <tbody>
                 {filteredDevices.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="iot-empty-state-iotdevice">
+                    <td colSpan="7" data-label="" className="iot-empty-state-iotdevice">
                       <FaMicrochip className="empty-icon" />
                       <p>No devices found</p>
                       {searchTerm && <span>Try adjusting your search</span>}
                     </td>
                   </tr>
                 ) : (
-                  filteredDevices.map(device => {
+                  filteredDevices.map((device, idx) => {
                     const actions = getAvailableActions(device);
                     const isOpen = openDropdownId === device._id;
 
                     return (
                       <tr key={device._id} className={`device-row-${device.status}`}>
-                        <td>
+                        <td data-label="Device">
                           <div className="iot-device-cell-iotdevice">
                             <FaMicrochip className="iot-device-icon-table-iotdevice" />
                             <div>
@@ -620,7 +688,7 @@ const IoTDevice = () => {
                             </div>
                           </div>
                         </td>
-                        <td>
+                        <td data-label="Model">
                           <div className="iot-model-cell-iotdevice">
                             <span>{device.model}</span>
                             {device.manufacturer && (
@@ -628,11 +696,11 @@ const IoTDevice = () => {
                             )}
                           </div>
                         </td>
-                        <td>{device.serialNumber || '—'}</td>
-                        <td>v{device.firmwareVersion}</td>
-                        <td>{getStatusBadge(device.status)}</td>
-                        <td>{formatDate(device.createdAt)}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td data-label="Serial">{device.serialNumber || '—'}</td>
+                        <td data-label="Firmware">v{device.firmwareVersion}</td>
+                        <td data-label="Status">{getStatusBadge(device.status)}</td>
+                        <td data-label="Created">{formatDate(device.createdAt)}</td>
+                        <td data-label="Actions" style={{ textAlign: 'center' }}>
                           {actions.length === 1 ? (
                             <button
                               className={`iot-single-action-btn-iotdevice ${actions[0].color}`}
@@ -648,8 +716,9 @@ const IoTDevice = () => {
                             <div className="iot-action-dropdown-container-iotdevice">
                               <button
                                 className="iot-action-dropdown-toggle-iotdevice"
+                                data-action-toggle
                                 ref={el => buttonRefs.current[device._id] = el}
-                                onClick={(e) => handleDropdownClick(e, device._id)}
+                                onClick={(e) => handleDropdownClick(e, device._id, idx >= filteredDevices.length - 2)}
                               >
                                 Actions <FaChevronDown className={`iot-dropdown-arrow-iotdevice ${isOpen ? 'open-iotdevice' : ''}`} />
                               </button>
@@ -657,12 +726,14 @@ const IoTDevice = () => {
                               {isOpen && (
                                 <div
                                   className="iot-action-dropdown-menu-iotdevice"
+                                  data-action-menu
                                   ref={dropdownRef}
                                   style={{
                                     position: 'fixed',
                                     top: dropdownPosition.top,
                                     right: dropdownPosition.right,
                                     zIndex: 9999,
+                                    maxHeight: dropdownPosition.maxHeight,
                                   }}
                                 >
                                   {actions.map((action, idx) => (

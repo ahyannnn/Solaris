@@ -434,6 +434,21 @@ body.dark-mode {
     display: none !important;
   }
 
+  .role-engineer .header-active-section-layout-dashboard,
+  .role-admin .header-active-section-layout-dashboard {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: var(--font-family);
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 50vw;
+  }
+
   .sidebar-layout-dashboard.open-layout-dashboard~.main-content-layout-dashboard .dashboard-header-layout-dashboard {
     padding-left: var(--header-padding-right) !important;
   }
@@ -485,6 +500,11 @@ body.dark-mode {
   gap: 0.1rem;
   min-width: 0;
   flex: 1;
+}
+
+/* Active sidebar section indicator (staff mobile header only) */
+.header-active-section-layout-dashboard {
+  display: none;
 }
 
 /* ============================================
@@ -955,8 +975,15 @@ body.dark-mode {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --hamburger-left: 1.25rem;
+  }
   .mobile-hamburger-btn {
     display: flex;
+    background: var(--header-bg);
+    border: 1px solid var(--header-border);
+    border-radius: 12px;
+    box-shadow: var(--header-shadow);
   }
 }
 
@@ -1616,7 +1643,7 @@ body.dark-mode .mobile-hamburger-btn .hamburger-line {
   }
 
   .dashboard-header-layout-dashboard {
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1.5rem 0.75rem calc(var(--hamburger-left) + var(--hamburger-size) + var(--hamburger-gap));
   }
 
   .content-area-layout-dashboard {
@@ -1770,7 +1797,7 @@ body.dark-mode .mobile-hamburger-btn .hamburger-line {
     width: 40px;
     height: 40px;
     top: 0.75rem;
-    left: 0.75rem;
+    left: var(--hamburger-left);
     gap: 5px;
   }
 

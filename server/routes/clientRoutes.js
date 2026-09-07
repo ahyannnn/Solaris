@@ -3,9 +3,13 @@ const express = require('express');
 const router = express.Router();
 const clientController = require('../controllers/clientController');
 const authMiddleware = require('../middleware/authMiddleware.js');
+const { avatarUploadHandler } = require('../middleware/uploadMiddleware.js');
 
 // Update client info
 router.put('/update', authMiddleware.verifyToken, clientController.updateClient);
+
+// Upload customer profile photo
+router.post('/me/photo', authMiddleware.verifyToken, avatarUploadHandler, clientController.uploadProfilePhoto);
 
 // Get client info (for checking account_setup)
 router.get('/me', authMiddleware.verifyToken, clientController.getClientInfo);

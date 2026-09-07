@@ -56,7 +56,7 @@ const SiteAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -119,7 +119,7 @@ const SiteAssessment = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [activeTab, filter, currentPage]);
+  }, [activeTab, filter]);
 
   const fetchData = async () => {
     try {
@@ -129,17 +129,17 @@ const SiteAssessment = () => {
       if (activeTab === 'free-quotes') {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
+          // Fetch the whole tab list: search + pagination run client-side
+          // so search spans ALL pages, not just the visible one.
+          params: { status: filter === 'all' ? undefined : filter, limit: 1000 }
         });
         setFreeQuotes(response.data.quotes || []);
-        setTotalItems(response.data.total || 0);
       } else {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
+          params: { status: filter === 'all' ? undefined : filter, limit: 1000 }
         });
         setPreAssessments(response.data.assessments || []);
-        setTotalItems(response.data.total || 0);
       }
       setLoading(false);
     } catch (error) {
@@ -526,6 +526,15 @@ const SiteAssessment = () => {
       (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
   });
 
+  // Client-side pagination over the full filtered list
+  const totalFilteredItems = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredItems / itemsPerPage));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedItems = filteredItems.slice(
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
+  );
+
   const getEngineerName = (engineer) => {
     if (!engineer) return 'Not assigned';
     if (typeof engineer === 'object') {
@@ -675,14 +684,13 @@ const SiteAssessment = () => {
     </div>
   );
 
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const startItem = totalFilteredItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalFilteredItems);
 
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let startPage = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     if (endPage - startPage + 1 < maxVisible) {
@@ -813,11 +821,11 @@ const SiteAssessment = () => {
               type="text"
               placeholder="Search by client name or reference..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
           <div className="filter-group-adminbills_">
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Status</option>
               {activeTab === 'free-quotes' ? (
                 <>
@@ -851,8 +859,8 @@ const SiteAssessment = () => {
             <table className="data-table-adminbills_">
               <thead>
                 <tr>
-                  <th>Reference</th>
                   <th>Client</th>
+                  <th>Reference</th>
                   <th>Contact</th>
                   <th>Date</th>
                   {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
@@ -869,17 +877,33 @@ const SiteAssessment = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredItems.map((item, idx, arr) => {
+                  paginatedItems.map((item, idx, arr) => {
                     const actions = getAvailableActions(item);
                     const isOpen = openDropdownId === item._id;
 
                     return (
                       <tr key={item._id}>
+                        <td data-label="Client" className="client-cell-adminbills_">
+                          <div className="client-profile-adminbills_">
+                            {item.clientId?.userId?.photoURL && !brokenPhotos.has(item._id) ? (
+                              <img
+                                src={item.clientId.userId.photoURL}
+                                alt=""
+                                className="client-photo-adminbills_"
+                                onError={() => setBrokenPhotos((prev) => new Set(prev).add(item._id))}
+                              />
+                            ) : (
+                              <span className="client-initials-adminbills_">
+                                {((item.clientId?.contactFirstName?.[0] || '') + (item.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                              </span>
+                            )}
+                            <span className="client-name-adminbills_">
+                              {item.clientId?.contactFirstName} {item.clientId?.contactLastName}
+                            </span>
+                          </div>
+                        </td>
                         <td data-label="Reference" className="ref-cell-adminbills_">
                           {activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}
-                        </td>
-                        <td data-label="Client" className="client-cell-adminbills_">
-                          {item.clientId?.contactFirstName} {item.clientId?.contactLastName}
                         </td>
                         <td data-label="Contact">
                           <div className="contact-info-adminbills_">{item.clientId?.contactNumber || 'N/A'}</div>
@@ -963,13 +987,13 @@ const SiteAssessment = () => {
         {totalPages > 1 && (
           <div className="pagination-adminbills_">
             <div className="pagination-info-adminbills_">
-              Showing {startItem} to {endItem} of {totalItems} entries
+              Showing {startItem} to {endItem} of {totalFilteredItems} entries
             </div>
             <div className="pagination-controls-adminbills_">
               <button
                 className="page-btn-adminbills_"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
+                disabled={safeCurrentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
@@ -977,7 +1001,7 @@ const SiteAssessment = () => {
               {getPageNumbers().map(page => (
                 <button
                   key={page}
-                  className={`page-number-adminbills_ ${currentPage === page ? 'active-adminbills_' : ''}`}
+                  className={`page-number-adminbills_ ${safeCurrentPage === page ? 'active-adminbills_' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -987,7 +1011,7 @@ const SiteAssessment = () => {
               <button
                 className="page-btn-adminbills_"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
+                disabled={safeCurrentPage === totalPages}
               >
                 Next <FaChevronRight />
               </button>
@@ -1036,7 +1060,16 @@ const SiteAssessment = () => {
                               onClick={() => setSelectedEngineerId(eng._id)}
                             >
                               <div className="engineer-avatar-adminbills_">
-                                <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                                {eng.photoURL && !brokenPhotos.has(eng._id) ? (
+                                  <img
+                                    src={eng.photoURL}
+                                    alt=""
+                                    className="engineer-photo-adminbills_"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(eng._id))}
+                                  />
+                                ) : (
+                                  <span>{eng.fullName?.charAt(0) || 'E'}</span>
+                                )}
                               </div>
                               <div className="engineer-info-adminbills_">
                                 <div className="engineer-name-adminbills_">{eng.fullName || 'Engineer'}</div>

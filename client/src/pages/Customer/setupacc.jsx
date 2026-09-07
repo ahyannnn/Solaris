@@ -1,5 +1,5 @@
 // pages/Customer/setupacc.jsx - Updated with PSGC Cloud API
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -20,7 +20,8 @@ import {
   FaRoad,
   FaIndustry,
   FaExclamationTriangle,
-  FaInfoCircle
+  FaInfoCircle,
+  FaCamera
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Customer/setupacc.css';
@@ -31,6 +32,62 @@ const SetupAccount = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [clientData, setClientData] = useState(null);
+
+  // Step 4 profile photo (preview only until Continue — skippable)
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef(null);
+
+  useEffect(() => {
+    if (photoFile) {
+      const url = URL.createObjectURL(photoFile);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPhotoPreview(null);
+  }, [photoFile]);
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      setApiError('Only image files (JPEG, PNG, WEBP, GIF) are allowed');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setApiError('Photo must be 2MB or smaller');
+      return;
+    }
+    setApiError('');
+    setPhotoFile(file);
+  };
+
+  const uploadPhotoAndFinish = async (skip) => {
+    if (!skip && photoFile) {
+      setPhotoUploading(true);
+      try {
+        const formDataPhoto = new FormData();
+        formDataPhoto.append('photo', photoFile);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/me/photo`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formDataPhoto
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Photo upload failed');
+        if (data.photoURL) sessionStorage.setItem('userPhotoURL', data.photoURL);
+      } catch (err) {
+        setApiError(err.message || 'Photo upload failed');
+        setPhotoUploading(false);
+        return;
+      } finally {
+        setPhotoUploading(false);
+      }
+    }
+    handleContinueToDashboard();
+  };
 
   const token = sessionStorage.getItem('token');
 
@@ -680,6 +737,13 @@ const SetupAccount = () => {
           description: 'Your account is now fully configured. You can start exploring solar solutions and book assessments.',
           features: ['Ready to Go', 'Explore Solutions', 'Book Assessments']
         };
+      case 4:
+        return {
+          title: 'Add a Profile Photo',
+          subtitle: 'Show your best self',
+          description: 'Upload a profile photo so we know who we are talking to. You can skip this and do it later in Settings.',
+          features: ['Personal Touch', 'Faster Recognition', 'Skip Anytime']
+        };
       default:
         return {
           title: 'Complete Your Profile',
@@ -1055,10 +1119,63 @@ const SetupAccount = () => {
                   Your account setup is complete. You can now access your dashboard and start booking assessments.
                 </p>
                 <button
-                  onClick={handleContinueToDashboard}
+                  onClick={() => setCurrentStep(4)}
                   className="new-setup-btn-dashboard"
                 >
-                  Continue to Dashboard
+                  Continue
+                </button>
+              </div>
+            )}
+
+            {/* Step 4: Profile Photo (skippable) */}
+            {currentStep === 4 && (
+              <div className="new-setup-photo-container">
+                <h2 className="new-setup-form-title">Add a Profile Photo</h2>
+                <p className="new-setup-form-subtitle">
+                  {clientData?.contactFirstName ? `Looking good, ${clientData.contactFirstName}! ` : ''}
+                  This photo shows in your dashboard header.
+                </p>
+
+                <div
+                  className="new-setup-photo-avatar"
+                  onClick={() => photoInputRef.current?.click()}
+                  title="Choose a photo"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') photoInputRef.current?.click(); }}
+                >
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Profile preview" className="new-setup-photo-img" />
+                  ) : (
+                    <span className="new-setup-photo-placeholder">
+                      {((clientData?.contactFirstName || '').charAt(0) + (clientData?.contactLastName || '').charAt(0) || 'U').toUpperCase()}
+                    </span>
+                  )}
+                  <span className="new-setup-photo-camera"><FaCamera /></span>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    hidden
+                    onChange={handlePhotoSelect}
+                  />
+                </div>
+
+                {apiError && <span className="new-setup-error-message">{apiError}</span>}
+
+                <button
+                  onClick={() => uploadPhotoAndFinish(false)}
+                  className="new-setup-btn-submit"
+                  disabled={photoUploading}
+                >
+                  {photoUploading ? 'Uploading...' : 'Continue'}
+                </button>
+                <button
+                  onClick={() => uploadPhotoAndFinish(true)}
+                  className="new-setup-btn-skip"
+                  disabled={photoUploading}
+                >
+                  Skip for now
                 </button>
               </div>
             )}

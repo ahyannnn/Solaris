@@ -480,6 +480,8 @@ body.dark-mode {
   color: var(--text-muted);
   font-size: 14px;
   transition: color 0.3s ease;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .filter-role-usermanagement {
@@ -508,6 +510,21 @@ body.dark-mode {
   outline: none;
   border-color: var(--icon-color);
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+/* Custom chevron (native arrow is hidden by appearance:none) */
+.filter-role-usermanagement::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-70%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--icon-color);
+  pointer-events: none;
 }
 
 .filter-role-usermanagement select option {
@@ -989,7 +1006,8 @@ body.dark-mode {
 }
 
 .modal-content-usermanagement.password-modal-usermanagement {
-  max-width: 480px;
+  max-width: 560px;
+  width: calc(100% - 32px);
 }
 
 .modal-content-usermanagement.confirm-modal-usermanagement {
@@ -1157,6 +1175,30 @@ body.dark-mode {
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
+}
+
+/* Custom chevron wrapper for modal selects */
+.select-chevron-wrap-usermanagement {
+  position: relative;
+}
+
+.select-chevron-wrap-usermanagement > select {
+  appearance: none;
+  padding-right: 36px;
+}
+
+.select-chevron-wrap-usermanagement::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--icon-color);
+  pointer-events: none;
 }
 
 .form-group-usermanagement input:focus,
@@ -1845,4 +1887,152 @@ body.dark-mode {
   .dropdown-arrow-usermanagement.open-usermanagement {
     transform: none !important;
   }
+}
+
+/* ============================================ */
+/* STAFF PHOTO PICKER + PHOTO AVATARS (all views) */
+/* ============================================ */
+.photo-picker-usermanagement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--bg-avatar);
+  border: 1px solid var(--border-medium);
+}
+
+.photo-avatar-usermanagement {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.photo-icon-usermanagement {
+  font-size: 40px;
+  color: var(--avatar-icon);
+}
+
+.photo-img-usermanagement {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.photo-camera-usermanagement {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #F39C12;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border: 2px solid var(--bg-elevated);
+}
+
+.photo-meta-usermanagement {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.photo-meta-usermanagement strong {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.photo-meta-usermanagement span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Table + view avatars show the photo when present */
+.user-avatar-usermanagement {
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-photo-usermanagement {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-details-photo-usermanagement {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.user-details-photo-usermanagement img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-medium);
+}
+
+/* Reset Password modal: compact spacing (scoped so other modals keep theirs) */
+.password-modal-usermanagement .modal-header-usermanagement {
+  padding: 16px 20px 12px 20px;
+}
+
+.password-modal-usermanagement .modal-body-usermanagement {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.password-modal-usermanagement .user-info-summary-usermanagement {
+  margin-bottom: 0;
+}
+
+.password-modal-usermanagement .form-row-usermanagement {
+  margin-bottom: 0;
+  grid-template-columns: 1fr;
+}
+
+.password-modal-usermanagement .form-group-usermanagement {
+  margin-bottom: 0;
+}
+
+.password-modal-usermanagement .modal-actions-usermanagement {
+  padding: 12px 20px 16px 20px;
+}
+
+/* Edit User: one field per row (5 stacked rows) */
+.user-form-usermanagement .form-row-usermanagement {
+  grid-template-columns: 1fr;
+}
+
+.user-form-usermanagement .form-group-usermanagement:empty {
+  display: none;
+}
+
+.user-form-usermanagement input {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

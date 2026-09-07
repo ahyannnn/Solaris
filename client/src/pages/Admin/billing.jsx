@@ -88,6 +88,7 @@ const AdminBilling = () => {
   // Bank Transfer state
   const [allBankTransfers, setAllBankTransfers] = useState([]);
   const [filteredBankTransfers, setFilteredBankTransfers] = useState([]);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [selectedBankTransfer, setSelectedBankTransfer] = useState(null);
   const [showBankTransferDetailModal, setShowBankTransferDetailModal] = useState(false);
   const [showBankRejectModal, setShowBankRejectModal] = useState(false);
@@ -1578,9 +1579,9 @@ const AdminBilling = () => {
                 <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
+                      <th>Client</th>
                       <th>Booking Ref</th>
                       <th>Invoice</th>
-                      <th>Client</th>
                       <th>Date</th>
                       <th>Amount</th>
                       <th>Gateway</th>
@@ -1600,9 +1601,25 @@ const AdminBilling = () => {
 
                         return (
                           <tr key={assessment._id}>
+                            <td data-label="Client" className="client-cell-adminbilling">
+                              <div className="client-profile-adminbilling">
+                                {assessment.clientId?.userId?.photoURL && !brokenPhotos.has(`a-${assessment._id}`) ? (
+                                  <img
+                                    src={assessment.clientId.userId.photoURL}
+                                    alt=""
+                                    className="client-photo-adminbilling"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(`a-${assessment._id}`))}
+                                  />
+                                ) : (
+                                  <span className="client-initials-adminbilling">
+                                    {((assessment.clientId?.contactFirstName?.[0] || '') + (assessment.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                                  </span>
+                                )}
+                                <span className="client-name-adminbilling">{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</span>
+                              </div>
+                            </td>
                             <td data-label="Reference" className="ref-cell-adminbilling">{assessment.bookingReference}</td>
                             <td data-label="Invoice">{assessment.invoiceNumber}</td>
-                            <td data-label="Customer"><strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong></td>
                             <td data-label="Date">{formatDate(assessment.bookedAt)}</td>
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                             <td data-label="Gateway">{getGatewayBadge(assessment)}</td>
@@ -1702,9 +1719,9 @@ const AdminBilling = () => {
                 <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
+                      <th>Client</th>
                       <th>Invoice #</th>
                       <th>Project ID</th>
-                      <th>Client</th>
                       <th>Type</th>
                       <th>Due Date</th>
                       <th>Amount</th>
@@ -1726,9 +1743,25 @@ const AdminBilling = () => {
 
                         return (
                           <tr key={invoice._id}>
+                            <td data-label="Client" className="client-cell-adminbilling">
+                              <div className="client-profile-adminbilling">
+                                {invoice.clientId?.userId?.photoURL && !brokenPhotos.has(`i-${invoice._id}`) ? (
+                                  <img
+                                    src={invoice.clientId.userId.photoURL}
+                                    alt=""
+                                    className="client-photo-adminbilling"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(`i-${invoice._id}`))}
+                                  />
+                                ) : (
+                                  <span className="client-initials-adminbilling">
+                                    {((invoice.clientId?.contactFirstName?.[0] || '') + (invoice.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                                  </span>
+                                )}
+                                <span className="client-name-adminbilling">{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</span>
+                              </div>
+                            </td>
                             <td data-label="Invoice #" className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
                             <td data-label="Project ID"><span className="project-id-adminbilling">{invoice.projectId?.projectReference || invoice.projectId?._id || 'N/A'}</span></td>
-                            <td data-label="Customer"><strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong></td>
                             <td data-label="Type">{getInvoiceTypeBadge(invoice.invoiceType)}</td>
                             <td data-label="Due Date">{formatDate(invoice.dueDate)}</td>
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
@@ -1826,8 +1859,8 @@ const AdminBilling = () => {
                 <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
-                      <th>Date</th>
                       <th>Customer</th>
+                      <th>Date</th>
                       <th>Bank</th>
                       <th>Amount</th>
                       <th>Reference</th>
@@ -1847,13 +1880,27 @@ const AdminBilling = () => {
 
                         return (
                           <tr key={payment._id} className={payment.status === 'rejected' ? 'rejected-row-adminbilling' : ''}>
-                            <td data-label="Date">{formatDate(payment.createdAt)}</td>
                             <td data-label="Customer" className="customer-cell-adminbilling">
-                              <div>
-                                <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
-                                <small>{payment.clientEmail}</small>
+                              <div className="client-profile-adminbilling">
+                                {payment.clientPhotoURL && !brokenPhotos.has(`p-${payment._id}`) ? (
+                                  <img
+                                    src={payment.clientPhotoURL}
+                                    alt=""
+                                    className="client-photo-adminbilling"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(`p-${payment._id}`))}
+                                  />
+                                ) : (
+                                  <span className="client-initials-adminbilling">
+                                    {((payment.clientId?.contactFirstName?.[0] || '') + (payment.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                                  </span>
+                                )}
+                                <span className="client-name-adminbilling">
+                                  <strong>{payment.clientId?.contactFirstName} {payment.clientId?.contactLastName}</strong>
+                                  <small>{payment.clientEmail}</small>
+                                </span>
                               </div>
                             </td>
+                            <td data-label="Date">{formatDate(payment.createdAt)}</td>
                             <td data-label="Bank"><span className="bank-name-adminbilling">{payment.bankName}</span></td>
                             <td data-label="Amount" className="amount-adminbilling">{formatCurrency(payment.amount)}</td>
                             <td data-label="Reference" className="ref-cell-adminbilling">{payment.transactionReference}</td>

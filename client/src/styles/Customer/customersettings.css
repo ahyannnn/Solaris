@@ -236,6 +236,36 @@ body.dark-mode {
   color: var(--icon-color);
   flex-shrink: 0;
   transition: background 0.3s ease, color 0.3s ease;
+  position: relative;
+  overflow: visible;
+}
+
+/* Clickable avatar for photo upload */
+.cuset-avatar-clickable {
+  cursor: pointer;
+}
+
+.cuset-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cuset-avatar-camera {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--icon-color);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid var(--bg-card);
 }
 
 .cuset-profile-details {

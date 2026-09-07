@@ -188,9 +188,35 @@ const getFileUrl = (req, fileInfo) => {
   }
 };
 
+// Avatar upload (profile photos): memory storage, images only, 2MB max.
+// Wrapped so multer errors return JSON instead of HTML.
+const avatarUploadMulter = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) {
+      return cb(null, true);
+    }
+    cb(new Error('Only image files (JPEG, PNG, WEBP, GIF) are allowed'), false);
+  }
+}).single('photo');
+
+const avatarUploadHandler = (req, res, next) => {
+  avatarUploadMulter(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'No photo uploaded' });
+    }
+    next();
+  });
+};
+
 // Export all functions and the upload instance
 module.exports = { 
   upload,
+  avatarUploadHandler,
   processUpload,
   getFileUrl, 
   deleteFile,

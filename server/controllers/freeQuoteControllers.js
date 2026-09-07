@@ -327,14 +327,14 @@ exports.getAllFreeQuotes = async (req, res) => {
     const query = {};
     if (status) query.status = status;
 
-    const quotes = await FreeQuote.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
-      .populate('addressId')
-      .populate('assignedEngineerId', 'fullName email')
-      .populate({
-        path: 'clientId',
-        populate: { path: 'userId', select: 'email' }
-      })
+      const quotes = await FreeQuote.find(query)
+        .populate('clientId', 'contactFirstName contactLastName contactNumber')
+        .populate('addressId')
+        .populate('assignedEngineerId', 'fullName email')
+        .populate({
+          path: 'clientId',
+          populate: { path: 'userId', select: 'email photoURL' }
+        })
       .sort({ requestedAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));

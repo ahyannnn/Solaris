@@ -30,7 +30,8 @@ import {
   FaCalendarAlt,
   FaUserShield,
   FaUserTie,
-  FaUserFriends
+  FaUserFriends,
+  FaCamera
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/usermanagement.css';
@@ -54,7 +55,6 @@ const UserManagement = () => {
   const [filterRole, setFilterRole] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [auditCurrentPage, setAuditCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
   const [auditTotalItems, setAuditTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
   const [auditItemsPerPage] = useState(10);
@@ -88,6 +88,38 @@ const UserManagement = () => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
+
+  // Staff photo picker (edit mode only — uploads on Update, never before)
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoBroken, setPhotoBroken] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
+  const photoInputRef = useRef(null);
+
+  useEffect(() => {
+    if (photoFile) {
+      const url = URL.createObjectURL(photoFile);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPhotoPreview(null);
+  }, [photoFile]);
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      showToast('Only image files (JPEG, PNG, WEBP, GIF) are allowed', 'error');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Photo must be 2MB or smaller', 'error');
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoBroken(false);
+  };
 
   // ============================================
   // VALIDATION FUNCTIONS
@@ -219,12 +251,12 @@ const UserManagement = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           role: filterRole === 'all' ? undefined : filterRole,
-          page: currentPage,
-          limit: itemsPerPage
+          // Fetch the whole role list: search + pagination run client-side
+          // so search spans ALL pages, not just the visible one.
+          limit: 1000
         }
       });
       setUsers(response.data.users || []);
-      setTotalItems(response.data.total || 0);
     } catch (error) {
       console.error('Error fetching users:', error);
       showToast('Failed to load users', 'error');
@@ -319,7 +351,7 @@ const UserManagement = () => {
     if (activeTab === 'users') {
       fetchUsers();
     }
-  }, [currentPage, filterRole]);
+  }, [filterRole]);
 
   useEffect(() => {
     if (activeTab === 'audit') {
@@ -365,6 +397,16 @@ const UserManagement = () => {
       user.email?.toLowerCase().includes(searchLower) ||
       user.clientInfo?.contactNumber?.includes(searchTerm);
   });
+
+  // Client-side pagination over the full filtered list (search already
+  // spans every page since the whole role list is fetched above).
+  const totalFilteredUsers = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredUsers / itemsPerPage));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedUsers = filteredUsers.slice(
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
+  );
 
   const filteredAuditLogs = auditLogs.filter(log => {
     if (!searchTerm) return true;
@@ -440,6 +482,8 @@ const UserManagement = () => {
     setFormErrors({});
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setPhotoFile(null);
+    setPhotoBroken(false);
     setShowUserModal(true);
     setOpenDropdownId(null);
   };
@@ -447,6 +491,7 @@ const UserManagement = () => {
   const handleOpenViewModal = (user) => {
     setModalMode('view');
     setSelectedUser(user);
+    setPhotoBroken(false);
     setShowUserModal(true);
     setOpenDropdownId(null);
   };
@@ -503,6 +548,17 @@ const UserManagement = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
+        // Photo uploads on Update (never before picking Save)
+        if (photoFile) {
+          const photoData = new FormData();
+          photoData.append('photo', photoFile);
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}/photo`,
+            photoData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setPhotoFile(null);
+        }
         response = await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/users/${selectedUser._id}`,
           {
             fullName: fullName,
@@ -692,9 +748,8 @@ const UserManagement = () => {
     return actions;
   };
 
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const startItem = totalFilteredUsers === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalFilteredUsers);
 
   const getPageNumbers = (total, current, maxVisible = 5) => {
     const pages = [];
@@ -711,7 +766,7 @@ const UserManagement = () => {
     return pages;
   };
 
-  const pageNumbers = getPageNumbers(totalPages, currentPage);
+  const pageNumbers = getPageNumbers(totalPages, safeCurrentPage);
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
   const SkeletonLoader = () => (
@@ -881,7 +936,7 @@ const UserManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((user, idx) => {
+                  paginatedUsers.map((user, idx) => {
                     const actions = getAvailableActions(user);
                     const isOpen = openDropdownId === user._id;
 
@@ -890,7 +945,14 @@ const UserManagement = () => {
                         <td data-label="User">
                           <div className="user-cell-content-usermanagement">
                             <div className="user-avatar-usermanagement">
-                              {user.clientInfo?.firstName ? (
+                              {user.photoURL && !brokenPhotos.has(user._id) ? (
+                                <img
+                                  src={user.photoURL}
+                                  alt=""
+                                  className="avatar-photo-usermanagement"
+                                  onError={() => setBrokenPhotos((prev) => new Set(prev).add(user._id))}
+                                />
+                              ) : user.clientInfo?.firstName ? (
                                 <div className="avatar-initials-usermanagement">{user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}</div>
                               ) : (
                                 <FaUserCircle className="avatar-icon-usermanagement" />
@@ -912,7 +974,7 @@ const UserManagement = () => {
                               className="action-dropdown-toggle-usermanagement"
                               data-action-toggle
                               ref={el => buttonRefs.current[user._id] = el}
-                              onClick={(e) => handleDropdownClick(e, user._id, idx >= filteredUsers.length - 2)}
+                              onClick={(e) => handleDropdownClick(e, user._id, idx >= paginatedUsers.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-usermanagement ${isOpen ? 'open-usermanagement' : ''}`} />
                             </button>
@@ -955,16 +1017,16 @@ const UserManagement = () => {
         )}
 
         {/* Users Pagination */}
-        {activeTab === 'users' && totalItems > itemsPerPage && (
+        {activeTab === 'users' && totalFilteredUsers > itemsPerPage && (
           <div className="pagination-usermanagement">
             <div className="pagination-info-usermanagement">
-              Showing {startItem} to {endItem} of {totalItems} entries
+              Showing {startItem} to {endItem} of {totalFilteredUsers} entries
             </div>
             <div className="pagination-controls-usermanagement">
               <button
                 className="page-btn-usermanagement"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
+                disabled={safeCurrentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
@@ -972,7 +1034,7 @@ const UserManagement = () => {
               {pageNumbers.map(page => (
                 <button
                   key={page}
-                  className={`page-number-usermanagement ${currentPage === page ? 'active-usermanagement' : ''}`}
+                  className={`page-number-usermanagement ${safeCurrentPage === page ? 'active-usermanagement' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -982,7 +1044,7 @@ const UserManagement = () => {
               <button
                 className="page-btn-usermanagement"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
+                disabled={safeCurrentPage === totalPages}
               >
                 Next <FaChevronRight />
               </button>
@@ -1109,6 +1171,15 @@ const UserManagement = () => {
               <div className="modal-body-usermanagement">
                 {modalMode === 'view' && selectedUser && (
                   <div className="user-details-view-usermanagement">
+                    {selectedUser.photoURL && !photoBroken && (
+                      <div className="user-details-photo-usermanagement">
+                        <img
+                          src={selectedUser.photoURL}
+                          alt=""
+                          onError={() => setPhotoBroken(true)}
+                        />
+                      </div>
+                    )}
                     <div className="detail-section-usermanagement">
                       <h4>Account Information</h4>
                       <div className="detail-row-usermanagement"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
@@ -1130,6 +1201,42 @@ const UserManagement = () => {
                 )}
                 {(modalMode === 'edit' || modalMode === 'create') && (
                   <form className="user-form-usermanagement">
+                    {/* Photo picker (edit mode — uploads on Update) */}
+                    {modalMode === 'edit' && (
+                      <div className="photo-picker-usermanagement">
+                        <div
+                          className="photo-avatar-usermanagement"
+                          onClick={() => photoInputRef.current?.click()}
+                          title="Change profile photo"
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter') photoInputRef.current?.click(); }}
+                        >
+                          {(photoPreview || (!photoBroken && selectedUser?.photoURL)) ? (
+                            <img
+                              src={photoPreview || selectedUser.photoURL}
+                              alt=""
+                              className="photo-img-usermanagement"
+                              onError={() => setPhotoBroken(true)}
+                            />
+                          ) : (
+                            <FaUserCircle className="photo-icon-usermanagement" />
+                          )}
+                          <span className="photo-camera-usermanagement"><FaCamera /></span>
+                          <input
+                            ref={photoInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            hidden
+                            onChange={handlePhotoSelect}
+                          />
+                        </div>
+                        <div className="photo-meta-usermanagement">
+                          <strong>{selectedUser?.fullName}</strong>
+                          <span>Click the avatar to change the photo. Uploads on Update.</span>
+                        </div>
+                      </div>
+                    )}
                     <div className="form-row-usermanagement">
                       <div className="form-group-usermanagement">
                         <label>First Name *</label>
@@ -1189,15 +1296,17 @@ const UserManagement = () => {
                     <div className="form-row-usermanagement">
                       <div className="form-group-usermanagement">
                         <label>Role *</label>
-                        <select
-                          value={formData.role}
-                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                          className={formErrors.role ? 'error' : ''}
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="engineer">Engineer</option>
-                          <option value="user">Customer</option>
-                        </select>
+                        <div className="select-chevron-wrap-usermanagement">
+                          <select
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className={formErrors.role ? 'error' : ''}
+                          >
+                            <option value="admin">Admin</option>
+                            <option value="engineer">Engineer</option>
+                            <option value="user">Customer</option>
+                          </select>
+                        </div>
                         {formErrors.role && <span className="error-text-usermanagement">{formErrors.role}</span>}
                         <small>Select the user's role and permissions</small>
                       </div>

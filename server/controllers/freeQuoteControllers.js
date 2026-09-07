@@ -830,7 +830,7 @@ exports.getEngineerFreeQuotes = async (req, res) => {
       .populate('assignedEngineerId', 'fullName email')
       .populate({
         path: 'clientId',
-        populate: { path: 'userId', select: 'email' }
+        populate: { path: 'userId', select: 'email photoURL' }
       })
       .sort({ requestedAt: -1 })
       .skip((page - 1) * limit)

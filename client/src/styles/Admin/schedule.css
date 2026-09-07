@@ -255,6 +255,8 @@ body.dark-mode {
   transform: translateY(-50%);
   color: var(--text-muted);
   font-size: 14px;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .refresh-btn {
@@ -377,6 +379,78 @@ body.dark-mode {
 
 .client-cell .client-contact svg {
   font-size: 11px;
+}
+
+/* Client + Engineer profile — photo + name in one row (matches billing/project/site-assessment) */
+.schedule-table tbody td.client-cell-profile,
+.schedule-table tbody td.engineer-cell-profile {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.client-profile,
+.engineer-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.client-photo,
+.engineer-photo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.client-initials,
+.engineer-initials {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.client-name-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.schedule-table tbody td.client-cell-profile .client-name,
+.schedule-table tbody td.engineer-cell-profile .engineer-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.client-contact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.client-contact svg {
+  font-size: 10px;
 }
 
 .unassigned {
@@ -1158,6 +1232,17 @@ body.dark-mode {
     justify-content: flex-end;
     margin-left: auto;
     text-align: right;
+  }
+  .schedule-table tbody td[data-label="Client"] .client-profile,
+  .schedule-table tbody td[data-label="Engineer"] .engineer-profile {
+    justify-content: flex-end;
+    margin-left: auto;
+    text-align: right;
+    width: 100%;
+  }
+  .schedule-table tbody td:first-child .client-profile {
+    justify-content: center;
+    text-align: center;
   }
   .schedule-table tbody td[data-label="Action"] {
     display: block;

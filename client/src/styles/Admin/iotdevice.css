@@ -443,6 +443,8 @@ body.dark-mode {
   color: var(--text-muted);
   font-size: 14px;
   transition: color 0.3s ease;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .iot-clear-search-iotdevice {

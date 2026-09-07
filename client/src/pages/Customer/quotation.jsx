@@ -1872,15 +1872,13 @@ const Quotation = () => {
             </button>
           )}
 
-          {/* Mobile-only status pills (mirrors mobile BillingFilters) */}
+          {/* Mobile-only status pills (mirrors mobile BillingFilters) — 4 only */}
           <div className="billing-customer-status-pills">
             {[
               { value: 'all', label: 'All Status' },
               { value: 'pending', label: 'Pending' },
               { value: 'paid', label: 'Paid' },
               { value: 'for_verification', label: 'Verifying' },
-              { value: 'cancelled', label: 'Cancelled' },
-              { value: 'refunded', label: 'Refunded' },
             ].map((pill) => (
               <button
                 key={pill.value}

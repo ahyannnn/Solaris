@@ -428,12 +428,14 @@ body.dark-mode {
 
 .filter-group-engineerproject .filter-icon {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 12px;
+  flex-shrink: 0;
+  pointer-events: none;
   transition: color 0.3s ease;
 }
 
 .filter-group-engineerproject select {
-  padding: 8px 32px 8px 0;
+  padding: 8px 0 8px 0;
   background: transparent !important;
   border: none;
   font-size: 13px;
@@ -441,9 +443,7 @@ body.dark-mode {
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2398A2B3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
+  background-image: none;
   background-color: transparent !important;
   -webkit-text-fill-color: var(--text-primary) !important;
 }
@@ -474,9 +474,16 @@ body.dark-mode {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.search-group-engineerproject .search-icon {
+.search-group-engineerproject .search-icon,
+.search-group-engineerproject .search-icon-engineerproject {
+  position: static;
+  transform: none;
+  left: auto;
+  top: auto;
   color: var(--text-muted);
   font-size: 14px;
+  flex-shrink: 0;
+  pointer-events: none;
   transition: color 0.3s ease;
 }
 
@@ -628,6 +635,37 @@ body.dark-mode {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.client-profile-engineerproject {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.client-photo-engineerproject {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.client-initials-engineerproject {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex-shrink: 0;
 }
 
 .client-name {

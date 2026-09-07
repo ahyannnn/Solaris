@@ -140,7 +140,7 @@ body.dark-mode {
    BASE LAYOUT - SOLAR GRADIENT BACKGROUND
    ============================================ */
 .schedule-container-cusset {
-  padding: 24px;
+  padding: 12px 24px 24px 24px;
   margin: 0 auto;
   background: var(--bg-primary);
   min-height: 100vh;
@@ -155,8 +155,8 @@ body.dark-mode {
 .schedule-header-card-cusset {
   background: transparent;
   border: none;
-  padding: 0 0 20px 0;
-  margin-bottom: 20px;
+  padding: 0 0 12px 0;
+  margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;

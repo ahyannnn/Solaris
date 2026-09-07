@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [recentQuotes, setRecentQuotes] = useState([]);
   const [pendingPayments, setPendingPayments] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
-  const [activeProjectId, setActiveProjectId] = useState(null);
   const [projectsList, setProjectsList] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
 
@@ -55,12 +54,13 @@ const Dashboard = () => {
       // Set user
       setUser(userRes.data.client);
 
-      // Set projects
-      const projects = projectsRes.data.projects || [];
+      // Set projects — most recent only (no selector)
+      const projects = (projectsRes.data.projects || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
       setProjectsList(projects);
-      const activeProject = projects.find(p => p.status !== 'completed');
-      setProject(activeProject || null);
-      if (activeProject) setActiveProjectId(activeProject._id);
+      const recentProject = projects[0] || null;
+      setProject(recentProject);
 
       // Set quotes
       const sortedQuotes = (quotesRes.data.quotes || [])
@@ -143,12 +143,6 @@ const Dashboard = () => {
       showToast('Failed to load dashboard data', 'error');
       setLoading(false);
     }
-  };
-
-  const handleProjectChange = (projectId) => {
-    const selected = projectsList.find(p => p._id === projectId);
-    setProject(selected);
-    setActiveProjectId(projectId);
   };
 
   const getFullName = () => {
@@ -302,23 +296,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Project Selector */}
-        {projectsList.length > 1 && (
-          <div className="project-selector-container-cusdash">
-            <label className="selector-label-cusdash">Active Project</label>
-            <div className="custom-select-cusdash">
-              <select value={activeProjectId || ''} onChange={e => handleProjectChange(e.target.value)} className="project-select-cusdash">
-                {projectsList.map(p => (
-                  <option key={p._id} value={p._id}>{p.projectName || p.projectReference} — {p.status.replace('_', ' ')}</option>
-                ))}
-              </select>
-              <svg className="select-icon-cusdash" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          </div>
-        )}
-
         {/* Stats */}
         <div className="stats-grid-cusdash">
           <div className="stat-card-cusdash">
@@ -398,33 +375,6 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {/* Milestones */}
-                <div className="milestones-section-cusdash">
-                  <h4 className="milestones-title-cusdash">Project Milestones</h4>
-                  <div className="milestones-list-cusdash">
-                    {['pending', 'approved', 'in_progress', 'completed'].map((step, index) => {
-                      const steps = ['pending', 'approved', 'in_progress', 'completed'];
-                      const idx = steps.indexOf(step);
-                      const curIdx = steps.indexOf(project.status);
-                      const isCompleted = curIdx > idx || (project.status === 'completed' && step === 'completed');
-                      const isActive = project.status === step;
-                      return (
-                        <div key={step} className={`milestone-item-cusdash ${isCompleted ? 'completed-cusdash' : ''} ${isActive ? 'active-cusdash' : ''}`}>
-                          <div className="milestone-icon-cusdash">
-                            {isCompleted ? <FaCheckCircle className="milestone-check-cusdash" /> : <FaCircle className="milestone-circle-cusdash" />}
-                          </div>
-                          <div className="milestone-info-cusdash">
-                            <span className="milestone-label-cusdash">
-                              {step === 'pending' ? 'Pending' : step === 'approved' ? 'Approved' : step === 'in_progress' ? 'In Progress' : 'Completed'}
-                            </span>
-                            {isActive && <span className="milestone-status-cusdash">Current</span>}
-                          </div>
-                          {index < 3 && <div className={`milestone-line-cusdash ${isCompleted ? 'completed-line-cusdash' : ''}`} />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="empty-state-cusdash">

@@ -7,7 +7,8 @@ import {
   FaClock,
   FaSyncAlt,
   FaCheckCircle,
-  FaChevronDown
+  FaChevronDown,
+  FaSearch
 } from 'react-icons/fa';
 import '../../styles/Engineer/siteassessment.css';
 
@@ -59,6 +60,7 @@ const MyAssessments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTypeFilter, setActiveTypeFilter] = useState('all');
   const [activeStatusFilter, setActiveStatusFilter] = useState('all');
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [deployNotes, setDeployNotes] = useState('');
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [includeIoTData, setIncludeIoTData] = useState(true);
@@ -919,6 +921,7 @@ const MyAssessments = () => {
         clientLastName: quote.clientId?.contactLastName || '',
         clientEmail: quote.clientId?.userId?.email || '',
         clientPhone: quote.clientId?.contactNumber || '',
+        clientPhotoURL: typeof quote.clientId?.userId === 'object' ? (quote.clientId?.userId?.photoURL || null) : null,
         clientType: quote.clientId?.client_type || 'Residential',
         address: quote.addressId,
         bookingReference: quote.quotationReference,
@@ -955,6 +958,7 @@ const MyAssessments = () => {
         clientLastName: assessment.clientId?.contactLastName || '',
         clientEmail: assessment.clientId?.userId?.email || '',
         clientPhone: assessment.clientId?.contactNumber || '',
+        clientPhotoURL: typeof assessment.clientId?.userId === 'object' ? (assessment.clientId?.userId?.photoURL || null) : null,
         clientType: assessment.clientId?.client_type || 'Residential',
         address: assessment.addressId,
         status: assessment.assessmentStatus,
@@ -1929,8 +1933,8 @@ const MyAssessments = () => {
         <table className="assessments-table-enad">
           <thead>
             <tr>
-              <th>Reference</th>
               <th>Client</th>
+              <th>Reference</th>
               <th>Type</th>
               <th>Status</th>
               <th>Address</th>
@@ -1999,6 +2003,7 @@ const MyAssessments = () => {
           </div>
 
           <div className="search-bar-enad">
+            <FaSearch className="search-icon-enad" />
             <input
               type="text"
               placeholder="Search by reference or client name..."
@@ -2062,8 +2067,8 @@ const MyAssessments = () => {
                 <table className="assessments-table-enad">
                   <thead>
                     <tr>
-                      <th>Reference</th>
                       <th>Client</th>
+                      <th>Reference</th>
                       <th>Type</th>
                       <th>Status</th>
                       <th>Address</th>
@@ -2075,16 +2080,30 @@ const MyAssessments = () => {
                     {currentRows.map((item) => {
                       const StatusConfig = getStatusConfig(item);
                       const TypeConfig = getTypeConfig(item.type);
+                      const photoKey = `${item.type}-${item.id}`;
+                      const initials = ((item.clientName?.[0] || '') + (item.clientLastName?.[0] || '') || '—').toUpperCase();
                       return (
                         <tr key={`${item.type}-${item.id}`} className="assessment-table-row-enad" onClick={() => handleSelectItem(item)}>
+                          <td className="client-cell-enad" data-label="Client">
+                            <div className="client-profile-enad">
+                              {item.clientPhotoURL && !brokenPhotos.has(photoKey) ? (
+                                <img
+                                  src={item.clientPhotoURL}
+                                  alt=""
+                                  className="client-photo-enad"
+                                  onError={() => setBrokenPhotos((prev) => new Set(prev).add(photoKey))}
+                                />
+                              ) : (
+                                <span className="client-initials-enad">{initials}</span>
+                              )}
+                              <span className="client-info-enad">
+                                <span className="client-name-enad">{item.clientName} {item.clientLastName}</span>
+                                <span className="client-type-enad">{item.clientType || 'Residential'}</span>
+                              </span>
+                            </div>
+                          </td>
                           <td className="ref-cell-enad" data-label="Reference">
                             <span className="ref-text-enad">{item.bookingReference || item.quotationReference}</span>
-                          </td>
-                          <td className="client-cell-enad" data-label="Client">
-                            <div className="client-info-enad">
-                              <span className="client-name-enad">{item.clientName} {item.clientLastName}</span>
-                              <span className="client-type-enad">{item.clientType || 'Residential'}</span>
-                            </div>
                           </td>
                           <td className="type-cell-enad" data-label="Type">
                             <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>

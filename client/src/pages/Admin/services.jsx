@@ -37,6 +37,7 @@ const Services = () => {
   const [newStatus, setNewStatus] = useState('');
   const [adminRemarks, setAdminRemarks] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
 
   const getAuthHeader = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -137,7 +138,6 @@ const Services = () => {
 
       <div className="admsvc-container">
         <div className="admsvc-stats">
-          <div className="admsvc-stat"><span className="stat-num">{stats.total}</span><span className="stat-label">Total</span></div>
           <div className="admsvc-stat"><span className="stat-num">{stats.pending}</span><span className="stat-label">Pending</span></div>
           <div className="admsvc-stat"><span className="stat-num">{stats.contacted}</span><span className="stat-label">Contacted</span></div>
           <div className="admsvc-stat"><span className="stat-num">{stats.scheduled}</span><span className="stat-label">Scheduled</span></div>
@@ -177,8 +177,8 @@ const Services = () => {
             <table className="admsvc-table">
               <thead>
                 <tr>
-                  <th>Reference</th>
                   <th>Customer</th>
+                  <th>Reference</th>
                   <th>Contact</th>
                   <th>Service</th>
                   <th>Preferred</th>
@@ -188,10 +188,29 @@ const Services = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(r => (
+                {filtered.map(r => {
+                  const photoURL = typeof r.clientId === 'object' ? r.clientId?.userId?.photoURL : null;
+                  const displayName = r.fullName || ((r.clientId && typeof r.clientId === 'object') ? `${r.clientId?.contactFirstName || ''} ${r.clientId?.contactLastName || ''}`.trim() : '') || 'N/A';
+                  const initials = displayName !== 'N/A' ? displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() : '—';
+                  const photoKey = r._id;
+                  return (
                   <tr key={r._id}>
+                    <td data-label="Customer">
+                      <div className="admsvc-customer-profile">
+                        {photoURL && !brokenPhotos.has(photoKey) ? (
+                          <img
+                            src={photoURL}
+                            alt=""
+                            className="admsvc-customer-photo"
+                            onError={() => setBrokenPhotos((prev) => new Set(prev).add(photoKey))}
+                          />
+                        ) : (
+                          <span className="admsvc-customer-initials">{initials}</span>
+                        )}
+                        <span className="admsvc-customer-name">{displayName}</span>
+                      </div>
+                    </td>
                     <td className="mono" data-label="Reference">{r.referenceNo}</td>
-                    <td data-label="Customer"><strong>{r.fullName}</strong></td>
                     <td data-label="Contact">
                       <div className="contact-cell">
                         <span><FaPhone /> {r.phone}</span>
@@ -208,7 +227,8 @@ const Services = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}

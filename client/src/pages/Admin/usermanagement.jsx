@@ -204,7 +204,8 @@ const UserManagement = () => {
     const lastNameError = validateName(formData.lastName, 'Last name');
     if (lastNameError) errors.lastName = lastNameError;
 
-    if (modalMode === 'create') {
+    // TEMP-EMAIL-EDIT: validate email on edit too — revert to `if (modalMode === 'create')` to re-lock
+    {
       const emailError = validateEmail(formData.email);
       if (emailError) errors.email = emailError;
     }
@@ -565,7 +566,8 @@ const UserManagement = () => {
             firstName: formData.firstName,
             lastName: formData.lastName,
             contactNumber: formData.contactNumber,
-            role: formData.role
+            role: formData.role,
+            email: normalizedEmail // TEMP-EMAIL-EDIT: remove to re-lock email editing
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -739,11 +741,11 @@ const UserManagement = () => {
 
   const getAvailableActions = (user) => {
     const actions = [
-      { label: 'View Details', icon: <FaEye />, action: () => handleOpenViewModal(user), color: 'primary' },
-      { label: 'Edit User', icon: <FaEdit />, action: () => handleOpenEditModal(user), color: 'primary' },
-      { label: 'Reset Password', icon: <FaKey />, action: () => handleOpenPasswordModal(user), color: 'warning' },
-      { label: user.isActive ? 'Deactivate' : 'Activate', icon: user.isActive ? <FaBan /> : <FaCheck />, action: () => handleOpenStatusModal(user, user.isActive ? 'deactivate' : 'activate'), color: user.isActive ? 'warning' : 'success' },
-      { label: 'Delete User', icon: <FaTrash />, action: () => handleDeleteClick(user), color: 'danger' }
+      { label: 'View Details', action: () => handleOpenViewModal(user), color: 'primary' },
+      { label: 'Edit User', action: () => handleOpenEditModal(user), color: 'primary' },
+      { label: 'Reset Password', action: () => handleOpenPasswordModal(user), color: 'primary' },
+      { label: user.isActive ? 'Deactivate' : 'Activate', action: () => handleOpenStatusModal(user, user.isActive ? 'deactivate' : 'activate'), color: 'primary' },
+      { label: 'Delete User', action: () => handleDeleteClick(user), color: 'primary' }
     ];
     return actions;
   };
@@ -910,6 +912,7 @@ const UserManagement = () => {
                 <option value="engineer">Engineer</option>
                 <option value="user">Customer</option>
               </select>
+              <FaChevronDown className="select-arrow-usermanagement" />
             </div>
           )}
         </div>
@@ -1000,7 +1003,7 @@ const UserManagement = () => {
                                       action.action();
                                     }}
                                   >
-                                    {action.icon} <span>{action.label}</span>
+                                    <span>{action.label}</span>
                                   </button>
                                 ))}
                               </div>
@@ -1270,13 +1273,13 @@ const UserManagement = () => {
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          disabled={modalMode === 'edit'}
+                          /* TEMP-EMAIL-EDIT: re-add disabled={modalMode === 'edit'} to re-lock */
                           className={formErrors.email ? 'error' : ''}
                           placeholder="name@gmail.com"
                         />
                         {formErrors.email && <span className="error-text-usermanagement">{formErrors.email}</span>}
-                        {modalMode === 'edit' && <small>Email cannot be changed</small>}
-                        {modalMode === 'create' && <small>Must be a valid Gmail address (@gmail.com)</small>}
+                        {/* TEMP-EMAIL-EDIT: restore {modalMode === 'edit' && <small>Email cannot be changed</small>} to re-lock */}
+                        <small>Must be a valid Gmail address (@gmail.com)</small>
                       </div>
                       <div className="form-group-usermanagement">
                         <label>Contact Number</label>

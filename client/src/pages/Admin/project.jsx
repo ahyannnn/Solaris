@@ -94,6 +94,7 @@ const ProjectManagement = () => {
   const dropdownRef = useRef(null);
   const buttonRefs = useRef({});
   const [autoOpenAssignModal, setAutoOpenAssignModal] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -828,8 +829,8 @@ const ProjectManagement = () => {
             <table className="project-table-projectmanagement">
               <thead>
                 <tr>
-                  <th>Project</th>
                   <th>Client</th>
+                  <th>Project</th>
                   <th>Size</th>
                   <th>Total</th>
                   <th>Paid</th>
@@ -847,17 +848,29 @@ const ProjectManagement = () => {
 
                     return (
                       <tr key={project._id}>
+                        <td data-label="Client" className="client-cell-projectmanagement">
+                          <div className="client-profile-projectmanagement">
+                            {project.clientId?.userId?.photoURL && !brokenPhotos.has(project._id) ? (
+                              <img
+                                src={project.clientId.userId.photoURL}
+                                alt=""
+                                className="client-photo-projectmanagement"
+                                onError={() => setBrokenPhotos((prev) => new Set(prev).add(project._id))}
+                              />
+                            ) : (
+                              <span className="client-initials-projectmanagement">
+                                {((project.clientId?.contactFirstName?.[0] || '') + (project.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                              </span>
+                            )}
+                            <span className="client-name-projectmanagement">
+                              {project.clientId?.contactFirstName} {project.clientId?.contactLastName}
+                              <small>{project.clientId?.contactNumber || 'N/A'}</small>
+                            </span>
+                          </div>
+                        </td>
                         <td data-label="Project" className="project-cell-projectmanagement">
                           <div className="project-name-projectmanagement">{project.projectName}</div>
                           <div className="project-ref-projectmanagement">{project.projectReference}</div>
-                        </td>
-                        <td data-label="Client">
-                          <div>
-                            <strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong>
-                          </div>
-                          <div>
-                            <small>{project.clientId?.contactNumber}</small>
-                          </div>
                         </td>
                         <td data-label="Size">{project.systemSize} kW</td>
                         <td data-label="Total" className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>

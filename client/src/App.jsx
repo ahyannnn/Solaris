@@ -32,6 +32,7 @@ import PreAssessment from './pages/Admin/preassessments';
 import Schedule from './pages/Admin/schedule';
 import Maintenance from './pages/Admin/Maintenance';
 import SystemConfig from './pages/Admin/SystemConfig';
+import AdminServices from './pages/Admin/services';
 
 // Engineer Pages
 import EngineerDashboard from './pages/Engineer/dashboard';
@@ -245,6 +246,7 @@ function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="maintenance" element={<Maintenance />} />
             <Route path="system-config" element={<SystemConfig />} />
+            <Route path="services" element={<AdminServices />} />
             <Route path="notifications" element={<Notifications />} />
           </Route>
 

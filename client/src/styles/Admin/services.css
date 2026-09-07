@@ -1,0 +1,120 @@
+/* styles/Admin/services.css - additional service requests (Poppins, mobile cards) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+.admsvc-container { display: flex; flex-direction: column; gap: 1rem; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.admsvc-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+.admsvc-stat { background: var(--bg-card, #fff); border: 1px solid var(--border-color, #eef0ed); border-radius: 12px; padding: 0.9rem; display: flex; flex-direction: column; align-items: center; font-family: 'Poppins', sans-serif; }
+.admsvc-stat .stat-num { font-size: 1.4rem; font-weight: 700; font-family: 'Poppins', sans-serif; }
+.admsvc-stat .stat-label { font-size: 0.75rem; color: var(--text-secondary, #667085); text-transform: uppercase; letter-spacing: 0.4px; font-family: 'Poppins', sans-serif; }
+.admsvc-toolbar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.admsvc-search { flex: 1; min-width: 240px; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 10px; padding: 0.55rem 0.8rem; }
+.admsvc-search input { border: none; outline: none; background: transparent; width: 100%; font-size: 0.9rem; color: inherit; font-family: 'Poppins', sans-serif; }
+.admsvc-toolbar select { padding: 0.55rem 0.8rem; border-radius: 10px; border: 1px solid var(--border-color, #e5e7eb); background: var(--bg-card, #fff); color: inherit; font-size: 0.85rem; font-family: 'Poppins', sans-serif; }
+.admsvc-table-wrap { background: var(--bg-card, #fff); border: 1px solid var(--border-color, #eef0ed); border-radius: 12px; overflow-x: auto; }
+.admsvc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; font-family: 'Poppins', sans-serif; }
+.admsvc-table th, .admsvc-table td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border-color, #eef0ed); text-align: left; vertical-align: top; font-family: 'Poppins', sans-serif; }
+.admsvc-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary, #667085); font-weight: 600; }
+.admsvc-table .mono { font-family: monospace; font-weight: 600; white-space: nowrap; }
+.admsvc-table .contact-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+.admsvc-table .contact-cell .muted { color: var(--text-secondary, #667085); font-size: 0.78rem; }
+.admsvc-badge { padding: 0.15rem 0.7rem; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; background: #f1f2f4; border: 1px solid #e5e7eb; white-space: nowrap; font-family: 'Poppins', sans-serif; }
+.admsvc-badge.pending { background: rgba(243,156,18,0.12); color: #b45309; border-color: rgba(243,156,18,0.3); }
+.admsvc-badge.contacted, .admsvc-badge.scheduled { background: rgba(59,130,246,0.12); color: #1d4ed8; border-color: rgba(59,130,246,0.3); }
+.admsvc-badge.completed { background: rgba(16,185,129,0.12); color: #047857; border-color: rgba(16,185,129,0.3); }
+.admsvc-badge.cancelled { background: rgba(107,114,128,0.15); color: #4b5563; }
+.admsvc-view-btn { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-color, #e5e7eb); background: transparent; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.8rem; color: inherit; font-family: 'Poppins', sans-serif; font-weight: 500; }
+.admsvc-view-btn:hover { border-color: #f39c12; color: #f39c12; }
+.admsvc-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-secondary, #667085); font-family: 'Poppins', sans-serif; }
+.admsvc-empty .empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.admsvc-empty h3 { font-family: 'Poppins', sans-serif; }
+.admsvc-empty p { font-family: 'Poppins', sans-serif; }
+.admsvc-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+.admsvc-modal { background: var(--bg-modal, #fff); border-radius: 14px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.admsvc-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color, #eef0ed); }
+.admsvc-modal-header h3 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; font-family: 'Poppins', sans-serif; }
+.admsvc-modal-close { border: none; background: none; cursor: pointer; font-size: 1.1rem; color: inherit; }
+.admsvc-modal-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+.admsvc-modal-body .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.admsvc-modal-body label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary, #667085); font-family: 'Poppins', sans-serif; }
+.admsvc-modal-body p { margin: 0.15rem 0 0; font-size: 0.9rem; font-family: 'Poppins', sans-serif; }
+.admsvc-modal-body .notes { font-style: italic; }
+.admsvc-modal-body .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.admsvc-modal-body select, .admsvc-modal-body textarea { padding: 0.6rem 0.8rem; border-radius: 10px; border: 1px solid var(--border-color, #e5e7eb); background: var(--input-bg, #fff); color: inherit; font-size: 0.88rem; font-family: 'Poppins', sans-serif; }
+.admsvc-modal-body small { color: var(--text-secondary, #667085); font-family: 'Poppins', sans-serif; }
+.admsvc-modal-body a { color: inherit; font-family: 'Poppins', sans-serif; }
+.admsvc-modal-footer { display: flex; justify-content: flex-end; gap: 0.6rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color, #eef0ed); }
+.admsvc-modal-footer .btn-cancel { padding: 0.55rem 1.1rem; border-radius: 10px; border: 1px solid var(--border-color, #e5e7eb); background: transparent; cursor: pointer; color: inherit; font-family: 'Poppins', sans-serif; font-weight: 500; }
+.admsvc-modal-footer .btn-save { padding: 0.55rem 1.2rem; border-radius: 10px; border: none; background: #f39c12; color: #fff; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Poppins', sans-serif; }
+.admsvc-modal-footer .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.detail-contact-hint { font-size: 0.8rem; color: var(--text-secondary, #667085); background: rgba(243,156,18,0.08); border: 1px dashed rgba(243,156,18,0.4); border-radius: 10px; padding: 0.6rem 0.8rem; font-family: 'Poppins', sans-serif; }
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+/* Mobile: stacked cards instead of horizontal scroll */
+@media (max-width: 768px) {
+  .admsvc-stats { grid-template-columns: repeat(2, 1fr); }
+  .admsvc-toolbar { flex-direction: column; }
+  .admsvc-search { min-width: 0; width: 100%; }
+  .admsvc-toolbar select { width: 100%; min-height: 44px; }
+  .admsvc-table-wrap { background: transparent; border: none; overflow: visible; }
+  .admsvc-table { min-width: 0; }
+  .admsvc-table thead { display: none; }
+  .admsvc-table, .admsvc-table tbody, .admsvc-table tr, .admsvc-table td { display: block; width: 100%; }
+  .admsvc-table tr {
+    background: var(--bg-card, #fff);
+    border: 1.5px solid var(--border-medium, #d1d5db);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    padding: 0.25rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .admsvc-table td {
+    border-bottom: 1px solid var(--border-medium, #e5e7eb);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    text-align: right;
+  }
+  .admsvc-table td:last-child { border-bottom: none; }
+  .admsvc-table td::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-secondary, #667085);
+    flex-shrink: 0;
+    text-align: left;
+    margin-right: auto;
+    padding-top: 0;
+  }
+  /* Value side (everything except the label): pinned right */
+  .admsvc-table td > *:not(.admsvc-view-btn) {
+    margin-left: auto;
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .admsvc-table td .contact-cell { align-items: flex-end; text-align: right; margin-left: auto; }
+  .admsvc-table td .mono { text-align: right; }
+  .admsvc-view-btn { width: 100%; justify-content: center; min-height: 44px; }
+  .admsvc-modal-overlay { padding: 0.5rem; align-items: flex-end; }
+  .admsvc-modal { max-width: 100%; max-height: 94vh; border-radius: 16px 16px 0 0; }
+  .admsvc-modal-body .detail-grid { grid-template-columns: 1fr; }
+  .admsvc-modal-body select, .admsvc-modal-body textarea { min-height: 44px; font-size: 0.9rem; }
+  .admsvc-modal-footer { flex-direction: column; position: sticky; bottom: 0; background: var(--bg-modal, #fff); }
+  .admsvc-modal-footer .btn-cancel, .admsvc-modal-footer .btn-save { width: 100%; justify-content: center; min-height: 48px; }
+}
+
+@media (max-width: 480px) {
+  .admsvc-stats { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .admsvc-stat { padding: 0.7rem; }
+  /* Keep label-left / value-right on small phones too */
+  .admsvc-table td { flex-direction: row; align-items: center; }
+  .admsvc-table td .contact-cell { align-items: flex-end; text-align: right; }
+}

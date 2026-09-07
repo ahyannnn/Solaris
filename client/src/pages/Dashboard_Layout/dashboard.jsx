@@ -501,12 +501,14 @@ const Dashboard = () => {
         const titles = {
           'faq': 'FAQs',
           'info': 'Contact Information',
-          'guides': 'User Guides'
+          'guides': 'User Guides',
+          'services': 'Services'
         };
         const descriptions = {
           'faq': 'Find answers to commonly asked questions about our services.',
           'info': 'Get in touch with us through our contact details.',
-          'guides': 'Access helpful guides and resources.'
+          'guides': 'Access helpful guides and resources.',
+          'services': 'Avail additional services — we will contact you.'
         };
         return {
           title: titles[tab] || 'Support',
@@ -611,6 +613,12 @@ const Dashboard = () => {
           description: 'Manage system maintenance tasks and monitor service status.'
         };
       }
+      if (currentPath === '/app/admin/services') {
+        return {
+          title: 'Services',
+          description: 'View who availed additional services and contact them.'
+        };
+      }
       if (currentPath === '/app/admin/notifications') {
         return {
           title: 'Notifications',
@@ -699,6 +707,7 @@ const Dashboard = () => {
             { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },
+            { icon: <FaHeadset />, label: 'Services', path: '/app/admin/services' },
           ]
         },
         {
@@ -780,6 +789,7 @@ const Dashboard = () => {
                 { icon: <FaQuestionCircle />, label: 'FAQs', path: '/app/customer/support?tab=faq' },
                 { icon: <FaInfoCircle />, label: 'Contact Info', path: '/app/customer/support?tab=info' },
                 { icon: <FaBook />, label: 'Guides', path: '/app/customer/support?tab=guides' },
+                { icon: <FaTools />, label: 'Services', path: '/app/customer/support?tab=services' },
               ]
             },
             {

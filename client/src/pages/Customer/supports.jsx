@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { 
   FaQuestionCircle,
@@ -24,10 +25,22 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaBookOpen,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
+  FaTools,
+  FaClipboardList,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/supports.css';
+
+const SERVICE_OPTIONS = [
+  'Electrical Design and Wiring',
+  'CCTV Installation',
+  'Broadcast system integration',
+  'Lighting system design and integration',
+  'Solar Installation Course with hands on training',
+  'Maintenance'
+];
 
 const Supports = () => {
   const navigate = useNavigate();
@@ -37,7 +50,7 @@ const Supports = () => {
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    return ['faq', 'contact', 'info', 'tickets', 'guides'].includes(tab) ? tab : 'faq';
+    return ['faq', 'contact', 'info', 'tickets', 'guides', 'services'].includes(tab) ? tab : 'faq';
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
@@ -63,6 +76,32 @@ const Supports = () => {
     { id: 'TKT-002', subject: 'Payment confirmation', description: 'Payment was made but not reflected', date: '2024-03-10', status: 'in-progress' },
     { id: 'TKT-003', subject: 'Technical question', description: 'How to monitor system performance?', date: '2024-03-05', status: 'open' },
   ]);
+
+  // Additional Services booking state (personal info is read-only from account)
+  const [serviceForm, setServiceForm] = useState({
+    serviceType: '',
+    preferredDate: '',
+    serviceAddress: '',
+    notes: ''
+  });
+  const [accountInfo, setAccountInfo] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    loading: false,
+    error: ''
+  });
+  const [serviceRequests, setServiceRequests] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [submittingService, setSubmittingService] = useState(false);
+  const [cancellingServiceId, setCancellingServiceId] = useState(null);
+
+  const ACTIVE_SERVICE_STATUSES = ['pending', 'contacted', 'scheduled'];
+
+  const getActiveRequestForService = (serviceType) => {
+    if (!serviceType) return null;
+    return serviceRequests.find(r => r.serviceType === serviceType && ACTIVE_SERVICE_STATUSES.includes(r.status)) || null;
+  };
 
   // Updated Guides - Now links to the 4 guide pages
   const guides = [
@@ -206,12 +245,71 @@ const Supports = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabFromUrl = params.get('tab');
-    if (tabFromUrl && ['faq', 'contact', 'info', 'tickets', 'guides'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['faq', 'contact', 'info', 'tickets', 'guides', 'services'].includes(tabFromUrl)) {
       if (tabFromUrl !== activeTab) {
         setActiveTab(tabFromUrl);
       }
     }
   }, [location.search, activeTab]);
+
+  const getAuthHeader = () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const fetchServicePrefill = async () => {
+    setAccountInfo(prev => ({ ...prev, loading: true, error: '' }));
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/clients/me`, {
+        headers: getAuthHeader()
+      });
+      const client = res.data?.client || res.data || {};
+      const storedName = localStorage.getItem('userName') || sessionStorage.getItem('userName') || '';
+      const storedEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail') || '';
+      const derivedName = [client.contactFirstName, client.contactMiddleName, client.contactLastName].filter(Boolean).join(' ') || storedName;
+      const derivedEmail = (client.email || storedEmail || '').trim();
+      const derivedPhone = (client.contactNumber || '').trim();
+      setAccountInfo({
+        fullName: derivedName || '',
+        email: derivedEmail,
+        phone: derivedPhone,
+        loading: false,
+        error: (!derivedName || !derivedEmail || !derivedPhone)
+          ? 'Your account profile is incomplete. Please complete your name, email, and phone in Settings before booking.'
+          : ''
+      });
+      const addrs = client.addresses || [];
+      const primary = addrs.find(a => a.isPrimary) || addrs[0];
+      if (primary) {
+        const full = [primary.houseOrBuilding, primary.street, primary.barangay, primary.cityMunicipality, primary.province].filter(Boolean).join(', ');
+        if (full) setServiceForm(prev => ({ ...prev, serviceAddress: prev.serviceAddress || full }));
+      }
+    } catch (e) {
+      setAccountInfo({ fullName: '', email: '', phone: '', loading: false, error: 'Could not load your account info. Please try again.' });
+    }
+  };
+
+  const fetchMyServiceRequests = async () => {
+    setLoadingServices(true);
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/service-requests/my-requests`, {
+        headers: getAuthHeader()
+      });
+      setServiceRequests(res.data?.requests || []);
+    } catch (e) {
+      console.error('Fetch service requests failed:', e);
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'services') {
+      fetchServicePrefill();
+      fetchMyServiceRequests();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -259,6 +357,109 @@ const Supports = () => {
     showToast('Ticket created successfully!', 'success');
   };
 
+  const handleServiceInputChange = (e) => {
+    const { name, value } = e.target;
+    setServiceForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleServiceSubmit = async (e) => {
+    e.preventDefault();
+    const serviceType = (serviceForm.serviceType || '').trim();
+    const serviceAddress = (serviceForm.serviceAddress || '').trim();
+    const notes = (serviceForm.notes || '').trim();
+    const preferredDate = (serviceForm.preferredDate || '').trim();
+
+    // Strict no-null validation before submit (personal info comes from account)
+    if (accountInfo.loading) {
+      showToast('Please wait while we load your account info', 'warning');
+      return;
+    }
+    if (!accountInfo.fullName || !accountInfo.email || !accountInfo.phone) {
+      showToast(accountInfo.error || 'Your account profile is incomplete. Please complete it in Settings first.', 'warning');
+      return;
+    }
+    if (!serviceType) {
+      showToast('Please select a service to avail', 'warning');
+      return;
+    }
+    const activeExisting = getActiveRequestForService(serviceType);
+    if (activeExisting) {
+      showToast(`You already have an active "${serviceType}" request (${activeExisting.referenceNo} – ${activeExisting.status}). You can book again after it is completed or cancelled.`, 'warning');
+      return;
+    }
+    if (!preferredDate) {
+      showToast('Preferred date is required', 'warning');
+      return;
+    }
+    const parsed = new Date(`${preferredDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) {
+      showToast('Preferred date is invalid', 'warning');
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsed < today) {
+      showToast('Preferred date cannot be in the past', 'warning');
+      return;
+    }
+    if (!serviceAddress) {
+      showToast('Service address is required', 'warning');
+      return;
+    }
+    if (serviceAddress.length < 8) {
+      showToast('Please enter your complete service address', 'warning');
+      return;
+    }
+    if (notes.length > 1000) {
+      showToast('Notes must be 1000 characters or less', 'warning');
+      return;
+    }
+
+    setSubmittingService(true);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/service-requests`,
+        {
+          serviceType,
+          preferredDate,
+          serviceAddress,
+          notes
+        },
+        { headers: getAuthHeader() }
+      );
+      const created = res.data?.request;
+      if (created) setServiceRequests(prev => [created, ...prev]);
+      showToast(`Service request ${created?.referenceNo || ''} submitted! We will contact you soon.`, 'success');
+      setServiceForm(prev => ({ ...prev, serviceType: '', preferredDate: '', notes: '' }));
+    } catch (err) {
+      if (err.response?.status === 409) {
+        // Refresh list so the blocking card shows immediately
+        fetchMyServiceRequests();
+      }
+      showToast(err.response?.data?.message || 'Failed to submit service request', 'error');
+    } finally {
+      setSubmittingService(false);
+    }
+  };
+
+  const handleCancelService = async (id) => {
+    setCancellingServiceId(id);
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/service-requests/${id}/cancel`,
+        {},
+        { headers: getAuthHeader() }
+      );
+      const updated = res.data?.request;
+      if (updated) setServiceRequests(prev => prev.map(r => (r._id === id ? updated : r)));
+      showToast('Service request cancelled', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to cancel request', 'error');
+    } finally {
+      setCancellingServiceId(null);
+    }
+  };
+
   const toggleFaq = (id) => {
     setOpenFaq(openFaq === id ? null : id);
   };
@@ -266,11 +467,18 @@ const Supports = () => {
   const getStatusBadge = (status) => {
     switch(status) {
       case 'open':
-        return <span className="status-badge-support open">Open</span>;
+      case 'pending':
+        return <span className="status-badge-support open">{status === 'pending' ? 'Pending' : 'Open'}</span>;
       case 'in-progress':
-        return <span className="status-badge-support in-progress">In Progress</span>;
+      case 'contacted':
+        return <span className="status-badge-support in-progress">{status === 'contacted' ? 'Contacted' : 'In Progress'}</span>;
+      case 'scheduled':
+        return <span className="status-badge-support in-progress">Scheduled</span>;
       case 'resolved':
-        return <span className="status-badge-support resolved">Resolved</span>;
+      case 'completed':
+        return <span className="status-badge-support resolved">{status === 'completed' ? 'Completed' : 'Resolved'}</span>;
+      case 'cancelled':
+        return <span className="status-badge-support">{`Cancelled`}</span>;
       default:
         return <span className="status-badge-support">{status}</span>;
     }
@@ -521,6 +729,192 @@ const Supports = () => {
           </div>
         );
 
+      case 'services': {
+        const activeBlock = getActiveRequestForService(serviceForm.serviceType);
+        const profileIncomplete = !accountInfo.loading && (!accountInfo.fullName || !accountInfo.email || !accountInfo.phone);
+        return (
+          <>
+            <div className="cusup-section">
+              <div className="cusup-section-header">
+                <FaTools />
+                <h2>Avail a Service</h2>
+              </div>
+              <div className="cusup-section-description">
+                <p>Choose one of our additional services. Send your request and our team will contact you. One active request per service — you can book again after it is completed or cancelled.</p>
+              </div>
+
+              <div className="cusup-account-card">
+                <div className="cusup-account-header">
+                  <FaInfoCircle />
+                  <h3>Your information (from your account)</h3>
+                </div>
+                {accountInfo.loading ? (
+                  <p className="cusup-account-loading"><FaSpinner className="spinning" /> Loading your account info...</p>
+                ) : (
+                  <>
+                    <div className="cusup-account-grid">
+                      <div><label>Full Name</label><p>{accountInfo.fullName || '—'}</p></div>
+                      <div><label>Email</label><p>{accountInfo.email || '—'}</p></div>
+                      <div><label>Phone</label><p>{accountInfo.phone || '—'}</p></div>
+                    </div>
+                    {accountInfo.error && <p className="cusup-account-error">{accountInfo.error}</p>}
+                    {!accountInfo.error && <p className="cusup-account-note">This is read-only and will be used when contacting you.</p>}
+                  </>
+                )}
+              </div>
+
+              <div className="cusup-services-grid">
+                {SERVICE_OPTIONS.map(opt => {
+                  const blocked = !!getActiveRequestForService(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      disabled={blocked}
+                      title={blocked ? 'You already have an active request for this service' : `Avail ${opt}`}
+                      className={`cusup-service-chip ${serviceForm.serviceType === opt ? 'selected' : ''} ${blocked ? 'blocked' : ''}`}
+                      onClick={() => setServiceForm(prev => ({ ...prev, serviceType: opt }))}
+                    >
+                      <FaTools className="chip-icon" />
+                      <span>{opt}</span>
+                      {serviceForm.serviceType === opt && <FaCheckCircle className="chip-check" />}
+                      {blocked && serviceForm.serviceType !== opt && <span className="chip-blocked-tag">Active</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <form onSubmit={handleServiceSubmit} className="cusup-contact-form" style={{ marginTop: '1rem' }} noValidate>
+                <div className="cusup-form-group">
+                  <label>Service to avail *</label>
+                  <select
+                    name="serviceType"
+                    value={serviceForm.serviceType}
+                    onChange={handleServiceInputChange}
+                    required
+                  >
+                    <option value="">Select a service...</option>
+                    {SERVICE_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  {activeBlock && (
+                    <small className="cusup-field-hint warn">
+                      You already have an active “{activeBlock.serviceType}” request ({activeBlock.referenceNo} – {activeBlock.status}). New booking unlocks after completed or cancelled.
+                    </small>
+                  )}
+                </div>
+
+                <div className="cusup-form-row">
+                  <div className="cusup-form-group">
+                    <label>Preferred Date *</label>
+                    <input
+                      type="date"
+                      name="preferredDate"
+                      value={serviceForm.preferredDate}
+                      onChange={handleServiceInputChange}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+                  <div className="cusup-form-group">
+                    <label>Service Address *</label>
+                    <input
+                      type="text"
+                      name="serviceAddress"
+                      value={serviceForm.serviceAddress}
+                      onChange={handleServiceInputChange}
+                      placeholder="House/Street, Barangay, City/Municipality"
+                      required
+                      minLength={8}
+                      maxLength={300}
+                    />
+                  </div>
+                </div>
+
+                <div className="cusup-form-group">
+                  <label>Notes / Details</label>
+                  <textarea
+                    name="notes"
+                    rows="4"
+                    value={serviceForm.notes}
+                    onChange={handleServiceInputChange}
+                    placeholder="Tell us more about what you need..."
+                    maxLength={1000}
+                  ></textarea>
+                  <small className="cusup-field-hint">{(serviceForm.notes || '').length}/1000</small>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingService || accountInfo.loading || profileIncomplete || !!activeBlock}
+                  className="cusup-submit-btn"
+                  title={activeBlock ? 'Finish or cancel your active request for this service first' : 'Submit Service Request'}
+                >
+                  {submittingService ? <><FaSpinner className="spinning" /> Submitting...</> : 'Submit Service Request'}
+                </button>
+              </form>
+            </div>
+
+            <div className="cusup-section">
+              <div className="cusup-section-header">
+                <FaClipboardList />
+                <h2>My Service Requests</h2>
+              </div>
+              {loadingServices ? (
+                <div className="cusup-empty-state">
+                  <FaSpinner className="empty-icon spinning" />
+                  <p>Loading your requests...</p>
+                </div>
+              ) : serviceRequests.length === 0 ? (
+                <div className="cusup-empty-state">
+                  <FaTools className="empty-icon" />
+                  <h3>No service requests yet</h3>
+                  <p>Submit the form above to avail a service</p>
+                </div>
+              ) : (
+                <div className="cusup-tickets-list">
+                  {serviceRequests.map(r => (
+                    <div key={r._id} className="cusup-ticket-card">
+                      <div className="cusup-ticket-header">
+                        <div className="cusup-ticket-id">{r.referenceNo || r._id.slice(-6).toUpperCase()}</div>
+                        {getStatusBadge(r.status)}
+                      </div>
+                      <div className="cusup-ticket-subject">{r.serviceType}</div>
+                      <div className="cusup-ticket-description">
+                        {r.serviceAddress}
+                        {r.preferredDate && (
+                          <span> &nbsp;•&nbsp; <FaCalendarAlt style={{ display: 'inline' }} /> {new Date(r.preferredDate).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                      {r.notes && <div className="cusup-ticket-description" style={{ fontStyle: 'italic' }}>“{r.notes}”</div>}
+                      {r.adminRemarks && (
+                        <div className="cusup-message support" style={{ marginTop: '0.5rem' }}>
+                          <strong>Update from our team:</strong>
+                          <p>{r.adminRemarks}</p>
+                        </div>
+                      )}
+                      <div className="cusup-ticket-footer">
+                        <span className="cusup-ticket-date">{new Date(r.createdAt).toLocaleDateString()}</span>
+                        {r.status === 'pending' && (
+                          <button
+                            className="cusup-view-ticket-btn"
+                            onClick={() => handleCancelService(r._id)}
+                            disabled={cancellingServiceId === r._id}
+                          >
+                            <FaTimes /> {cancellingServiceId === r._id ? 'Cancelling...' : 'Cancel request'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        );
+      }
+
       default:
         return null;
     }
@@ -544,6 +938,7 @@ const Supports = () => {
               : activeTab === 'info' ? 'Contact Info'
               : activeTab === 'guides' ? 'Guides'
               : activeTab === 'tickets' ? 'Support Tickets'
+              : activeTab === 'services' ? 'Services'
               : 'Contact Us'}
           </span>
           <div className="cusup-header-content">

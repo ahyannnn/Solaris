@@ -1,7 +1,9 @@
 // controllers/clientController.js
 const Client = require('../models/Clients');
 const Address = require('../models/Address');
+const User = require('../models/Users');
 const mongoose = require('mongoose');
+const { processUpload, getFileUrl } = require('../middleware/uploadMiddleware');
 
 // Update client info (personal info only - address handled separately)
 exports.updateClient = async (req, res) => {
@@ -68,7 +70,7 @@ exports.getClientInfo = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const client = await Client.findOne({ userId }).populate('userId', 'email');
+    const client = await Client.findOne({ userId }).populate('userId', 'email photoURL');
 
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
@@ -82,6 +84,7 @@ exports.getClientInfo = async (req, res) => {
     const clientData = {
       ...client.toObject(),
       email: client.userId?.email || '',
+      photoURL: client.userId?.photoURL || null,
       birthday: client.birthday ? client.birthday.toISOString().split('T')[0] : null,
       addresses: addresses.map(addr => ({
         ...addr.toObject(),
@@ -96,6 +99,39 @@ exports.getClientInfo = async (req, res) => {
     res.json({ client: clientData });
   } catch (error) {
     console.error('Get client info error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Upload customer profile photo (customer-only: requires a Client doc).
+// Expects multipart field "photo" (image, ≤2MB — enforced by route multer).
+exports.uploadProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(403).json({ message: 'Only customers can upload a profile photo' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No photo uploaded' });
+    }
+
+    const uploaded = await processUpload(req, req.file, 'avatars', `avatar-${userId}-${Date.now()}`);
+    if (!uploaded) {
+      return res.status(500).json({ message: 'Failed to process photo' });
+    }
+
+    const photoURL = uploaded.storageType === 'cloudinary'
+      ? uploaded.url
+      : getFileUrl(req, uploaded);
+
+    await User.findByIdAndUpdate(userId, { photoURL });
+
+    res.json({ message: 'Profile photo updated', photoURL });
+  } catch (error) {
+    console.error('Upload profile photo error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -3005,10 +3005,10 @@ exports.getPreAssessmentById = async (req, res) => {
     const assessment = await PreAssessment.findById(id)
       .populate({
         path: 'clientId',
-        select: 'contactFirstName contactLastName contactNumber client_type userId',
+        select: 'contactFirstName contactLastName contactNumber userId',
         populate: {
           path: 'userId',
-          select: 'email'
+          select: 'email photoURL'
         }
       })
       .populate('addressId')

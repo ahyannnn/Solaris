@@ -1,6 +1,6 @@
 // pages/Customer/CustomerSettings.jsx - Redesigned with PSGC Cloud API
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -30,7 +30,8 @@ import {
   FaRoad,
   FaUserEdit,
   FaAddressCard,
-  FaInfoCircle
+  FaInfoCircle,
+  FaCamera
 } from 'react-icons/fa';
 import '../../styles/Customer/customersettings.css';
 
@@ -94,6 +95,37 @@ const CustomerSettings = () => {
   const [profileErrors, setProfileErrors] = useState({});
   const [memberSince, setMemberSince] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
+
+  // Profile photo states (preview uploads on Save, never before)
+  const [photoURL, setPhotoURL] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Local preview for a newly picked photo (revoked on change/unmount)
+  useEffect(() => {
+    if (photoFile) {
+      const url = URL.createObjectURL(photoFile);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPhotoPreview(null);
+  }, [photoFile]);
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      showToast('Only image files (JPEG, PNG, WEBP, GIF) are allowed', 'error');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Photo must be 2MB or smaller', 'error');
+      return;
+    }
+    setPhotoFile(file);
+  };
 
   // ========== PSGC CLOUD API FUNCTIONS ==========
 
@@ -251,6 +283,8 @@ const CustomerSettings = () => {
       });
       setMemberSince(client.createdAt);
       setIsVerified(client.isVerified || false);
+      setPhotoURL(client.photoURL || null);
+      setPhotoFile(null);
     } catch (err) {
       console.error('Error fetching user data:', err);
       showToast('Failed to load profile data', 'error');
@@ -301,6 +335,7 @@ const CustomerSettings = () => {
 
   const hasProfileChanges = () => {
     return (
+      photoFile !== null ||
       profileData.firstName !== originalProfileData.firstName ||
       profileData.middleName !== originalProfileData.middleName ||
       profileData.lastName !== originalProfileData.lastName ||
@@ -329,6 +364,23 @@ const CustomerSettings = () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
+      // Upload a newly picked photo first (nothing uploads before Save)
+      let currentPhotoURL = photoURL;
+      if (photoFile) {
+        const formDataPhoto = new FormData();
+        formDataPhoto.append('photo', photoFile);
+        const photoRes = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/clients/me/photo`,
+          formDataPhoto,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        currentPhotoURL = photoRes.data.photoURL;
+        setPhotoURL(currentPhotoURL);
+        setPhotoFile(null);
+        sessionStorage.setItem('userPhotoURL', currentPhotoURL || '');
+        // Instant header refresh (same tab, no reload needed)
+        window.dispatchEvent(new CustomEvent('user-photo-updated', { detail: currentPhotoURL || '' }));
+      }
       await axios.put(`${import.meta.env.VITE_API_URL}/api/clients/update`,
         {
           contactFirstName: profileData.firstName.trim(),
@@ -536,9 +588,41 @@ const CustomerSettings = () => {
     <div className="cuset-profile-tab">
       {/* Profile Card */}
       <div className="cuset-profile-card">
-        <div className="cuset-profile-avatar">
-          <FaUserCircle className="cuset-avatar-icon" />
-          <span className="cuset-avatar-initials">{getInitials()}</span>
+        <div
+          className="cuset-profile-avatar cuset-avatar-clickable"
+          onClick={() => fileInputRef.current?.click()}
+          title="Change profile photo"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
+        >
+          {(photoPreview || photoURL) ? (
+            <img
+              src={photoPreview || photoURL}
+              alt="Profile"
+              className="cuset-avatar-img"
+              onError={() => {
+                // Broken remote URL → fall back to initials
+                if (!photoPreview) {
+                  setPhotoURL(null);
+                  sessionStorage.removeItem('userPhotoURL');
+                }
+              }}
+            />
+          ) : (
+            <>
+              <FaUserCircle className="cuset-avatar-icon" />
+              <span className="cuset-avatar-initials">{getInitials()}</span>
+            </>
+          )}
+          <span className="cuset-avatar-camera"><FaCamera /></span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            hidden
+            onChange={handlePhotoSelect}
+          />
         </div>
         <div className="cuset-profile-details">
           <h2>{getFullName() || 'No Name Set'}</h2>

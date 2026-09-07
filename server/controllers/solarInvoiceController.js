@@ -766,7 +766,11 @@ exports.getAllSolarInvoices = async (req, res) => {
     if (paymentStatus) query.paymentStatus = paymentStatus;
 
     const invoices = await SolarInvoice.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: { path: 'userId', select: 'email photoURL' }
+      })
       .populate('projectId', 'projectName projectReference systemSize totalCost')
       .populate('createdBy', 'firstName lastName')
       .populate('approvedBy', 'firstName lastName')

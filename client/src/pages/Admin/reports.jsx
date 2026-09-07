@@ -31,8 +31,7 @@ const Reports = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState('site-assessment');
-  const [dateRange, setDateRange] = useState({
+  const [activeTab, setActiveTab] = useState('site-assessment');  const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setDate(1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
@@ -40,7 +39,19 @@ const Reports = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedAssessment, setSelectedAssessment] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
+  const [selectedServiceType, setSelectedServiceType] = useState('');
+  const [selectedServiceStatus, setSelectedServiceStatus] = useState('');
   const [showMoreTabs, setShowMoreTabs] = useState(false);
+
+  const SERVICE_OPTIONS = [
+    'Electrical Design and Wiring',
+    'CCTV Installation',
+    'Broadcast system integration',
+    'Lighting system design and integration',
+    'Solar Installation Course with hands on training',
+    'Maintenance'
+  ];
+  const SERVICE_STATUS_OPTIONS = ['pending', 'contacted', 'scheduled', 'completed', 'cancelled'];
 
   // Data for reports
   const [assessments, setAssessments] = useState([]);
@@ -49,7 +60,7 @@ const Reports = () => {
   const [transactions, setTransactions] = useState([]);
 
   // Real-time data updates (no page refresh). Cleaned up on unmount.
-  useRealtimeTable(['pre-assessments', 'projects', 'users'], () => {
+  useRealtimeTable(['pre-assessments', 'projects', 'users', 'service-requests'], () => {
     fetchAllData();
   });
 
@@ -150,6 +161,9 @@ const Reports = () => {
         reportPayload.filters.projectId = selectedProject;
       } else if (activeTab === 'clients' && selectedClient) {
         reportPayload.filters.clientId = selectedClient;
+      } else if (activeTab === 'services') {
+        if (selectedServiceType) reportPayload.filters.serviceType = selectedServiceType;
+        if (selectedServiceStatus) reportPayload.filters.status = selectedServiceStatus;
       }
 
       const response = await axios.post(
@@ -180,6 +194,8 @@ const Reports = () => {
     if (activeTab === 'project-summary' && selectedProject) params.append('projectId', selectedProject);
     if (activeTab === 'financial' && selectedProject) params.append('projectId', selectedProject);
     if (activeTab === 'clients' && selectedClient) params.append('clientId', selectedClient);
+    if (activeTab === 'services' && selectedServiceType) params.append('serviceType', selectedServiceType);
+    if (activeTab === 'services' && selectedServiceStatus) params.append('status', selectedServiceStatus);
 
     const endpoint = activeTab === 'clients' ? 'client-transaction' : activeTab;
     const response = await axios.get(
@@ -198,7 +214,7 @@ const Reports = () => {
         if (!cancelled) setReportData({ report: null });
       });
     return () => { cancelled = true; };
-  }, [activeTab, dateRange.startDate, dateRange.endDate, selectedAssessment, selectedProject, selectedClient]);
+  }, [activeTab, dateRange.startDate, dateRange.endDate, selectedAssessment, selectedProject, selectedClient, selectedServiceType, selectedServiceStatus]);
 
   const exportReport = async (format) => {
     setGenerating(true);
@@ -222,6 +238,9 @@ const Reports = () => {
           params.append('projectId', selectedProject);
         } else if (activeTab === 'clients' && selectedClient) {
           params.append('clientId', selectedClient);
+        } else if (activeTab === 'services') {
+          if (selectedServiceType) params.append('serviceType', selectedServiceType);
+          if (selectedServiceStatus) params.append('status', selectedServiceStatus);
         }
 
         let response;
@@ -244,6 +263,11 @@ const Reports = () => {
           // ✅ Use client-transaction for the API endpoint
           response = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/admin/reports/client-transaction?${params}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } else if (activeTab === 'services') {
+          response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/admin/reports/services?${params}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
         } else {
@@ -322,7 +346,7 @@ const Reports = () => {
         <div className="skeleton-line-medium-reports"></div>
       </div>
       <div className="report-tabs-reports">
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3, 4, 5].map(i => (
           <div key={i} className="skeleton-tab-reports"></div>
         ))}
       </div>
@@ -369,9 +393,15 @@ const Reports = () => {
           >
             Clients
           </button>
+          <button
+            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'services' ? 'active-reports' : ''}`}
+            onClick={() => { setActiveTab('services'); setReportData(null); setShowMoreTabs(false); }}
+          >
+            Services
+          </button>
           <div className="more-wrap-reports">
             <button
-              className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients') ? 'active-reports' : ''}`}
+              className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients' || activeTab === 'services') ? 'active-reports' : ''}`}
               onClick={() => setShowMoreTabs((v) => !v)}
               aria-expanded={showMoreTabs}
               aria-haspopup="true"
@@ -394,6 +424,13 @@ const Reports = () => {
                   onClick={() => { setActiveTab('clients'); setReportData(null); setShowMoreTabs(false); }}
                 >
                   Clients
+                </button>
+                <button
+                  role="menuitem"
+                  className={`more-item-reports ${activeTab === 'services' ? 'active-reports' : ''}`}
+                  onClick={() => { setActiveTab('services'); setReportData(null); setShowMoreTabs(false); }}
+                >
+                  Services
                 </button>
               </div>
             )}
@@ -442,6 +479,30 @@ const Reports = () => {
                 <option value="">All Clients</option>
                 {clients.map(c => (
                   <option key={c._id} value={c._id}>{c.contactFirstName} {c.contactLastName}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div className="report-filter-reports">
+              <label>Filter by Service Type</label>
+              <select value={selectedServiceType} onChange={(e) => setSelectedServiceType(e.target.value)}>
+                <option value="">All Service Types</option>
+                {SERVICE_OPTIONS.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div className="report-filter-reports">
+              <label>Filter by Status</label>
+              <select value={selectedServiceStatus} onChange={(e) => setSelectedServiceStatus(e.target.value)}>
+                <option value="">All Statuses</option>
+                {SERVICE_STATUS_OPTIONS.map(s => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                 ))}
               </select>
             </div>
@@ -685,6 +746,68 @@ const Reports = () => {
           </div>
         )}
 
+        {/* ============ SERVICES REPORTS ============ */}
+        {activeTab === 'services' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <h2>Services</h2>
+              <p>Complete list of service requests with customer details and status.</p>
+            </div>
+
+            <div className="report-section-reports">
+              <div className="table-container-reports">
+                <table className="reports-table-reports">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Client Name</th>
+                      <th>Contact</th>
+                      <th>Service Type</th>
+                      <th>Preferred Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(reportData?.report?.services || []).length > 0 ? (
+                      (reportData?.report?.services || []).map((service, idx) => (
+                        <tr key={service._id || idx}>
+                          <td data-label="Reference" className="ref-cell-reports">{service.reference || 'N/A'}</td>
+                          <td data-label="Client Name" className="client-cell-reports">{service.clientName || 'N/A'}</td>
+                          <td data-label="Contact">{service.clientContact || 'N/A'}</td>
+                          <td data-label="Service Type">
+                            <span className="system-type-badge-reports">
+                              {service.serviceType || 'N/A'}
+                            </span>
+                          </td>
+                          <td data-label="Preferred Date">{service.preferredDate ? formatDate(service.preferredDate) : 'N/A'}</td>
+                          <td data-label="Status">
+                            <span className="status-badge-reports">
+                              {service.status || 'N/A'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" data-label="" className="empty-state-reports">No service requests found</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="report-actions-reports">
+              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
+                <FaFilePdf /> Export as PDF
+              </button>
+              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
+                <FaFileExcel /> Export as Excel
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Report Preview Modal */}
         {false && reportData && reportData.report && (
           <div className="report-preview-overlay-reports" onClick={() => setReportData(null)}>
@@ -716,7 +839,7 @@ const Reports = () => {
                   </div>
                   <div className="report-title-section-reports">
                     <h3 className="report-title-reports">
-                      {activeTab === 'clients' ? 'Clients Report' : reportData.report.title || 'Report'}
+                      {activeTab === 'clients' ? 'Clients Report' : activeTab === 'services' ? 'Services Report' : reportData.report.title || 'Report'}
                     </h3>
                     <p className="report-generated-reports">Generated: {new Date(reportData.report.generatedAt).toLocaleString()}</p>
                     {reportData.report.dateRange && (
@@ -897,10 +1020,55 @@ const Reports = () => {
                   </div>
                 )}
 
+                {/* Services Details Table - Only for services tab */}
+                {activeTab === 'services' && reportData.report.services && reportData.report.services.length > 0 && (
+                  <div className="preview-table-section-reports">
+                    <h4>Service Details</h4>
+                    <div className="table-container-reports">
+                      <table className="reports-table-reports">
+                        <thead>
+                          <tr>
+                            <th>Reference</th>
+                            <th>Client Name</th>
+                            <th>Contact</th>
+                            <th>Service Type</th>
+                            <th>Preferred Date</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.report.services.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                              <td data-label="Reference" className="ref-cell-reports">{item.reference || 'N/A'}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
+                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                              <td data-label="Service Type">
+                                <span className="system-type-badge-reports">
+                                  {item.serviceType || 'N/A'}
+                                </span>
+                              </td>
+                              <td data-label="Preferred Date">{item.preferredDate ? formatDate(item.preferredDate) : 'N/A'}</td>
+                              <td data-label="Status">
+                                <span className="status-badge-reports">
+                                  {item.status || 'N/A'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {reportData.report.services.length > 10 && (
+                        <p className="preview-note-reports">Showing 10 of {reportData.report.services.length} records</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {!reportData.report.assessments?.length &&
                   !reportData.report.projects?.length &&
                   !reportData.report.payments?.length &&
-                  !reportData.report.clients?.length && (
+                  !reportData.report.clients?.length &&
+                  !reportData.report.services?.length && (
                     <div className="preview-raw-reports">
                       <pre>{JSON.stringify(reportData.report, null, 2)}</pre>
                     </div>

@@ -71,6 +71,12 @@ router.get('/reports/client-transaction', reportController.getClientTransactionR
 // POST: Export client transaction report (CSV, PDF, XLSX)
 router.post('/reports/client-transaction/export', reportController.exportClientTransactionReport);
 
+// Services Reports
+// GET: Get services report data
+router.get('/reports/services', reportController.getServicesReport);
+// POST: Export services report (CSV, PDF, XLSX)
+router.post('/reports/services/export', reportController.exportServicesReport);
+
 // Custom Report Generation
 // POST: Generate custom report with filters
 router.post('/reports/generate', reportController.generateCustomReport);

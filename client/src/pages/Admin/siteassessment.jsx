@@ -20,7 +20,9 @@ import {
   FaChevronDown,
   FaUpload,
   FaSyncAlt,
-  FaArrowLeft
+  FaArrowLeft,
+  FaImages,
+  FaTimes
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/siteassessment.css';
@@ -29,6 +31,28 @@ import '../../styles/Admin/siteassessment.css';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+
+// Collect viewable site photos: direct URLs plus engineer report
+// attachments filed as site_photo (deduplicated, populated URLs only).
+const collectAssessmentPhotos = (item) => {
+  if (!item) return [];
+  const urls = [];
+  if (Array.isArray(item.sitePhotos)) {
+    item.sitePhotos.forEach((p) => {
+      if (typeof p === 'string' && p.trim()) urls.push(p.trim());
+      else if (p && typeof p.url === 'string' && p.url.trim()) urls.push(p.url.trim());
+    });
+  }
+  if (Array.isArray(item.assessmentDocuments)) {
+    item.assessmentDocuments.forEach((doc) => {
+      if (doc?.documentType !== 'site_photo') return;
+      const f = doc.fileId;
+      const url = (f && typeof f === 'object' && typeof f.url === 'string') ? f.url.trim() : null;
+      if (url && !urls.includes(url)) urls.push(url);
+    });
+  }
+  return urls;
+};
 
 const SiteAssessment = () => {
   const { toast, showToast, hideToast } = useToast();
@@ -39,6 +63,7 @@ const SiteAssessment = () => {
   const [preAssessments, setPreAssessments] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [photoViewer, setPhotoViewer] = useState(null); // { photos: [], index: 0 } | null
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignmentStep, setAssignmentStep] = useState('engineer'); // 'engineer' or 'iot'
@@ -120,6 +145,22 @@ const SiteAssessment = () => {
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, [activeTab, filter]);
+
+  const openPhotoViewer = (photos, index) => {
+    if (!photos || photos.length === 0) return;
+    setPhotoViewer({ photos, index: index || 0 });
+  };
+
+  const closePhotoViewer = () => setPhotoViewer(null);
+
+  const stepPhotoViewer = (dir) => {
+    setPhotoViewer((prev) => {
+      if (!prev) return prev;
+      const next = prev.index + dir;
+      if (next < 0 || next >= prev.photos.length) return prev;
+      return { ...prev, index: next };
+    });
+  };
 
   const fetchData = async () => {
     try {
@@ -1324,6 +1365,26 @@ const SiteAssessment = () => {
                   {selectedItem.cancellation && (
                     <div className="detail-section-adminbills_"><h4>Cancellation &amp; Refund</h4><p><strong>Cancelled:</strong> {formatDate(selectedItem.cancellation.cancelledAt)}</p><p><strong>Reason:</strong> {selectedItem.cancellation.reason || '—'}</p><p><strong>Tier:</strong> {selectedItem.cancellation.policyTier}</p><p><strong>Refund:</strong> {selectedItem.cancellation.refundPercentage}% — {formatCurrency(selectedItem.cancellation.refundAmount)}</p><p><strong>Status:</strong> {selectedItem.cancellation.refundStatus}</p><p><strong>Method:</strong> {selectedItem.cancellation.refundMethod}</p>{selectedItem.cancellation.refundReference && <p><strong>Ref:</strong> {selectedItem.cancellation.refundReference}</p>}</div>
                   )}
+                  {(() => {
+                    const photos = collectAssessmentPhotos(selectedItem);
+                    if (photos.length === 0) return null;
+                    return (
+                      <div className="detail-section-adminbills_"><h4><FaImages /> Site Photos ({photos.length})</h4>
+                        <div className="site-photos-grid-adminbills_">
+                          {photos.slice(0, 6).map((photo, idx) => (
+                            <div key={idx} className="site-photo-item-adminbills_" onClick={() => openPhotoViewer(photos, idx)}>
+                              <img src={photo} alt={`Site photo ${idx + 1}`} loading="lazy" onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                            </div>
+                          ))}
+                          {photos.length > 6 && (
+                            <div className="site-photo-item-adminbills_ more-photos" onClick={() => openPhotoViewer(photos, 0)}>
+                              <div className="more-photos-overlay"><FaImages /><span>+{photos.length - 6} more</span></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   </>
                 )}
               </div>
@@ -1395,6 +1456,24 @@ const SiteAssessment = () => {
                   {uploading ? 'Uploading...' : 'Upload'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {photoViewer && (
+          <div className="site-photo-viewer-overlay-adminbills_" onClick={closePhotoViewer}>
+            <div className="site-photo-viewer-content-adminbills_" onClick={(e) => e.stopPropagation()}>
+              <button className="site-photo-viewer-close-adminbills_" onClick={closePhotoViewer}><FaTimes /></button>
+              <div className="site-photo-viewer-main-adminbills_">
+                <img src={photoViewer.photos[photoViewer.index]} alt={`Site photo ${photoViewer.index + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available'; }} />
+                {photoViewer.photos.length > 1 && (
+                  <>
+                    <button className="site-photo-viewer-nav-adminbills_ prev" onClick={() => stepPhotoViewer(-1)} disabled={photoViewer.index === 0}><FaChevronLeft /></button>
+                    <button className="site-photo-viewer-nav-adminbills_ next" onClick={() => stepPhotoViewer(1)} disabled={photoViewer.index === photoViewer.photos.length - 1}><FaChevronRight /></button>
+                  </>
+                )}
+              </div>
+              <div className="site-photo-viewer-counter-adminbills_">{photoViewer.index + 1} / {photoViewer.photos.length}</div>
             </div>
           </div>
         )}

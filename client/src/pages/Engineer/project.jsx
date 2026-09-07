@@ -10,7 +10,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaTools,
-  FaFilter,
+  FaChevronDown,
   FaFolderOpen,
   FaPlay,
   FaUpload,
@@ -36,6 +36,7 @@ const EngineerProject = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [newPhotoFiles, setNewPhotoFiles] = useState([]);
   const [newPhotoPreviews, setNewPhotoPreviews] = useState([]);
   const [progressForm, setProgressForm] = useState({
@@ -527,8 +528,8 @@ const EngineerProject = () => {
         <table className="projects-table-engineerproject">
           <thead>
             <tr>
-              <th>Project</th>
               <th>Client</th>
+              <th>Project</th>
               <th>System</th>
               <th>Address</th>
               <th>Payment</th>
@@ -607,8 +608,16 @@ const EngineerProject = () => {
 
         {/* Filters */}
         <div className="project-filters-engineerproject">
+          <div className="search-group-engineerproject">
+            <FaSearch className="search-icon-engineerproject" />
+            <input
+              type="text"
+              placeholder="Search by project name, reference or client..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <div className="filter-group-engineerproject">
-            <FaFilter className="filter-icon" />
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="quoted">Quoted</option>
@@ -619,15 +628,7 @@ const EngineerProject = () => {
               <option value="progress_paid">Progress Paid</option>
               <option value="completed">Completed</option>
             </select>
-          </div>
-          <div className="search-group-engineerproject">
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search by project name, reference or client..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <FaChevronDown className="filter-icon" />
           </div>
         </div>
 
@@ -644,8 +645,8 @@ const EngineerProject = () => {
               <table className="projects-table-engineerproject">
                 <thead>
                   <tr>
-                    <th>Project</th>
                     <th>Client</th>
+                    <th>Project</th>
                     <th>System</th>
                     <th>Address</th>
                     <th>Payment</th>
@@ -665,15 +666,29 @@ const EngineerProject = () => {
 
                     return (
                       <tr key={project._id}>
+                        <td data-label="Client">
+                          <div className="client-profile-engineerproject">
+                            {project.clientId?.userId?.photoURL && !brokenPhotos.has(project._id) ? (
+                              <img
+                                src={project.clientId.userId.photoURL}
+                                alt=""
+                                className="client-photo-engineerproject"
+                                onError={() => setBrokenPhotos((prev) => new Set(prev).add(project._id))}
+                              />
+                            ) : (
+                              <span className="client-initials-engineerproject">
+                                {((project.clientId?.contactFirstName?.[0] || '') + (project.clientId?.contactLastName?.[0] || '') || '—').toUpperCase()}
+                              </span>
+                            )}
+                            <div className="client-cell">
+                              <span className="client-name">{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
+                              <span className="client-contact">{project.clientId?.contactNumber}</span>
+                            </div>
+                          </div>
+                        </td>
                         <td data-label="Project">
                           <div className="project-name-cell">{project.projectName}</div>
                           <div className="project-ref-cell">{project.projectReference}</div>
-                        </td>
-                        <td data-label="Client">
-                          <div className="client-cell">
-                            <span className="client-name">{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</span>
-                            <span className="client-contact">{project.clientId?.contactNumber}</span>
-                          </div>
                         </td>
                         <td data-label="System">
                           <div className="system-cell">

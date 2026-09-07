@@ -36,11 +36,16 @@ const MyProject = () => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [engineerPhotoBroken, setEngineerPhotoBroken] = useState(false);
 
   useEffect(() => {
     fetchProjects();
     fetchSolarInvoices();
   }, []);
+
+  useEffect(() => {
+    setEngineerPhotoBroken(false);
+  }, [selectedProject?._id]);
 
   useEffect(() => {
     if (selectedProject) {
@@ -611,7 +616,17 @@ const MyProject = () => {
                   <h3>Assigned Engineer</h3>
                   {getEngineerName(selectedProject) ? (
                     <div className="cuspro-engineer">
-                      <div className="cuspro-engineer-avatar">{getEngineerName(selectedProject).charAt(0)}</div>
+                      <div className="cuspro-engineer-avatar">
+                        {selectedProject.assignedEngineerId?.photoURL && !engineerPhotoBroken ? (
+                          <img
+                            src={selectedProject.assignedEngineerId.photoURL}
+                            alt={getEngineerName(selectedProject)}
+                            onError={() => setEngineerPhotoBroken(true)}
+                          />
+                        ) : (
+                          getEngineerName(selectedProject).charAt(0)
+                        )}
+                      </div>
                       <div>
                         <strong>{getEngineerName(selectedProject)}</strong>
                         {selectedProject.assignedEngineerId?.email && (

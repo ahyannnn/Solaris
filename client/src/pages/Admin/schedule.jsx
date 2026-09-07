@@ -109,6 +109,7 @@ const AdminSchedule = () => {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
 
   // Search timeout ref
   const searchTimeoutRef = React.useRef(null);
@@ -331,6 +332,8 @@ const AdminSchedule = () => {
           : 'N/A',
         clientPhone: project.clientId?.contactNumber,
         clientEmail: project.clientId?.email,
+        clientId: project.clientId,
+        clientPhotoURL: typeof project.clientId?.userId === 'object' ? (project.clientId?.userId?.photoURL || null) : null,
         assignedEngineerId: project.assignedEngineerId,
         scheduledDate: project.startDate || project.createdAt || new Date(),
         scheduledTime: '09:00',
@@ -1008,9 +1011,9 @@ const AdminSchedule = () => {
             <table className="schedule-table">
               <thead>
                 <tr>
-                  <th>{activeTab === 'pre_assessment' ? 'Title / ID' : 'Project / ID'}</th>
                   <th>Client</th>
                   <th>Engineer</th>
+                  <th>{activeTab === 'pre_assessment' ? 'Title / ID' : 'Project / ID'}</th>
                   <th>Date &amp; Time</th>
                   <th>Type</th>
                   <th>Status</th>
@@ -1038,6 +1041,61 @@ const AdminSchedule = () => {
 
                     return (
                       <tr key={schedule._id}>
+                        <td data-label="Client" className="client-cell-profile">
+                          {(() => {
+                            const photoURL = schedule.clientPhotoURL || (typeof schedule.clientId === 'object' ? schedule.clientId?.userId?.photoURL : null);
+                            const displayName = schedule.clientName && schedule.clientName !== 'N/A'
+                              ? schedule.clientName
+                              : ((schedule.clientId && typeof schedule.clientId === 'object'
+                                ? `${schedule.clientId?.contactFirstName || ''} ${schedule.clientId?.contactLastName || ''}`.trim()
+                                : '') || 'N/A');
+                            const initials = displayName !== 'N/A'
+                              ? displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+                              : '—';
+                            const photoKey = `client-${schedule._id}`;
+                            return (
+                              <div className="client-profile">
+                                {photoURL && !brokenPhotos.has(photoKey) ? (
+                                  <img
+                                    src={photoURL}
+                                    alt=""
+                                    className="client-photo"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(photoKey))}
+                                  />
+                                ) : (
+                                  <span className="client-initials">{initials}</span>
+                                )}
+                                <span className="client-name-wrap">
+                                  <span className="client-name">{displayName}</span>
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                        <td data-label="Engineer" className="engineer-cell-profile">
+                          {(() => {
+                            const eng = schedule.assignedEngineerId;
+                            const photoURL = eng && typeof eng === 'object' ? eng.photoURL : null;
+                            const photoKey = `eng-${schedule._id}`;
+                            if (!engineerName) return <span className="unassigned">Awaiting assignment</span>;
+                            const initials = engineerName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                            return (
+                              <div className="engineer-profile">
+                                {photoURL && !brokenPhotos.has(photoKey) ? (
+                                  <img
+                                    src={photoURL}
+                                    alt=""
+                                    className="engineer-photo"
+                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(photoKey))}
+                                  />
+                                ) : (
+                                  <span className="engineer-initials">{initials}</span>
+                                )}
+                                <span className="engineer-name">{engineerName}</span>
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td data-label={activeTab === 'pre_assessment' ? 'Title / ID' : 'Project / ID'}>
                           <div className="title-cell">
                             <div className="schedule-title">{displayTitle || 'Untitled'}</div>
@@ -1047,19 +1105,6 @@ const AdminSchedule = () => {
                                 : schedule._id}
                             </div>
                           </div>
-                        </td>
-                        <td data-label="Client">
-                          <div className="client-cell">
-                            <div className="client-name">{schedule.clientName || 'N/A'}</div>
-                            {schedule.clientPhone && (
-                              <div className="client-contact">
-                                <FaPhone /> {schedule.clientPhone}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td data-label="Engineer">
-                          {engineerName || <span className="unassigned">Awaiting assignment</span>}
                         </td>
                         <td data-label="Date & Time">
                           <div className="date-cell">

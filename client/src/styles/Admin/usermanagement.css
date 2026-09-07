@@ -512,19 +512,16 @@ body.dark-mode {
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
 }
 
-/* Custom chevron (native arrow is hidden by appearance:none) */
-.filter-role-usermanagement::after {
-  content: '';
+/* Select arrow icon (same as other modules) */
+.select-arrow-usermanagement {
   position: absolute;
   right: 14px;
   top: 50%;
-  transform: translateY(-70%);
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--icon-color);
+  transform: translateY(-50%);
+  color: var(--text-muted);
   pointer-events: none;
+  font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .filter-role-usermanagement select option {
@@ -1003,6 +1000,17 @@ body.dark-mode {
 
 .modal-content-usermanagement.user-modal-usermanagement.view {
   max-width: 600px;
+}
+
+/* Edit modal is not scrollable — shows full content */
+.modal-content-usermanagement.user-modal-usermanagement.edit {
+  max-height: none;
+  overflow: visible;
+}
+
+.modal-content-usermanagement.user-modal-usermanagement.edit .modal-body-usermanagement {
+  overflow-y: visible;
+  max-height: none;
 }
 
 .modal-content-usermanagement.password-modal-usermanagement {

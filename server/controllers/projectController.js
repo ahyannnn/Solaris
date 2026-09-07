@@ -401,7 +401,7 @@ exports.getMyProjects = async (req, res) => {
     }
 
     const projects = await Project.find({ clientId: client._id })
-      .populate('assignedEngineerId', 'firstName lastName email fullName name')
+      .populate('assignedEngineerId', 'firstName lastName email fullName name photoURL')
       .populate('preAssessmentId')
       .populate('addressId')
       .sort({ createdAt: -1 });
@@ -914,11 +914,11 @@ exports.getEngineerProjects = async (req, res) => {
         path: 'clientId',
         populate: {
           path: 'userId',
-          select: 'email'
+          select: 'email photoURL'
         }
       })
       .populate('addressId')
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate('preAssessmentId')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -1094,11 +1094,11 @@ exports.getAllProjects = async (req, res) => {
         select: 'contactFirstName contactLastName contactNumber userId',
         populate: {
           path: 'userId',
-          select: 'email'
+          select: 'email photoURL'
         }
       })
       .populate('addressId')
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate({
         path: 'preAssessmentId',
       })
@@ -1744,7 +1744,7 @@ exports.getProjectById = async (req, res) => {
 
     const project = await Project.findById(id)
       .populate('clientId', 'contactFirstName contactLastName contactNumber email')
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate('preAssessmentId')
       .populate('addressId');
 

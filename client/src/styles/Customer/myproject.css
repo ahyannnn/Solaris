@@ -137,11 +137,14 @@ body.dark-mode {
    ============================================ */
 .cuspro-selector-card {
   margin-bottom: 1.5rem;
+  display: flex;
+  width: 100%;
 }
 
 .cuspro-project-select {
-  width: 100%;
-  max-width: 400px;
+  width: auto;
+  min-width: 280px;
+  max-width: 100%;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
@@ -703,6 +706,15 @@ body.dark-mode {
   font-size: 1.2rem;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cuspro-engineer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .cuspro-engineer strong {
@@ -1738,6 +1750,21 @@ body.dark-mode {
 @media (max-width: 480px) {
   .cuspro-page {
     padding-inline: 12px;
+    padding-bottom: 90px;
+    max-width: 100%;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  .cuspro-selector-card,
+  .cuspro-hero-card,
+  .cuspro-progress-card,
+  .cuspro-two-col,
+  .cuspro-left-col,
+  .cuspro-right-col {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
   
   .cuspro-header-card h1 {
@@ -1772,9 +1799,16 @@ body.dark-mode {
   }
   
   .cuspro-project-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     font-size: 0.85rem;
     padding: 0.5rem 0.75rem;
     padding-right: 2rem;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .cuspro-progress-card {
@@ -1795,12 +1829,15 @@ body.dark-mode {
     grid-template-columns: 1fr;
     gap: 0.5rem;
     padding-top: 0.75rem;
+    min-width: 0;
   }
   
   .cuspro-stat {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    min-width: 0;
     padding: 0.3rem 0;
     border-bottom: 1px solid var(--divider-color);
   }
@@ -1811,10 +1848,16 @@ body.dark-mode {
   
   .cuspro-stat span {
     font-size: 0.7rem;
+    flex-shrink: 0;
   }
   
   .cuspro-stat strong {
     font-size: 0.95rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
   }
   
   .cuspro-payment-plan-info {

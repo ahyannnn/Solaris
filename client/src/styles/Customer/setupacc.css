@@ -1332,3 +1332,62 @@
 .new-setup-photo-container .new-setup-error-message {
   text-align: center;
 }
+
+/* ============================================ */
+/* STEP 4: PROFILE PHOTO — mobile responsiveness */
+/* (mirrors steps 1–3 mobile-app look) */
+/* ============================================ */
+@media (max-width: 768px) {
+  .new-setup-photo-container {
+    gap: 14px;
+    padding: 0;
+    width: 100%;
+  }
+
+  .new-setup-photo-container .new-setup-form-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+  }
+
+  .new-setup-photo-container .new-setup-form-subtitle {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  .new-setup-photo-avatar {
+    width: 120px;
+    height: 120px;
+    margin: 12px auto;
+  }
+
+  .new-setup-btn-skip {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 480px) {
+  .new-setup-photo-avatar {
+    width: 104px;
+    height: 104px;
+  }
+
+  .new-setup-photo-placeholder {
+    font-size: 34px;
+  }
+
+  .new-setup-photo-camera {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .new-setup-photo-container .new-setup-form-title {
+    font-size: 22px;
+  }
+}

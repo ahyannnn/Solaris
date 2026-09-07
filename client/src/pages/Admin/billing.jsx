@@ -530,7 +530,10 @@ const AdminBilling = () => {
           method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
           status: a.paymentStatus,
           date: a.confirmedAt || a.bookedAt,
-          client: `${a.clientId?.contactFirstName} ${a.clientId?.contactLastName}`,
+          client: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim() || 'N/A',
+          clientFirstName: a.clientId?.contactFirstName || '',
+          clientLastName: a.clientId?.contactLastName || '',
+          clientPhotoURL: typeof a.clientId?.userId === 'object' ? (a.clientId?.userId?.photoURL || null) : null,
           gateway: a.paymentGateway,
           receiptUrl: a.receiptUrl,
           receiptNumber: a.receiptNumber
@@ -547,7 +550,10 @@ const AdminBilling = () => {
           method: p.method,
           status: i.paymentStatus,
           date: p.date,
-          client: `${i.clientId?.contactFirstName} ${i.clientId?.contactLastName}`,
+          client: `${i.clientId?.contactFirstName || ''} ${i.clientId?.contactLastName || ''}`.trim() || 'N/A',
+          clientFirstName: i.clientId?.contactFirstName || '',
+          clientLastName: i.clientId?.contactLastName || '',
+          clientPhotoURL: typeof i.clientId?.userId === 'object' ? (i.clientId?.userId?.photoURL || null) : null,
           gateway: 'manual',
           projectName: i.projectId?.projectName,
           projectId: i.projectId?._id,
@@ -2035,7 +2041,23 @@ const AdminBilling = () => {
                           <td data-label="Type"><span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre' : 'project'}`}>{transaction.type}</span></td>
                           <td data-label="Reference">{transaction.reference}</td>
                           <td data-label="Invoice">{transaction.invoiceNumber}</td>
-                          <td data-label="Customer"><strong>{transaction.client}</strong></td>
+                          <td data-label="Client" className="client-cell-adminbilling">
+                            <div className="client-profile-adminbilling">
+                              {transaction.clientPhotoURL && !brokenPhotos.has(`t-${transaction.id}`) ? (
+                                <img
+                                  src={transaction.clientPhotoURL}
+                                  alt=""
+                                  className="client-photo-adminbilling"
+                                  onError={() => setBrokenPhotos((prev) => new Set(prev).add(`t-${transaction.id}`))}
+                                />
+                              ) : (
+                                <span className="client-initials-adminbilling">
+                                  {((transaction.clientFirstName?.[0] || transaction.client?.[0] || '') + (transaction.clientLastName?.[0] || '') || '—').toUpperCase()}
+                                </span>
+                              )}
+                              <span className="client-name-adminbilling">{transaction.client}</span>
+                            </div>
+                          </td>
                           <td data-label="Amount" className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
                           <td data-label="Method">{transaction.method?.toUpperCase()}</td>
                           <td data-label="Status">{getPaymentStatusBadge(transaction.status)}</td>

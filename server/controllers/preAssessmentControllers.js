@@ -1701,7 +1701,7 @@ exports.getEngineerAssessments = async (req, res) => {
         select: 'contactFirstName contactLastName contactNumber userId',
         populate: {
           path: 'userId',
-          select: 'email'
+          select: 'email photoURL'
         }
       })
       .populate('addressId')
@@ -2449,7 +2449,7 @@ exports.getAllPreAssessments = async (req, res) => {
         select: 'contactFirstName contactLastName contactNumber userId',
         populate: {
           path: 'userId',
-          select: 'email'
+          select: 'email photoURL'
         }
       })
       .populate('addressId')

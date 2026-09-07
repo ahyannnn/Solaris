@@ -172,7 +172,7 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, firstName, lastName, contactNumber } = req.body;
+    const { fullName, firstName, lastName, contactNumber, email } = req.body;
     const adminId = req.user.id;
 
     const user = await User.findById(id);
@@ -182,6 +182,20 @@ exports.updateUser = async (req, res) => {
 
     // Update user fields
     if (fullName) user.fullName = fullName;
+
+    // TEMP-EMAIL-EDIT: allow email change — remove this block to re-lock
+    if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+      const normalizedEmail = email.toLowerCase().trim();
+      if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(normalizedEmail)) {
+        return res.status(400).json({ message: 'Email must be a valid Gmail address (@gmail.com)' });
+      }
+      const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: id } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email is already in use by another account' });
+      }
+      user.email = normalizedEmail;
+    }
+
     await user.save();
 
     // Only update client info for users with role 'user' (customers)

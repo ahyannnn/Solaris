@@ -26,8 +26,12 @@ exports.getAllSchedules = async (req, res) => {
     }
 
     const schedules = await Schedule.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
-      .populate('assignedEngineerId', 'firstName lastName email')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: { path: 'userId', select: 'email photoURL' }
+      })
+      .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate('projectId', 'projectName projectReference')
       .populate('preAssessmentId', 'bookingReference')
       .sort({ scheduledDate: 1, scheduledTime: 1 })
@@ -358,7 +362,11 @@ exports.getMySchedules = async (req, res) => {
     }
 
     const schedules = await Schedule.find(query)
-      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate({
+        path: 'clientId',
+        select: 'contactFirstName contactLastName contactNumber userId',
+        populate: { path: 'userId', select: 'email photoURL' }
+      })
       .populate('projectId', 'projectName projectReference')
       .populate('preAssessmentId', 'bookingReference')
       .sort({ scheduledDate: 1, scheduledTime: 1 })

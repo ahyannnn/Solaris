@@ -613,6 +613,7 @@ const AdminBilling = () => {
       let paymongoCount = 0;
 
       assessments.forEach(a => {
+        if (a.assessmentStatus === 'cancelled') return;
         if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') cashCount++;
         else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') gcashCount++;
         else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') paymongoCount++;
@@ -640,8 +641,10 @@ const AdminBilling = () => {
       let bankRevenue = 0;
       let paymongoRevenue = 0;
 
-      // 1. Pre-assessment payments
+      // 1. Pre-assessment payments (exclude cancelled/refunded)
       assessments.forEach(a => {
+        if (a.assessmentStatus === 'cancelled') return;
+        if (['cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a.paymentStatus)) return;
         if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') {
           cashRevenue += (a.assessmentFee || 0);
         } else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') {
@@ -803,6 +806,14 @@ const AdminBilling = () => {
 
   const handleEditPaymentStatus = async () => {
     if (!selectedAssessment) return;
+
+    const nonPayableStatuses = ['cancelled', 'refund_pending', 'refunded', 'no_refund'];
+    if (selectedAssessment.assessmentStatus === 'cancelled' || nonPayableStatuses.includes(selectedAssessment.paymentStatus)) {
+      if (['paid', 'pending', 'for_verification'].includes(editStatusData.paymentStatus)) {
+        showToast('Cannot mark cancelled/refunded booking as payable', 'error');
+        return;
+      }
+    }
 
     setIsSubmitting(true);
     try {
@@ -1072,7 +1083,11 @@ const AdminBilling = () => {
       'overdue': 'overdue',
       'waiting_verification': 'waiting-verification',
       'verified': 'verified',
-      'rejected': 'rejected'
+      'rejected': 'rejected',
+      'cancelled': 'rejected',
+      'refund_pending': 'for-verification',
+      'refunded': 'verified',
+      'no_refund': 'rejected'
     };
     const labels = {
       'pending': 'Pending',
@@ -1083,7 +1098,11 @@ const AdminBilling = () => {
       'overdue': 'Overdue',
       'waiting_verification': 'Waiting for Verification',
       'verified': 'Verified',
-      'rejected': 'Rejected'
+      'rejected': 'Rejected',
+      'cancelled': 'Cancelled',
+      'refund_pending': 'Refund Pending',
+      'refunded': 'Refunded',
+      'no_refund': 'No Refund'
     };
     return <span className={`status-badge-adminbilling ${statusMap[status] || 'pending'}`}>{labels[status] || status}</span>;
   };
@@ -1108,14 +1127,16 @@ const AdminBilling = () => {
       'scheduled': 'scheduled',
       'device_deployed': 'processing',
       'data_collecting': 'processing',
-      'completed': 'completed'
+      'completed': 'completed',
+      'cancelled': 'rejected'
     };
     const labels = {
       'pending_payment': 'Pending',
       'scheduled': 'Scheduled',
       'device_deployed': 'Deployed',
       'data_collecting': 'Collecting',
-      'completed': 'Completed'
+      'completed': 'Completed',
+      'cancelled': 'Cancelled'
     };
     return <span className={`status-badge-adminbilling ${statusMap[status] || 'pending'}`}>{labels[status] || status}</span>;
   };
@@ -1163,6 +1184,12 @@ const AdminBilling = () => {
           color: 'success'
         }
       );
+    }
+
+    // Cancelled / refunded bookings are not payable — view/receipt only
+    const nonPayableStatuses = ['cancelled', 'refund_pending', 'refunded', 'no_refund'];
+    if (assessment.assessmentStatus === 'cancelled' || nonPayableStatuses.includes(assessment.paymentStatus)) {
+      return actions;
     }
 
     if (assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification') {
@@ -1532,6 +1559,10 @@ const AdminBilling = () => {
                   <option value="pending">Pending</option>
                   <option value="for_verification">For Verification</option>
                   <option value="paid">Paid</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="refund_pending">Refund Pending</option>
+                  <option value="refunded">Refunded</option>
+                  <option value="no_refund">No Refund</option>
                 </>
               ) : activeTab === 'solar-invoices' ? (
                 <>

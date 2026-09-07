@@ -17,7 +17,9 @@ import {
   FaSearch,
   FaSyncAlt,
   FaChartBar,
-  FaWallet
+  FaWallet,
+  FaImages,
+  FaTimes
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/project.css';
@@ -33,12 +35,49 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+// Collect viewable site photos: the project's own photos, falling back
+// to the linked pre-assessment's sitePhotos + site_photo attachments
+// (deduplicated, populated URLs only).
+const collectProjectPhotos = (project) => {
+  if (!project) return [];
+  const urls = [];
+  const pushUrl = (u) => {
+    if (typeof u === 'string' && u.trim() && !urls.includes(u.trim())) urls.push(u.trim());
+  };
+  if (Array.isArray(project.sitePhotos)) {
+    project.sitePhotos.forEach((p) => {
+      if (typeof p === 'string') pushUrl(p);
+      else if (p && typeof p.url === 'string') pushUrl(p.url);
+    });
+  }
+  if (urls.length === 0) {
+    const pa = project.preAssessmentId;
+    if (pa && typeof pa === 'object') {
+      if (Array.isArray(pa.sitePhotos)) {
+        pa.sitePhotos.forEach((p) => {
+          if (typeof p === 'string') pushUrl(p);
+          else if (p && typeof p.url === 'string') pushUrl(p.url);
+        });
+      }
+      if (Array.isArray(pa.assessmentDocuments)) {
+        pa.assessmentDocuments.forEach((doc) => {
+          if (doc?.documentType !== 'site_photo') return;
+          const f = doc.fileId;
+          if (f && typeof f === 'object' && typeof f.url === 'string') pushUrl(f.url);
+        });
+      }
+    }
+  }
+  return urls;
+};
+
 const ProjectManagement = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [photoViewer, setPhotoViewer] = useState(null); // { photos: [], index: 0 } | null
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -105,6 +144,22 @@ const ProjectManagement = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount || 0);
+  };
+
+  const openPhotoViewer = (photos, index) => {
+    if (!photos || photos.length === 0) return;
+    setPhotoViewer({ photos, index: index || 0 });
+  };
+
+  const closePhotoViewer = () => setPhotoViewer(null);
+
+  const stepPhotoViewer = (dir) => {
+    setPhotoViewer((prev) => {
+      if (!prev) return prev;
+      const next = prev.index + dir;
+      if (next < 0 || next >= prev.photos.length) return prev;
+      return { ...prev, index: next };
+    });
   };
 
   // Compact formatter for chart labels with custom logic
@@ -1029,6 +1084,28 @@ const ProjectManagement = () => {
                     </div>
                   );
                 })()}
+
+                {(() => {
+                  const photos = collectProjectPhotos(selectedProject);
+                  if (photos.length === 0) return null;
+                  return (
+                    <div className="detail-section-projectmanagement">
+                      <h4><FaImages /> Site Photos ({photos.length})</h4>
+                      <div className="site-photos-grid-projectmanagement">
+                        {photos.slice(0, 6).map((photo, idx) => (
+                          <div key={idx} className="site-photo-item-projectmanagement" onClick={() => openPhotoViewer(photos, idx)}>
+                            <img src={photo} alt={`Site photo ${idx + 1}`} loading="lazy" onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                          </div>
+                        ))}
+                        {photos.length > 6 && (
+                          <div className="site-photo-item-projectmanagement more-photos" onClick={() => openPhotoViewer(photos, 0)}>
+                            <div className="more-photos-overlay"><FaImages /><span>+{photos.length - 6} more</span></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="modal-actions-projectmanagement">
                 <button className="cancel-btn-projectmanagement" onClick={() => setShowDetailModal(false)}>Close</button>
@@ -1221,6 +1298,24 @@ const ProjectManagement = () => {
                   {isSubmitting ? 'Recording...' : 'Record Payment'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {photoViewer && (
+          <div className="site-photo-viewer-overlay-projectmanagement" onClick={closePhotoViewer}>
+            <div className="site-photo-viewer-content-projectmanagement" onClick={(e) => e.stopPropagation()}>
+              <button className="site-photo-viewer-close-projectmanagement" onClick={closePhotoViewer}><FaTimes /></button>
+              <div className="site-photo-viewer-main-projectmanagement">
+                <img src={photoViewer.photos[photoViewer.index]} alt={`Site photo ${photoViewer.index + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available'; }} />
+                {photoViewer.photos.length > 1 && (
+                  <>
+                    <button className="site-photo-viewer-nav-projectmanagement prev" onClick={() => stepPhotoViewer(-1)} disabled={photoViewer.index === 0}><FaChevronLeft /></button>
+                    <button className="site-photo-viewer-nav-projectmanagement next" onClick={() => stepPhotoViewer(1)} disabled={photoViewer.index === photoViewer.photos.length - 1}><FaChevronRight /></button>
+                  </>
+                )}
+              </div>
+              <div className="site-photo-viewer-counter-projectmanagement">{photoViewer.index + 1} / {photoViewer.photos.length}</div>
             </div>
           </div>
         )}

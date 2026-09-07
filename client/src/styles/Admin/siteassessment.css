@@ -2230,3 +2230,146 @@ body.dark-mode {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ============================================
+   SITE PHOTOS - Details modal gallery + lightbox
+   ============================================ */
+.site-photos-grid-adminbills_ {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.site-photo-item-adminbills_ {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--bg-section);
+}
+
+.site-photo-item-adminbills_ img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.site-photo-item-adminbills_:hover img {
+  transform: scale(1.05);
+}
+
+.site-photo-item-adminbills_.more-photos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-photo-item-adminbills_ .more-photos-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.site-photo-viewer-overlay-adminbills_ {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.site-photo-viewer-content-adminbills_ {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.site-photo-viewer-close-adminbills_ {
+  position: absolute;
+  top: -44px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.site-photo-viewer-main-adminbills_ {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-photo-viewer-main-adminbills_ img {
+  max-width: 100%;
+  max-height: 78vh;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.site-photo-viewer-nav-adminbills_ {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-photo-viewer-nav-adminbills_.prev {
+  left: 8px;
+}
+
+.site-photo-viewer-nav-adminbills_.next {
+  right: 8px;
+}
+
+.site-photo-viewer-nav-adminbills_:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.site-photo-viewer-counter-adminbills_ {
+  color: #fff;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .site-photos-grid-adminbills_ {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1194,6 +1194,22 @@ body.dark-mode .project-status-badge-reports.approved {
     white-space: nowrap;
     margin-left: auto;
   }
+  /* Services report: let the Service Type pill wrap instead of clipping out of the card */
+  .reports-table-reports tbody td[data-label="Service Type"] {
+    align-items: flex-start;
+  }
+  .reports-table-reports tbody td[data-label="Service Type"]::before {
+    padding-top: 4px;
+  }
+  .reports-table-reports tbody td[data-label="Service Type"] .system-type-badge-reports {
+    white-space: normal;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: center;
+    line-height: 1.5;
+  }
   .reports-table-reports tbody td.empty-state-reports {
     display: block;
     text-align: center;

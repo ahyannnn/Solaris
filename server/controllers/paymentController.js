@@ -39,6 +39,16 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found', id: id });
     }
 
+    if (assessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(assessment.paymentStatus)) {
+      return res.status(400).json({
+        message: `Cannot process payment for ${assessment.paymentStatus} booking`
+      });
+    }
+
     if (assessment.paymentStatus !== 'pending') {
       return res.status(400).json({
         message: `Payment already processed. Status: ${assessment.paymentStatus}`

@@ -199,9 +199,7 @@ const Quotation = () => {
           date: new Date(assessment.bookedAt).toLocaleDateString(),
           dueDate: new Date(assessment.preferredDate).toLocaleDateString(),
           amount: assessment.assessmentFee,
-          status: assessment.paymentStatus === 'paid' ? 'paid' :
-            assessment.paymentStatus === 'for_verification' ? 'for_verification' :
-              assessment.paymentStatus === 'pending' ? 'pending' : 'pending',
+          status: assessment.paymentStatus || 'pending',
           description: 'Pre-Assessment Fee',
           type: 'pre-assessment',
           typeLabel: 'Pre-Assessment',
@@ -233,10 +231,7 @@ const Quotation = () => {
         date: new Date(invoice.issueDate).toLocaleDateString(),
         dueDate: new Date(invoice.dueDate).toLocaleDateString(),
         amount: invoice.totalAmount,
-        status: invoice.paymentStatus === 'paid' ? 'paid' :
-          invoice.paymentStatus === 'partial' ? 'partial' :
-            invoice.paymentStatus === 'overdue' ? 'overdue' :
-              invoice.paymentStatus === 'for_verification' ? 'for_verification' : 'pending',
+        status: invoice.paymentStatus || 'pending',
         description: invoice.description,
         type: 'project',
         typeLabel: 'Project Bill',
@@ -298,7 +293,16 @@ const Quotation = () => {
     return finalInvoice && finalInvoice.status === 'paid';
   };
 
+  const NON_PAYABLE_PREASSESSMENT_STATUSES = ['cancelled', 'refund_pending', 'refunded', 'no_refund', 'failed'];
+
+  const isNonPayablePreAssessment = (item) => {
+    if (!item || item.type !== 'pre-assessment') return false;
+    return item.assessmentStatus === 'cancelled' ||
+      NON_PAYABLE_PREASSESSMENT_STATUSES.includes(item.paymentStatus || item.status);
+  };
+
   const isPayNowDisabled = (item) => {
+    if (isNonPayablePreAssessment(item)) return true;
     if (item.type !== 'project') return false;
 
     const invoiceType = item.invoiceType;
@@ -340,6 +344,13 @@ const Quotation = () => {
   };
 
   const getPayNowDisabledReason = (item) => {
+    if (isNonPayablePreAssessment(item)) {
+      const s = item.paymentStatus || item.status;
+      if (s === 'refunded') return 'Payment already refunded — Pay Now disabled';
+      if (s === 'refund_pending') return 'Refund pending — Pay Now disabled';
+      if (s === 'no_refund') return 'No refund per policy — Pay Now disabled';
+      return 'Cancelled booking cannot be paid';
+    }
     if (item.type !== 'project') return null;
 
     const invoiceType = item.invoiceType;
@@ -873,6 +884,10 @@ const Quotation = () => {
   };
 
   const handlePayNowClick = (item) => {
+    if (isNonPayablePreAssessment(item)) {
+      showToast(getPayNowDisabledReason(item) || 'This booking cannot be paid', 'warning');
+      return;
+    }
     if (item.type === 'project' && isPayNowDisabled(item)) {
       const reason = getPayNowDisabledReason(item);
       showToast(reason, 'warning');
@@ -1170,6 +1185,10 @@ const Quotation = () => {
       'quoted': <span className="billing-customer-status-badge quoted">Quoted</span>,
       'completed': <span className="billing-customer-status-badge completed">Completed</span>,
       'cancelled': <span className="billing-customer-status-badge cancelled">Cancelled</span>,
+      'refund_pending': <span className="billing-customer-status-badge for-verification">Refund Pending</span>,
+      'refunded': <span className="billing-customer-status-badge paid">Refunded</span>,
+      'no_refund': <span className="billing-customer-status-badge cancelled">No Refund</span>,
+      'failed': <span className="billing-customer-status-badge overdue">Failed</span>,
       'overdue': <span className="billing-customer-status-badge overdue">Overdue</span>,
       'partial': <span className="billing-customer-status-badge partial">Partial</span>
     };
@@ -1823,6 +1842,10 @@ const Quotation = () => {
               <option value="for_verification">For Verification</option>
               <option value="partial">Partial</option>
               <option value="overdue">Overdue</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refund_pending">Refund Pending</option>
+              <option value="refunded">Refunded</option>
+              <option value="no_refund">No Refund</option>
             </select>
           </div>
 
@@ -1856,6 +1879,8 @@ const Quotation = () => {
               { value: 'pending', label: 'Pending' },
               { value: 'paid', label: 'Paid' },
               { value: 'for_verification', label: 'Verifying' },
+              { value: 'cancelled', label: 'Cancelled' },
+              { value: 'refunded', label: 'Refunded' },
             ].map((pill) => (
               <button
                 key={pill.value}
@@ -2031,6 +2056,60 @@ const Quotation = () => {
                                   </div>
                                 )}
                               </div>
+                            ) : isNonPayablePreAssessment(item) ? (
+                              <div className="billing-customer-dropdown-menu-container">
+                                <button
+                                  className="billing-customer-dropdown-trigger-btn"
+                                  onClick={(e) => toggleDropdown(item.id, e)}
+                                >
+                                  Action ▾
+                                </button>
+
+                                {isDropdownOpen && (
+                                  <div
+                                    className="billing-customer-dropdown-menu"
+                                    style={{
+                                      position: 'fixed',
+                                      top: dropdownPosition.top + 'px',
+                                      left: dropdownPosition.left + 'px',
+                                      zIndex: 99999,
+                                    }}
+                                  >
+                                    <button
+                                      className="billing-customer-dropdown-item view-details"
+                                      onClick={() => {
+                                        setActiveDropdown(null);
+                                        handleViewDetails(item);
+                                      }}
+                                    >
+                                      View Details
+                                    </button>
+
+                                    {hasReceipt && (
+                                      <>
+                                        <button
+                                          className="billing-customer-dropdown-item view-receipt"
+                                          onClick={() => {
+                                            setActiveDropdown(null);
+                                            handleViewReceipt(item);
+                                          }}
+                                        >
+                                          View Receipt
+                                        </button>
+                                        <button
+                                          className="billing-customer-dropdown-item download-receipt"
+                                          onClick={() => {
+                                            setActiveDropdown(null);
+                                            handleDownloadReceipt(item);
+                                          }}
+                                        >
+                                          Download Receipt
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <span className="billing-customer-status-text">{item.status}</span>
                             )}
@@ -2151,6 +2230,60 @@ const Quotation = () => {
                       </div>
                     ) : isPaid ? (
                       // For paid status - show dropdown with all actions
+                      <div className="billing-customer-dropdown-menu-container">
+                        <button
+                          className="billing-customer-dropdown-trigger-btn"
+                          onClick={(e) => toggleDropdown(item.id, e)}
+                        >
+                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
+                        </button>
+
+                        {isDropdownOpen && (
+                          <div
+                            className="billing-customer-dropdown-menu"
+                            style={{
+                              position: 'fixed',
+                              top: dropdownPosition.top + 'px',
+                              left: dropdownPosition.left + 'px',
+                              zIndex: 99999,
+                            }}
+                          >
+                            <button
+                              className="billing-customer-dropdown-item view-details"
+                              onClick={() => {
+                                setActiveDropdown(null);
+                                handleViewDetails(item);
+                              }}
+                            >
+                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
+                            </button>
+
+                            {hasReceipt && (
+                              <>
+                                <button
+                                  className="billing-customer-dropdown-item view-receipt"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleViewReceipt(item);
+                                  }}
+                                >
+                                  <FaReceipt className="billing-customer-dropdown-item-icon" /> View Receipt
+                                </button>
+                                <button
+                                  className="billing-customer-dropdown-item download-receipt"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    handleDownloadReceipt(item);
+                                  }}
+                                >
+                                  <FaDownload className="billing-customer-dropdown-item-icon" /> Download Receipt
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : isNonPayablePreAssessment(item) ? (
                       <div className="billing-customer-dropdown-menu-container">
                         <button
                           className="billing-customer-dropdown-trigger-btn"

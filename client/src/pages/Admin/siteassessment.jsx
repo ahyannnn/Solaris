@@ -570,27 +570,85 @@ const SiteAssessment = () => {
     return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
   };
 
+  const closeRefundModal = (refresh = false) => {
+    setShowRefundModal(false);
+    setSelectedItem(null);
+    setRefundReference('');
+    setRefundRemarks('');
+    setOpenDropdownId(null);
+    if (refresh) {
+      fetchData();
+      fetchStats();
+    }
+  };
+
+  // Keep open modal in sync with realtime list updates so Confirm can't fire on stale pending state
+  useEffect(() => {
+    if (showRefundModal && selectedItem?._id) {
+      const fresh = preAssessments.find((a) => a._id === selectedItem._id);
+      if (fresh && fresh.cancellation?.refundStatus !== selectedItem.cancellation?.refundStatus) {
+        setSelectedItem(fresh);
+      }
+    }
+  }, [preAssessments, showRefundModal]);
+
   const handleProcessRefund = async (action) => {
-    if (!selectedItem) return;
+    if (!selectedItem || isSubmitting) return;
+    const currentRefundStatus = selectedItem.cancellation?.refundStatus || 'none';
+    if (!['pending', 'processing'].includes(currentRefundStatus)) {
+      showToast(`Refund already ${currentRefundStatus} — list refreshed`, 'info');
+      closeRefundModal(true);
+      return;
+    }
+    const refundMethod = selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod || 'manual';
+    const isCashRefund = refundMethod === 'cash';
+    if (action === 'refunded' && !isCashRefund && !refundReference.trim()) {
+      showToast('Refund reference is required for non-cash refunds', 'warning');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      await axios.put(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/process-refund`,
         { action, reference: refundReference, remarks: refundRemarks },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showToast(action === 'refunded' ? 'Refund processed successfully' : 'Refund rejected', action === 'refunded' ? 'success' : 'warning');
-      setShowRefundModal(false);
-      setSelectedItem(null);
-      setRefundReference('');
-      setRefundRemarks('');
-      setOpenDropdownId(null);
-      fetchData();
-      fetchStats();
+      if (response.data?.alreadyProcessed) {
+        showToast(response.data.message || 'Refund already processed — list refreshed', 'info');
+      } else {
+        showToast(action === 'refunded' ? 'Refund processed successfully' : 'Refund rejected', action === 'refunded' ? 'success' : 'warning');
+      }
+      closeRefundModal(true);
     } catch (error) {
       console.error('Process refund error:', error);
-      showToast(error.response?.data?.message || 'Failed to process refund', 'error');
+      const serverMsg = error.response?.data?.message || '';
+      if (error.response?.status === 400 && serverMsg.toLowerCase().includes('no pending refund')) {
+        showToast(`${serverMsg} — list refreshed`, 'info');
+        closeRefundModal(true);
+        return;
+      }
+      // The refund may have saved before a later step (e.g. audit/notify) failed.
+      // Refetch the true state: if it is already refunded/rejected, report success, not error.
+      try {
+        const token = sessionStorage.getItem('token');
+        const freshRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const freshStatus = freshRes.data?.assessment?.cancellation?.refundStatus || 'none';
+        if (['refunded', 'rejected'].includes(freshStatus)) {
+          showToast(
+            action === 'refunded' ? 'Refund processed successfully — list refreshed' : 'Refund rejected — list refreshed',
+            action === 'refunded' ? 'success' : 'warning'
+          );
+          closeRefundModal(true);
+          return;
+        }
+      } catch (refetchErr) {
+        console.error('Refund status refetch failed:', refetchErr.message);
+      }
+      showToast(serverMsg || 'Failed to process refund', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -1261,21 +1319,29 @@ const SiteAssessment = () => {
         )}
 
         {showRefundModal && selectedItem && (
-          <div className="modal-overlay-adminbills_" onClick={() => setShowRefundModal(false)}>
+          <div className="modal-overlay-adminbills_" onClick={() => closeRefundModal(false)}>
             <div className="modal-adminbills_" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-adminbills_"><h3>Process Refund — {selectedItem.bookingReference}</h3><button className="modal-close-adminbills_" onClick={() => setShowRefundModal(false)}>×</button></div>
+              <div className="modal-header-adminbills_"><h3>Process Refund — {selectedItem.bookingReference}</h3><button className="modal-close-adminbills_" onClick={() => closeRefundModal(false)}>×</button></div>
               <div className="modal-body-adminbills_">
                 <div className="detail-row-adminbills_"><span>Refund:</span><strong>{selectedItem.cancellation?.refundPercentage}% — {formatCurrency(selectedItem.cancellation?.refundAmount)} via {selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod}</strong></div>
                 <div className="detail-row-adminbills_"><span>Tier:</span><strong>{selectedItem.cancellation?.policyTier}</strong></div>
                 <div className="detail-row-adminbills_"><span>Site Visit:</span><strong>{selectedItem.siteVisitDate ? formatDate(selectedItem.siteVisitDate) : 'Not set'}</strong></div>
-                <div className="info-box-adminbills_" style={{marginTop:'12px'}}><FaInfoCircle /><small>Process refund via original method <strong>{selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod}</strong> offline, then confirm here with reference.</small></div>
-                <div className="form-group-adminbills_"><label>Refund Reference <span className="required-field-adminbills_">*</span></label><input type="text" placeholder="GCash ref / bank ref / receipt no" value={refundReference} onChange={(e)=>setRefundReference(e.target.value)} /></div>
-                <div className="form-group-adminbills_"><label>Admin Remarks</label><textarea rows="2" value={refundRemarks} onChange={(e)=>setRefundRemarks(e.target.value)} placeholder="Optional note" /></div>
+                {(() => {
+                  const refundMethod = selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod || 'manual';
+                  const isCashRefund = refundMethod === 'cash';
+                  return (
+                    <>
+                      <div className="info-box-adminbills_" style={{marginTop:'12px'}}><FaInfoCircle /><small>{isCashRefund ? <>Cash refund — hand cash back offline, reference is <strong>optional</strong>.</> : <>Process refund via original method <strong>{refundMethod}</strong> offline, then confirm here with reference.</>}</small></div>
+                      <div className="form-group-adminbills_"><label>Refund Reference {isCashRefund ? <small>(Optional for cash)</small> : <span className="required-field-adminbills_">*</span>}</label><input type="text" placeholder={isCashRefund ? 'Optional — receipt no if available' : 'GCash ref / bank ref / receipt no'} value={refundReference} onChange={(e)=>setRefundReference(e.target.value)} /></div>
+                      <div className="form-group-adminbills_"><label>Admin Remarks</label><textarea rows="2" value={refundRemarks} onChange={(e)=>setRefundRemarks(e.target.value)} placeholder="Optional note" /></div>
+                    </>
+                  );
+                })()}
               </div>
               <div className="modal-actions-adminbills_">
-                <button className="cancel-btn-adminbills_" onClick={() => setShowRefundModal(false)}>Close</button>
-                <button className="reject-btn-adminbills_" onClick={() => handleProcessRefund('rejected')} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Reject Refund'}</button>
-                <button className="approve-btn-adminbills_" onClick={() => handleProcessRefund('refunded')} disabled={isSubmitting || !refundReference}>{isSubmitting ? 'Processing...' : 'Confirm Refunded'}</button>
+                <button className="cancel-btn-adminbills_" onClick={() => closeRefundModal(false)}>Close</button>
+                <button className="reject-btn-adminbills_" onClick={() => handleProcessRefund('rejected')} disabled={isSubmitting || !['pending', 'processing'].includes(selectedItem.cancellation?.refundStatus || 'none')}>{isSubmitting ? 'Processing...' : 'Reject Refund'}</button>
+                <button className="approve-btn-adminbills_" onClick={() => handleProcessRefund('refunded')} disabled={isSubmitting || !['pending', 'processing'].includes(selectedItem.cancellation?.refundStatus || 'none') || ((selectedItem.cancellation?.refundMethod || selectedItem.paymentMethod || 'manual') !== 'cash' && !refundReference.trim())}>{isSubmitting ? 'Processing...' : 'Confirm Refunded'}</button>
               </div>
             </div>
           </div>

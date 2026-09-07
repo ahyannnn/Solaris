@@ -52,6 +52,14 @@ exports.createPayMongoPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
+    if (assessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(assessment.paymentStatus)) {
+      return res.status(400).json({ message: `Cannot process payment for ${assessment.paymentStatus} booking` });
+    }
+
     if (assessment.paymentStatus !== 'pending') {
       return res.status(400).json({ message: 'Payment already processed' });
     }
@@ -1118,6 +1126,14 @@ exports.submitPayment = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
+    if (preAssessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(preAssessment.paymentStatus)) {
+      return res.status(400).json({ message: `Cannot process payment for ${preAssessment.paymentStatus} booking` });
+    }
+
     if (paymentMethod === 'gcash') {
       // Process payment proof upload
       const processedFile = await processUpload(req, req.file, 'payment-proofs', `payment_${invoiceNumber}_${Date.now()}`);
@@ -1222,6 +1238,14 @@ exports.submitPaymentProof = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    if (preAssessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(preAssessment.paymentStatus)) {
+      return res.status(400).json({ message: `Cannot process payment for ${preAssessment.paymentStatus} booking` });
+    }
+
     if (preAssessment.paymentStatus !== 'pending') {
       return res.status(400).json({ message: 'Payment already submitted' });
     }
@@ -1321,6 +1345,14 @@ exports.cashPayment = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    if (preAssessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(preAssessment.paymentStatus)) {
+      return res.status(400).json({ message: `Cannot process payment for ${preAssessment.paymentStatus} booking` });
+    }
+
     preAssessment.paymentMethod = 'cash';
     preAssessment.paymentStatus = 'for_verification';
     preAssessment.assessmentStatus = 'scheduled';
@@ -1388,6 +1420,14 @@ exports.verifyPayment = async (req, res) => {
 
     if (!preAssessment) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (preAssessment.assessmentStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot verify payment for cancelled booking' });
+    }
+
+    if (['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(preAssessment.paymentStatus)) {
+      return res.status(400).json({ message: `Cannot verify payment for ${preAssessment.paymentStatus} booking` });
     }
 
     if (preAssessment.paymentGateway === 'paymongo' && preAssessment.autoVerified === true) {
@@ -2536,6 +2576,13 @@ exports.updatePaymentStatus = async (req, res) => {
 
     const oldStatus = assessment.paymentStatus;
 
+    const isCancelledOrRefunded = assessment.assessmentStatus === 'cancelled' ||
+      ['cancelled', 'refunded', 'refund_pending', 'no_refund'].includes(oldStatus);
+
+    if (isCancelledOrRefunded && ['paid', 'for_verification', 'pending'].includes(paymentStatus)) {
+      return res.status(400).json({ message: `Cannot mark ${oldStatus} booking as ${paymentStatus}` });
+    }
+
     assessment.paymentStatus = paymentStatus;
     assessment.assessmentStatus = assessmentStatus;
     if (notes) assessment.adminRemarks = notes;
@@ -3125,7 +3172,7 @@ exports.cancelPreAssessment = async (req, res) => {
     const manualMethods = ['gcash', 'bank_transfer', 'cash'];
     const isManual = manualMethods.includes(assessment.paymentMethod) || assessment.paymentGateway === 'manual';
     const isPaid = assessment.paymentStatus === 'paid' || assessment.paymentStatus === 'for_verification';
-    const isPendingUnpaid = assessment.paymentStatus === 'pending' || !assessment.paymentMethod;
+    const isPendingUnpaid = assessment.paymentStatus === 'pending' || assessment.paymentStatus === 'failed' || !assessment.paymentMethod;
 
     let refundStatus = 'none';
     let newPaymentStatus = assessment.paymentStatus;
@@ -3139,9 +3186,6 @@ exports.cancelPreAssessment = async (req, res) => {
     } else if (refundAmount === 0) {
       refundStatus = 'no_refund';
       newPaymentStatus = assessment.paymentStatus === 'for_verification' ? 'cancelled' : 'no_refund';
-      if (newPaymentStatus === 'no_refund' && !['pending','for_verification','paid','failed','cancelled','refund_pending','refunded','no_refund'].includes(newPaymentStatus)) {
-        newPaymentStatus = 'cancelled';
-      }
     } else if (isManual && isPaid) {
       // Manual methods: mark pending admin processing (Q1)
       refundStatus = 'pending';
@@ -3240,11 +3284,10 @@ exports.cancelPreAssessment = async (req, res) => {
 
     try {
       await AuditLog.create({
-        action: 'preassessment_cancelled',
-        performedBy: userId,
-        targetId: assessment._id,
-        targetModel: 'PreAssessment',
-        details: { bookingReference: assessment.bookingReference, refundPercentage, refundAmount, refundStatus, policyTier, hoursBeforeDeployment, reason }
+        user: userId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Cancelled pre-assessment ${assessment.bookingReference} (refund ${refundPercentage}% ₱${refundAmount}, status: ${refundStatus})`
       });
     } catch (auditErr) {
       console.error('Audit log cancel failed:', auditErr.message);
@@ -3317,15 +3360,27 @@ exports.processRefund = async (req, res) => {
     }
     const assessment = await PreAssessment.findById(id).populate('clientId');
     if (!assessment) return res.status(404).json({ message: 'Pre-assessment not found' });
-    if (!assessment.cancellation || !['pending', 'processing'].includes(assessment.cancellation.refundStatus)) {
-      return res.status(400).json({ message: 'No pending refund to process' });
+    const currentRefundStatus = assessment.cancellation?.refundStatus || 'none';
+    // Idempotent retry: already processed returns success so double-click/retry shows friendly message
+    if (['refunded', 'rejected'].includes(currentRefundStatus)) {
+      return res.json({
+        success: true,
+        alreadyProcessed: true,
+        message: `Refund already ${currentRefundStatus}`,
+        assessment
+      });
     }
-    if (assessment.paymentMethod === 'card' && assessment.cancellation.refundStatus === 'refunded') {
-      return res.status(400).json({ message: 'Card refund already auto-processed via PayMongo' });
+    if (!assessment.cancellation || !['pending', 'processing'].includes(currentRefundStatus)) {
+      return res.status(400).json({ message: `No pending refund to process (current: ${currentRefundStatus})` });
+    }
+
+    const refundMethod = assessment.cancellation.refundMethod || assessment.paymentMethod || 'manual';
+    if (action === 'refunded' && refundMethod !== 'cash' && !reference?.trim()) {
+      return res.status(400).json({ message: 'Refund reference is required for non-cash refunds' });
     }
 
     assessment.cancellation.refundStatus = action === 'refunded' ? 'refunded' : 'rejected';
-    assessment.cancellation.refundReference = reference || null;
+    assessment.cancellation.refundReference = reference?.trim() || null;
     assessment.cancellation.refundProcessedAt = new Date();
     assessment.cancellation.refundProcessedBy = adminId;
     if (remarks) assessment.adminRemarks = remarks;
@@ -3334,8 +3389,8 @@ exports.processRefund = async (req, res) => {
       assessment.paymentStatus = 'refunded';
       // keep assessmentStatus cancelled
     } else {
-      // rejected: refund denied per policy review
-      assessment.paymentStatus = 'cancelled';
+      // rejected: refund denied per policy review — distinguish from plain cancel
+      assessment.paymentStatus = 'no_refund';
       assessment.cancellation.refundAmount = 0;
       assessment.cancellation.refundPercentage = 0;
     }
@@ -3364,13 +3419,16 @@ exports.processRefund = async (req, res) => {
       console.error('Process refund notify failed:', nErr.message);
     }
 
-    await AuditLog.create({
-      action: 'preassessment_refund_processed',
-      performedBy: adminId,
-      targetId: assessment._id,
-      targetModel: 'PreAssessment',
-      details: { bookingReference: assessment.bookingReference, action, reference, remarks }
-    });
+    try {
+      await AuditLog.create({
+        user: adminId,
+        role: req.user.role,
+        module: "Site Assessment",
+        action: `Processed refund ${action} for ${assessment.bookingReference}`
+      });
+    } catch (auditErr) {
+      console.error('Refund audit failed:', auditErr.message);
+    }
 
     res.json({ success: true, message: `Refund ${action} successfully`, assessment });
   } catch (error) {

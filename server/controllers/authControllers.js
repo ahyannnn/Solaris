@@ -441,3 +441,27 @@ exports.checkEmail = async (req, res) => {
   }
 };
 
+/*
+=========================
+CURRENT USER (photo/header refresh)
+=========================
+*/
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('_id fullName email role photoURL');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      photoURL: user.photoURL || null
+    });
+  } catch (error) {
+    console.error('Get me error:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+

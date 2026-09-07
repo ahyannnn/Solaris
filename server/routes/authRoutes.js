@@ -15,6 +15,11 @@ router.post("/login", authController.login);
 router.get('/lock-status/:email', authController.checkLockStatus);
 
 /*
+  Current authenticated user (header/photo refresh, all roles)
+*/
+router.get("/me", authMiddleware.verifyToken, authController.getMe);
+
+/*
   Route for Google authentication
 */
 router.post("/google-login", authController.googleLogin);

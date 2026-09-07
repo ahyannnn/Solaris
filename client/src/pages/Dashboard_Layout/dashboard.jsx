@@ -105,6 +105,9 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
+  const [userPhoto, setUserPhoto] = useState(() =>
+    localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL') || ''
+  );
   
   // Dark mode state - initialize from localStorage
   const [darkMode, setDarkMode] = useState(() => {
@@ -945,6 +948,39 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [initialized, userRole, fetchActionAlerts]);
 
+  // Refresh profile photo (Google users get theirs at login via storage;
+  // customers refresh from clients/me, staff from auth/me — so an admin-set
+  // photo appears without re-login).
+  useEffect(() => {
+    if (!initialized || !userRole) return;
+
+    (async () => {
+      try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) return;
+        const endpoint = userRole === 'user' ? '/api/clients/me' : '/api/auth/me';
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const url = res.data?.client?.photoURL || res.data?.photoURL || '';
+        setUserPhoto(url);
+        if (url) sessionStorage.setItem('userPhotoURL', url);
+        else sessionStorage.removeItem('userPhotoURL');
+      } catch {
+        // Keep storage fallback (initials when empty)
+      }
+    })();
+  }, [initialized, userRole]);
+
+  // Instant header photo refresh right after Settings save (same tab).
+  useEffect(() => {
+    const onPhotoUpdated = (e) => {
+      setUserPhoto(e?.detail || sessionStorage.getItem('userPhotoURL') || '');
+    };
+    window.addEventListener('user-photo-updated', onPhotoUpdated);
+    return () => window.removeEventListener('user-photo-updated', onPhotoUpdated);
+  }, []);
+
   // Refresh alert flags immediately after in-app navigation (e.g. back
   // from paying a bill or requesting an assessment) — no waiting for poll.
   useEffect(() => {
@@ -1391,10 +1427,18 @@ const Dashboard = () => {
 
             {/* Static user pill (not clickable) */}
             <div className="header-user-info-layout-dashboard">
-              {/* Initials Avatar - replaces profile image */}
-              <div className="header-user-initials-avatar">
-                {getUserInitials(userName)}
-              </div>
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt=""
+                  className="header-user-photo-img"
+                  onError={() => setUserPhoto('')}
+                />
+              ) : (
+                <div className="header-user-initials-avatar">
+                  {getUserInitials(userName)}
+                </div>
+              )}
               <span className="header-user-name-layout-dashboard">{userName}</span>
             </div>
           </div>
@@ -1451,9 +1495,18 @@ const Dashboard = () => {
             {mobileSheetView === 'main' && (
               <>
                 <div className="mobile-sheet-profile">
-                  <div className="header-user-initials-avatar large">
-                    {getUserInitials(userName)}
-                  </div>
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt=""
+                      className="header-user-photo-img large"
+                      onError={() => setUserPhoto('')}
+                    />
+                  ) : (
+                    <div className="header-user-initials-avatar large">
+                      {getUserInitials(userName)}
+                    </div>
+                  )}
                   <div className="mobile-sheet-meta">
                     <strong>{userName}</strong>
                       <span>{userRole === 'admin' ? 'Administrator' : userRole === 'engineer' ? 'Engineer' : 'Customer'}</span>

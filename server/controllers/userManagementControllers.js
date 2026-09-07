@@ -4,6 +4,7 @@ const Client = require('../models/Clients');
 const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { processUpload, getFileUrl } = require('../middleware/uploadMiddleware');
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -238,6 +239,7 @@ exports.updateUser = async (req, res) => {
         fullName: updatedUser.fullName,
         email: updatedUser.email,
         role: updatedUser.role,
+        photoURL: updatedUser.photoURL || null,
         isActive: updatedUser.isActive,
         createdAt: updatedUser.createdAt,
         lastLogin: updatedUser.lastLogin,
@@ -257,6 +259,48 @@ exports.updateUser = async (req, res) => {
       message: 'Failed to update user', 
       error: error.message 
     });
+  }
+};
+
+// @desc    Upload/Replace a user's profile photo (any role; admin-only route)
+// @route   POST /api/admin/users/:id/photo
+// @access  Private (Admin)
+exports.uploadUserPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No photo uploaded' });
+    }
+
+    const uploaded = await processUpload(req, req.file, 'avatars', `avatar-${id}-${Date.now()}`);
+    if (!uploaded) {
+      return res.status(500).json({ message: 'Failed to process photo' });
+    }
+
+    const photoURL = uploaded.storageType === 'cloudinary'
+      ? uploaded.url
+      : getFileUrl(req, uploaded);
+
+    user.photoURL = photoURL;
+    await user.save();
+
+    await AuditLog.create({
+      user: req.user.id,
+      role: req.user.role,
+      module: "User Management",
+      action: `Updated profile photo for ${user.email}`
+    });
+
+    res.json({ message: 'Profile photo updated', photoURL });
+  } catch (error) {
+    console.error('Upload user photo error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

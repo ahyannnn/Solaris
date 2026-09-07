@@ -348,6 +348,7 @@ const getPendingBankTransfers = async (req, res) => {
         if (payment.clientId && payment.clientId.userId) {
           const user = await User.findById(payment.clientId.userId);
           paymentObj.clientEmail = user?.email || '';
+          paymentObj.clientPhotoURL = user?.photoURL || null;
         }
         return paymentObj;
       })

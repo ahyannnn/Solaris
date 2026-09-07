@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/roleMiddleware');
+const { avatarUploadHandler } = require('../middleware/uploadMiddleware');
 
 // User Management Controllers
 const userControllers = require('../controllers/userManagementControllers');
@@ -23,6 +24,7 @@ router.get('/users/stats', userControllers.getUserStats);
 router.get('/users/:id', userControllers.getUserById);
 router.post('/users', userControllers.createUser);
 router.put('/users/:id', userControllers.updateUser);
+router.post('/users/:id/photo', avatarUploadHandler, userControllers.uploadUserPhoto);
 router.put('/users/:id/role', userControllers.updateUserRole);
 router.put('/users/:id/toggle-status', userControllers.toggleUserStatus);
 router.put('/users/:id/reset-password', userControllers.resetUserPassword);

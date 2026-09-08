@@ -997,6 +997,15 @@ exports.generateFreeQuotePDF = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    // Resolve the generating engineer's display name for the PDF signatories block
+    let engineerName = 'Engineer Name';
+    try {
+      const engineer = await User.findById(engineerId).select('fullName email');
+      if (engineer) engineerName = engineer.fullName || engineer.email || 'Engineer Name';
+    } catch (e) {
+      // Fall back to the default placeholder
+    }
+
     const systemTypeObj = SYSTEM_TYPES.find(t => t.value === systemType);
     const systemTypeLabel = systemTypeObj ? systemTypeObj.label : systemType;
 
@@ -1113,7 +1122,8 @@ exports.generateFreeQuotePDF = async (req, res) => {
       discountPercentage: parseFloat(discountPercentage) || 0,
       discountAmount: parseFloat(discountAmount) || 0,
       finalAmount: parseFloat(finalAmount) || 0,
-      roiData: parseFloat(roiYears) || 0
+      roiData: parseFloat(roiYears) || 0,
+      engineerName
     };
 
     // Generate PDF

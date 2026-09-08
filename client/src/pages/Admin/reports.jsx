@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
-import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes, FaChevronDown } from 'react-icons/fa';
+import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes, FaChevronDown, FaExternalLinkAlt, FaSearch } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
 import logo from '../../assets/Salfare_Logo.png';
@@ -58,9 +58,15 @@ const Reports = () => {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [quotations, setQuotations] = useState([]);
+
+  // Quotation tab filters (client-side only, no PDF/Excel generation)
+  const [quotationSearch, setQuotationSearch] = useState('');
+  const [quotationStatusFilter, setQuotationStatusFilter] = useState('');
+  const [quotationSourceFilter, setQuotationSourceFilter] = useState('');
 
   // Real-time data updates (no page refresh). Cleaned up on unmount.
-  useRealtimeTable(['pre-assessments', 'projects', 'users', 'service-requests'], () => {
+  useRealtimeTable(['pre-assessments', 'projects', 'users', 'service-requests', 'free-quotes'], () => {
     fetchAllData();
   });
 
@@ -73,7 +79,7 @@ const Reports = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      const [assessmentsRes, projectsRes, clientsRes] = await Promise.all([
+      const [assessmentsRes, projectsRes, clientsRes, freeQuotesRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { assessments: [] } })),
@@ -82,16 +88,70 @@ const Reports = () => {
         }).catch(() => ({ data: { projects: [] } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/admin/clients`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { clients: [] } }))
+        }).catch(() => ({ data: { clients: [] } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes?limit=1000`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { quotes: [] } }))
       ]);
 
       const allAssessments = assessmentsRes.data.assessments || [];
       const allProjects = projectsRes.data.projects || [];
       const allClients = clientsRes.data.clients || [];
+      const allFreeQuotes = freeQuotesRes.data.quotes || freeQuotesRes.data.freeQuotes || [];
 
       setAssessments(allAssessments);
       setProjects(allProjects);
       setClients(allClients);
+
+      // Build unified quotations list — only records with an existing quotation file.
+      // Free Quotes: completed (draft/sent) or accepted WITH file; Pre-Assessments:
+      // report_draft / quotation_generated / quotation_accepted / completed WITH file.
+      const freeQuoteItems = allFreeQuotes
+        .filter(q => {
+          const url = q.quotationFile || q.quotationUrl;
+          if (!url) return false;
+          return ['completed', 'accepted'].includes(q.status);
+        })
+        .map(q => {
+          const firstName = q.clientId?.contactFirstName || q.clientName?.split?.(' ')?.[0] || '';
+          const lastName = q.clientId?.contactLastName || q.clientName?.split?.(' ')?.slice(1)?.join(' ') || '';
+          const fullName = `${firstName} ${lastName}`.trim() || q.clientName || 'N/A';
+          return {
+            id: q._id,
+            sourceType: 'free-quote',
+            sourceLabel: 'Free Quote',
+            name: fullName,
+            reference: q.quotationReference || 'N/A',
+            status: q.status || 'pending',
+            url: q.quotationFile || q.quotationUrl || null,
+            date: q.quotationSentAt || q.requestedAt || q.createdAt || null
+          };
+        });
+
+      const preAssessmentItems = allAssessments
+        .filter(a => {
+          const url = a?.quotation?.quotationUrl || a?.finalQuotation;
+          if (!url) return false;
+          return ['report_draft', 'quotation_generated', 'quotation_accepted', 'completed'].includes(a.assessmentStatus);
+        })
+        .map(a => {
+          const fullName = `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim() || 'N/A';
+          return {
+            id: a._id,
+            sourceType: 'pre-assessment',
+            sourceLabel: 'Site Assessment',
+            name: fullName,
+            reference: a.bookingReference || a?.quotation?.quotationNumber || 'N/A',
+            status: a.assessmentStatus || 'N/A',
+            url: a?.quotation?.quotationUrl || a?.finalQuotation || null,
+            date: a?.quotation?.quotationDate || a?.quotation?.generatedAt || a?.createdAt || null
+          };
+        });
+
+      const allQuotations = [...freeQuoteItems, ...preAssessmentItems].sort(
+        (a, b) => new Date(b.date || 0) - new Date(a.date || 0)
+      );
+      setQuotations(allQuotations);
 
       // Build transactions for financial report
       const preTransactions = allAssessments
@@ -183,7 +243,9 @@ const Reports = () => {
   };
 
   // The table and its export must come from the same server query.
+  // Quotations tab is client-side only (cards + redirect, no PDF/Excel generation).
   const fetchCurrentReport = async () => {
+    if (activeTab === 'quotations') return null;
     const token = sessionStorage.getItem('token');
     const params = new URLSearchParams({
       startDate: dateRange.startDate,
@@ -207,6 +269,10 @@ const Reports = () => {
 
   useEffect(() => {
     let cancelled = false;
+    if (activeTab === 'quotations') {
+      if (!cancelled) setReportData({ report: null });
+      return () => { cancelled = true; };
+    }
     fetchCurrentReport()
       .then(report => { if (!cancelled) setReportData({ report }); })
       .catch(error => {
@@ -338,6 +404,53 @@ const Reports = () => {
     });
   };
 
+  // ============ QUOTATION TAB HELPERS (cards + redirect, no export) ============
+  const formatQuotationStatus = (status) => {
+    if (!status) return 'N/A';
+    return String(status).replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  const isQuotationUrlSafe = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    return trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/');
+  };
+
+  const handleOpenQuotation = (quotation) => {
+    const url = quotation?.url;
+    if (!isQuotationUrlSafe(url)) {
+      showToast('No quotation file available for this record', 'warning');
+      return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const getFilteredQuotations = () => {
+    const start = dateRange.startDate ? new Date(dateRange.startDate) : null;
+    const end = dateRange.endDate ? new Date(dateRange.endDate) : null;
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+    const term = (quotationSearch || '').trim().toLowerCase();
+
+    return quotations.filter((q) => {
+      if (quotationSourceFilter && q.sourceType !== quotationSourceFilter) return false;
+      if (quotationStatusFilter && String(q.status).toLowerCase() !== String(quotationStatusFilter).toLowerCase()) return false;
+      if (q.date && (start || end)) {
+        const d = new Date(q.date);
+        if (isNaN(d.getTime())) return true;
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+      }
+      if (term) {
+        const haystack = `${q.name || ''} ${q.reference || ''} ${q.status || ''}`.toLowerCase();
+        if (!haystack.includes(term)) return false;
+      }
+      return true;
+    });
+  };
+
+  const quotationStatusOptions = [...new Set(quotations.map((q) => q.status).filter(Boolean))].sort();
+
   // Skeleton Loader
   const SkeletonLoader = () => (
     <div className="reports-container">
@@ -399,9 +512,15 @@ const Reports = () => {
           >
             Services
           </button>
+          <button
+            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'quotations' ? 'active-reports' : ''}`}
+            onClick={() => { setActiveTab('quotations'); setReportData(null); setShowMoreTabs(false); }}
+          >
+            Quotations
+          </button>
           <div className="more-wrap-reports">
             <button
-              className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients' || activeTab === 'services') ? 'active-reports' : ''}`}
+              className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients' || activeTab === 'services' || activeTab === 'quotations') ? 'active-reports' : ''}`}
               onClick={() => setShowMoreTabs((v) => !v)}
               aria-expanded={showMoreTabs}
               aria-haspopup="true"
@@ -431,6 +550,13 @@ const Reports = () => {
                   onClick={() => { setActiveTab('services'); setReportData(null); setShowMoreTabs(false); }}
                 >
                   Services
+                </button>
+                <button
+                  role="menuitem"
+                  className={`more-item-reports ${activeTab === 'quotations' ? 'active-reports' : ''}`}
+                  onClick={() => { setActiveTab('quotations'); setReportData(null); setShowMoreTabs(false); }}
+                >
+                  Quotations
                 </button>
               </div>
             )}
@@ -503,6 +629,44 @@ const Reports = () => {
                 <option value="">All Statuses</option>
                 {SERVICE_STATUS_OPTIONS.map(s => (
                   <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {activeTab === 'quotations' && (
+            <div className="report-filter-reports">
+              <label>Search</label>
+              <div className="quotation-search-reports">
+                <FaSearch className="quotation-search-icon-reports" />
+                <input
+                  type="text"
+                  placeholder="Search name or reference..."
+                  value={quotationSearch}
+                  onChange={(e) => setQuotationSearch(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'quotations' && (
+            <div className="report-filter-reports">
+              <label>Filter by Source</label>
+              <select value={quotationSourceFilter} onChange={(e) => setQuotationSourceFilter(e.target.value)}>
+                <option value="">All Sources</option>
+                <option value="free-quote">Free Quote</option>
+                <option value="pre-assessment">Site Assessment</option>
+              </select>
+            </div>
+          )}
+
+          {activeTab === 'quotations' && (
+            <div className="report-filter-reports">
+              <label>Filter by Status</label>
+              <select value={quotationStatusFilter} onChange={(e) => setQuotationStatusFilter(e.target.value)}>
+                <option value="">All Statuses</option>
+                {quotationStatusOptions.map((s) => (
+                  <option key={s} value={s}>{formatQuotationStatus(s)}</option>
                 ))}
               </select>
             </div>
@@ -804,6 +968,68 @@ const Reports = () => {
               <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ============ QUOTATIONS REPORT (cards + redirect, no export) ============ */}
+        {activeTab === 'quotations' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <h2>Quotations</h2>
+              <p>Click any card to view the full quotation in a new tab. No PDF or Excel generation in this tab.</p>
+            </div>
+
+            <div className="report-section-reports">
+              {getFilteredQuotations().length > 0 ? (
+                <div className="quotation-grid-reports">
+                  {getFilteredQuotations().map((q) => {
+                    const hasFile = isQuotationUrlSafe(q.url);
+                    return (
+                      <article
+                        key={`${q.sourceType}-${q.id}`}
+                        className={`quotation-card-reports ${hasFile ? '' : 'no-file'}`}
+                        onClick={() => handleOpenQuotation(q)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenQuotation(q); } }}
+                        tabIndex={0}
+                        role="link"
+                        aria-label={`View quotation ${q.reference} for ${q.name}`}
+                        title={hasFile ? `View ${q.reference} in a new tab` : `${q.reference} — no file yet`}
+                      >
+                        <div className="quotation-preview-reports">
+                          {hasFile ? (
+                            <>
+                              <iframe
+                                src={q.url}
+                                title={`Quotation preview ${q.reference}`}
+                                loading="lazy"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              />
+                              <span className="quotation-open-hint-reports">
+                                <FaExternalLinkAlt /> View
+                              </span>
+                            </>
+                          ) : (
+                            <div className="quotation-no-preview-reports">
+                              <FaFilePdf className="quotation-no-preview-icon-reports" />
+                              <span>No preview available</span>
+                            </div>
+                          )}
+                          <span className="quotation-source-reports">{q.sourceLabel}</span>
+                        </div>
+                        <div className="quotation-body-reports">
+                          <strong className="quotation-name-reports">{q.name || 'N/A'}</strong>
+                          <span className="quotation-ref-reports">{q.reference || 'N/A'}</span>
+                          <span className="status-badge-reports">{formatQuotationStatus(q.status)}</span>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="empty-state-reports">No quotations found</div>
+              )}
             </div>
           </div>
         )}

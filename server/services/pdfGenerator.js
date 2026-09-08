@@ -97,7 +97,8 @@ class QuotationGenerator {
       // Page 2 - Add logo via _drawPageLogo
       doc.addPage();
       this._drawPageLogo(doc);
-      this._drawWarrantyAndTerms(doc, data);
+      const freeQuoteY = this._drawWarrantyAndTerms(doc, data);
+      this._drawQuotationSignatories(doc, data, freeQuoteY);
       this._drawFooter(doc, data);
 
 
@@ -120,7 +121,8 @@ class QuotationGenerator {
       // Page 3 - Add logo via _drawPageLogo
       doc.addPage();
       this._drawPageLogo(doc);
-      this._drawWarrantyAndTerms(doc, data);
+      const preAssessmentY = this._drawWarrantyAndTerms(doc, data);
+      this._drawQuotationSignatories(doc, data, preAssessmentY);
       this._drawFooter(doc, data);
 
 
@@ -1140,47 +1142,62 @@ class QuotationGenerator {
 
          y += 20;
       }
+
+      return y;
    }
 
-   _drawSignature(doc, data) {
+   // ==========================================================
+   // SIGNATORIES - Last page of the quotation (Prepared by / Conforme).
+   // Left block leaves blank space for a wet signature above the
+   // generating engineer's name; right block has a dotted client line.
+   // Moves to a fresh last page (logo + footer drawn by caller) when
+   // the warranty/terms content leaves too little room.
+   // ==========================================================
+   _drawQuotationSignatories(doc, data, y) {
       const leftX = this.margins.left;
       const rightX = doc.page.width - this.margins.right;
-      let y = doc.page.height - this.margins.bottom - 120;
+      const rightColX = rightX - 210;
+      const blockHeight = 160;
 
-      if (y < this.margins.top + 50) {
+      if (!y || y > doc.page.height - this.margins.bottom - blockHeight) {
          doc.addPage();
-         this._drawPageLogo(doc); // Add logo on new page
-         y = doc.page.height - this.margins.bottom - 120;
+         this._drawPageLogo(doc);
+         y = this.margins.top + 60;
       }
 
-      doc.font('Roboto-Bold')
-         .fontSize(10)
-         .text('Prepared By:', leftX, y);
+      y += 72; // 1-inch gap between Terms of Payment and Conditions and Prepared by
 
-      y += 20;
+      doc.fillColor(this.colors.black);
       doc.font('Roboto')
          .fontSize(9)
-         .text(data.engineerName || 'Engineer Name', leftX, y);
-
-      y += 15;
-      doc.text(data.engineerSignature || 'Engineer Signature', leftX, y);
-
-      doc.font('Roboto-Bold')
-         .fontSize(10)
-         .text('Conforme:', rightX - 150, y - 35);
-
-      y += 20;
+         .text('Prepared by:', leftX, y);
       doc.font('Roboto')
          .fontSize(9)
-         .text(data.clientName || 'Client Name', rightX - 150, y);
+         .text('Conforme:', rightColX, y);
 
-      y += 15;
-      doc.text(data.clientSignature || 'Client Signature', rightX - 150, y);
-
-      const lineY = y + 20;
-      doc.moveTo(leftX, lineY)
+      // Dotted underline for the client signature (gap above the left
+      // name leaves room for a wet signature)
+      const lineY = y + 40;
+      doc.save();
+      doc.dash(1, { space: 2 });
+      doc.moveTo(rightColX, lineY)
          .lineTo(rightX, lineY)
          .stroke();
+      doc.undash();
+      doc.restore();
+
+      // Generating engineer's name with "Engr." title (no double prefix),
+      // baseline-aligned with the Conforme dotted line
+      let engineerName = (data.engineerName || '').trim() || 'Engineer Name';
+      if (engineerName !== 'Engineer Name' && !/^engr\.?\s/i.test(engineerName)) {
+         engineerName = `Engr. ${engineerName}`;
+      }
+      doc.fillColor(this.colors.black);
+      doc.font('Roboto')
+         .fontSize(9)
+         .text(engineerName, leftX, lineY - 8);
+
+      return y + 72;
    }
 
    _drawFooter(doc, data) {

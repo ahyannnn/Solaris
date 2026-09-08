@@ -1376,6 +1376,168 @@ body.dark-mode .project-status-badge-reports.approved {
 }
 
 /* ============================================
+   QUOTATIONS TAB - CARD GRID (preview top, details bottom)
+   Clickable cards redirect to quotation file in a new tab.
+   No PDF/Excel generation in this tab.
+   ============================================ */
+.quotation-search-reports {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.quotation-search-icon-reports {
+  position: absolute;
+  left: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.quotation-search-reports input {
+  width: 100%;
+  padding: 8px 14px 8px 34px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  transition: all 200ms ease;
+}
+
+.quotation-search-reports input:focus {
+  outline: none;
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.quotation-search-reports input::placeholder {
+  color: var(--text-muted);
+}
+
+.quotation-grid-reports {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.quotation-card-reports {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-medium);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.quotation-card-reports:hover,
+.quotation-card-reports:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--icon-color);
+  outline: none;
+}
+
+.quotation-card-reports:focus-visible {
+  box-shadow: var(--shadow-card-hover), 0 0 0 3px rgba(243, 156, 18, 0.25);
+}
+
+.quotation-card-reports.no-file {
+  cursor: pointer;
+}
+
+.quotation-preview-reports {
+  position: relative;
+  height: 220px;
+  background: var(--bg-section);
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.quotation-preview-reports iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  background: #FFFFFF;
+}
+
+.quotation-open-hint-reports {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(23, 33, 43, 0.82);
+  color: #FFFFFF;
+  pointer-events: none;
+}
+
+.quotation-source-reports {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--system-type-bg);
+  color: var(--system-type-text);
+  border: 1px solid var(--border-medium);
+  pointer-events: none;
+}
+
+.quotation-no-preview-reports {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.quotation-no-preview-icon-reports {
+  font-size: 40px;
+  color: var(--icon-color);
+  opacity: 0.8;
+}
+
+.quotation-body-reports {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+
+.quotation-name-reports {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--client-color);
+  overflow-wrap: anywhere;
+}
+
+.quotation-ref-reports {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ref-color);
+  overflow-wrap: anywhere;
+}
+
+/* ============================================
    REDUCED MOTION PREFERENCES
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -1385,7 +1547,8 @@ body.dark-mode .project-status-badge-reports.approved {
     transition-duration: 0.01ms !important;
   }
   .reports-table-reports tbody tr:hover,
-  .report-section-reports:hover {
+  .report-section-reports:hover,
+  .quotation-card-reports:hover {
     transform: none !important;
   }
   .skeleton-line-large-reports,

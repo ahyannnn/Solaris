@@ -403,8 +403,18 @@ exports.generateQuotationPDF = async (req, res) => {
     const calculatedInstallationTotal = installationCost || 0;
     const calculatedTotalCost = totalCost || 0;
 
+    // Resolve the generating engineer's display name for the PDF signatories block
+    let engineerName = 'Engineer Name';
+    try {
+      const engineer = await User.findById(engineerId).select('fullName email');
+      if (engineer) engineerName = engineer.fullName || engineer.email || 'Engineer Name';
+    } catch (e) {
+      // Fall back to the default placeholder
+    }
+
     // Prepare data for PDF with IoT metrics
     const pdfData = {
+      engineerName,
       bookingReference: assessment.bookingReference,
       clientName: `${assessment.clientId.contactFirstName} ${assessment.clientId.contactLastName}`,
       clientPhone: assessment.clientId.contactNumber,
@@ -717,8 +727,18 @@ exports.generateFreeQuotePDF = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    // Resolve the generating engineer's display name for the PDF signatories block
+    let engineerName = 'Engineer Name';
+    try {
+      const engineer = await User.findById(engineerId).select('fullName email');
+      if (engineer) engineerName = engineer.fullName || engineer.email || 'Engineer Name';
+    } catch (e) {
+      // Fall back to the default placeholder
+    }
+
     // Prepare data for PDF
     const pdfData = {
+      engineerName,
       quotationReference: quote.quotationReference,
       clientName: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
       clientPhone: quote.clientId.contactNumber,

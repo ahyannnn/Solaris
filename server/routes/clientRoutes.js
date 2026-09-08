@@ -11,6 +11,9 @@ router.put('/update', authMiddleware.verifyToken, clientController.updateClient)
 // Upload customer profile photo
 router.post('/me/photo', authMiddleware.verifyToken, avatarUploadHandler, clientController.uploadProfilePhoto);
 
+// Change own password (must confirm current password)
+router.put('/me/password', authMiddleware.verifyToken, clientController.changePassword);
+
 // Get client info (for checking account_setup)
 router.get('/me', authMiddleware.verifyToken, clientController.getClientInfo);
 

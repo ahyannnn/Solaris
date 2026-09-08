@@ -4,6 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import InfoTip from '../../components/InfoTip';
+import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/quotation.css';
 import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, FaChevronDown, FaSearch } from 'react-icons/fa';
 
@@ -1175,24 +1177,28 @@ const Quotation = () => {
     navigate('/app/customer/billing');
   };
 
+  // Customer-friendly statuses: Pending / Ongoing / For checking / Paid
   const getStatusBadge = (status) => {
-    const badges = {
-      'pending': <span className="billing-customer-status-badge pending">Pending</span>,
-      'pending_payment': <span className="billing-customer-status-badge pending">Pending</span>,
-      'paid': <span className="billing-customer-status-badge paid">Paid</span>,
-      'for_verification': <span className="billing-customer-status-badge for-verification">Verifying</span>,
-      'processing': <span className="billing-customer-status-badge processing">Processing</span>,
-      'quoted': <span className="billing-customer-status-badge quoted">Quoted</span>,
-      'completed': <span className="billing-customer-status-badge completed">Completed</span>,
-      'cancelled': <span className="billing-customer-status-badge cancelled">Cancelled</span>,
-      'refund_pending': <span className="billing-customer-status-badge for-verification">Refund Pending</span>,
-      'refunded': <span className="billing-customer-status-badge paid">Refunded</span>,
-      'no_refund': <span className="billing-customer-status-badge cancelled">No Refund</span>,
-      'failed': <span className="billing-customer-status-badge overdue">Failed</span>,
-      'overdue': <span className="billing-customer-status-badge overdue">Overdue</span>,
-      'partial': <span className="billing-customer-status-badge partial">Partial</span>
+    let label = getCustomerStatusLabel(status);
+    // In billing, "Done" reads better as "Paid"
+    if (label === 'Done') label = 'Paid';
+    const toneMap = {
+      'Pending': 'pending',
+      'Ongoing': 'processing',
+      'For checking': 'for-verification',
+      'Paid': 'paid'
     };
-    return badges[status] || <span className="billing-customer-status-badge">{status}</span>;
+    if (toneMap[label]) {
+      return <span className={`billing-customer-status-badge ${toneMap[label]}`}>{label}</span>;
+    }
+    const plainMap = {
+      'Cancelled': 'cancelled',
+      'Refunded': 'paid',
+      'Overdue': 'overdue',
+      'Partial': 'partial'
+    };
+    const cls = plainMap[label] || 'pending';
+    return <span className={`billing-customer-status-badge ${cls}`}>{label}</span>;
   };
 
   const formatCurrency = (amount) => {
@@ -1786,7 +1792,7 @@ const Quotation = () => {
             <div className="billing-customer-stat-sub">Completed</div>
           </div>
           <div className="billing-customer-stat-card">
-            <div className="billing-customer-stat-label">For Verification</div>
+            <div className="billing-customer-stat-label">For Verification <InfoTip position="below" text="We received your payment proof and our team is checking it. This usually takes 24–48 hours." /></div>
             <div className="billing-customer-stat-value">{stats.forVerificationItems}</div>
             <div className="billing-customer-stat-sub">Pending review</div>
           </div>
@@ -1931,10 +1937,6 @@ const Quotation = () => {
                           <div className="billing-customer-transaction-cell">
                             <div>
                               <div className="billing-customer-transaction-name">{item.description}</div>
-                              {!isPreAssessment && item.invoiceType && (
-                                <span className={`billing-customer-invoice-type-label ${item.invoiceType}`}>
-                                </span>
-                              )}
                             </div>
                           </div>
                         </td>
@@ -2109,7 +2111,7 @@ const Quotation = () => {
                                 )}
                               </div>
                             ) : (
-                              <span className="billing-customer-status-text">{item.status}</span>
+                              <span className="billing-customer-status-text">{getCustomerStatusLabel(item.status) === 'Done' ? 'Paid' : getCustomerStatusLabel(item.status)}</span>
                             )}
                           </div>
                         </td>
@@ -2336,7 +2338,7 @@ const Quotation = () => {
                         )}
                       </div>
                     ) : (
-                      <span className="billing-customer-status-text">{item.status}</span>
+                      <span className="billing-customer-status-text">{getCustomerStatusLabel(item.status) === 'Done' ? 'Paid' : getCustomerStatusLabel(item.status)}</span>
                     )}
                   </div>
                   {isVerifying && (
@@ -2414,6 +2416,17 @@ const Quotation = () => {
 
                 {paymentMethod === 'gcash' && (
                   <div className="billing-customer-payment-form">
+                    <div className="billing-customer-bank-transfer-notice">
+                      <small>
+                        <strong>Before you pay:</strong>
+                        <ul>
+                          <li>Send the payment in your GCash app first, then come back here</li>
+                          <li>Copy the <strong>13-digit reference number</strong> from your GCash receipt or SMS</li>
+                          <li>Upload a clear screenshot showing the amount and reference number</li>
+                          <li>We check payments within 24–48 hours</li>
+                        </ul>
+                      </small>
+                    </div>
                     <div className="billing-customer-gcash-details">
                       <h4>GCash Details</h4>
                       <p>Number: <strong>0917XXXXXXX</strong></p>
@@ -2583,6 +2596,17 @@ const Quotation = () => {
 
                 {paymentMethod === 'gcash' && (
                   <div className="billing-customer-payment-form">
+                    <div className="billing-customer-bank-transfer-notice">
+                      <small>
+                        <strong>Before you pay:</strong>
+                        <ul>
+                          <li>Send the payment in your GCash app first, then come back here</li>
+                          <li>Copy the <strong>13-digit reference number</strong> from your GCash receipt or SMS</li>
+                          <li>Upload a clear screenshot showing the amount and reference number</li>
+                          <li>We check payments within 24–48 hours</li>
+                        </ul>
+                      </small>
+                    </div>
                     <div className="billing-customer-gcash-details">
                       <h4>GCash Details</h4>
                       <p>Number: <strong>0917XXXXXXX</strong></p>

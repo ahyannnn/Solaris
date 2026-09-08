@@ -22,6 +22,8 @@ import {
   FaArrowRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import InfoTip from '../../components/InfoTip';
+import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/myproject.css';
 
 const MyProject = () => {
@@ -448,12 +450,12 @@ const MyProject = () => {
                   <p className="cuspro-project-ref">{selectedProject.projectReference}</p>
                 </div>
                 <div className={`cuspro-status-badge ${selectedProject.status}`}>
-                  {selectedProject.status?.replace('_', ' ').toUpperCase()}
+                  {getCustomerStatusLabel(selectedProject.status).toUpperCase()}
                 </div>
               </div>
               <div className="cuspro-hero-tags">
-                <span><FaSolarPanel /> {selectedProject.systemSize} kWp</span>
-                <span>{selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'}</span>
+                <span><FaSolarPanel /> {selectedProject.systemSize} kWp <InfoTip text="kWp is the size of your solar system. A bigger kWp means it can make more electricity for your home." /></span>
+                <span>{selectedProject.systemType === 'grid-tie' ? 'Grid-Tie' : selectedProject.systemType === 'hybrid' ? 'Hybrid' : 'Off-Grid'} <InfoTip text="Grid-Tie works with Meralco as backup. Hybrid adds batteries for brownouts. Off-Grid runs fully on solar and batteries." /></span>
                 <span><FaMapMarkerAlt /> {selectedProject.addressId?.barangay || 'Location TBD'}</span>
                 <span className="payment-plan-tag">{getPaymentTypeLabel(selectedProject.paymentPreference)}</span>
               </div>
@@ -523,13 +525,19 @@ const MyProject = () => {
                     </div>
                     <div className="cuspro-stat">
                       <span>Balance</span>
-                      <strong>{formatCurrency(selectedProject.balance)}</strong>
+                      <strong>{formatCurrency(Math.max(selectedProject.balance || 0, 0))}</strong>
                     </div>
                   </div>
+                  {selectedProject.balance < 0 && (
+                    <div className="cuspro-overpaid-note">
+                      You paid {formatCurrency(Math.abs(selectedProject.balance))} extra — it counts as advance payment.
+                    </div>
+                  )}
                   <div className="cuspro-payment-plan-info">
                     <span className="plan-label">Payment Plan:</span>
                     <span className="plan-name">{getPaymentTypeLabel(selectedProject.paymentPreference)}</span>
                     <span className="plan-detail">({getPaymentTypeDetails(selectedProject.paymentPreference)})</span>
+                    <InfoTip text="Downpayment starts the work. Progress is paid while we install. The last payment closes and hands over your project." />
                   </div>
                 </div>
 
@@ -593,9 +601,9 @@ const MyProject = () => {
                 <div className="cuspro-details-card">
                   <h3>System Details</h3>
                   <div className="cuspro-details-grid">
-                    <div className="cuspro-detail-item"><span>Panels Needed</span><strong>{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'TBD'}</strong></div>
-                    <div className="cuspro-detail-item"><span>Inverter Type</span><strong>{selectedProject.inverterType || 'Standard'}</strong></div>
-                    <div className="cuspro-detail-item"><span>Battery</span><strong>{selectedProject.batteryType || 'N/A'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Panels Needed <InfoTip text="The number of solar panels we will install on your roof." /></span><strong>{getPreAssessmentData(selectedProject)?.panelsNeeded || selectedProject.panelsNeeded || 'TBD'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Inverter Type <InfoTip text="The inverter turns the sun's power into electricity your home appliances can use." /></span><strong>{selectedProject.inverterType || 'Standard'}</strong></div>
+                    <div className="cuspro-detail-item"><span>Battery <InfoTip text="Batteries save extra solar power for night time or brownouts. N/A means your setup does not include one." /></span><strong>{selectedProject.batteryType || 'N/A'}</strong></div>
                     <div className="cuspro-detail-item"><span>Property</span><strong>{getPreAssessmentData(selectedProject)?.propertyType || 'Residential'}</strong></div>
                   </div>
                 </div>

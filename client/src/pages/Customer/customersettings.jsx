@@ -31,7 +31,10 @@ import {
   FaUserEdit,
   FaAddressCard,
   FaInfoCircle,
-  FaCamera
+  FaCamera,
+  FaLock,
+  FaEye,
+  FaEyeSlash
 } from 'react-icons/fa';
 import '../../styles/Customer/customersettings.css';
 
@@ -101,6 +104,12 @@ const CustomerSettings = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Change password states
+  const [pwdForm, setPwdForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwdErrors, setPwdErrors] = useState({});
+  const [pwdSaving, setPwdSaving] = useState(false);
+  const [showPwd, setShowPwd] = useState({ currentPassword: false, newPassword: false, confirmPassword: false });
 
   // Local preview for a newly picked photo (revoked on change/unmount)
   useEffect(() => {
@@ -401,6 +410,51 @@ const CustomerSettings = () => {
       showToast(err.response?.data?.message || 'Failed to update profile', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePwdChange = (e) => {
+    const { name, value } = e.target;
+    setPwdForm(prev => ({ ...prev, [name]: value }));
+    if (pwdErrors[name]) setPwdErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const changePassword = async () => {
+    const errors = {};
+    if (!pwdForm.currentPassword) errors.currentPassword = 'Current password is required';
+    if (!pwdForm.newPassword) {
+      errors.newPassword = 'New password is required';
+    } else if (pwdForm.newPassword.length < 8 || pwdForm.newPassword.length > 16) {
+      errors.newPassword = 'Must be 8-16 characters';
+    } else if (!/[A-Z]/.test(pwdForm.newPassword)) {
+      errors.newPassword = 'Must contain at least one uppercase letter';
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwdForm.newPassword)) {
+      errors.newPassword = 'Must contain at least one special character';
+    }
+    if (!pwdForm.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your new password';
+    } else if (pwdForm.confirmPassword !== pwdForm.newPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    if (Object.keys(errors).length > 0) {
+      setPwdErrors(errors);
+      return;
+    }
+    setPwdSaving(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/clients/me/password`,
+        { currentPassword: pwdForm.currentPassword, newPassword: pwdForm.newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPwdForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPwdErrors({});
+      showToast(res.data?.message || 'Password changed successfully', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to change password', 'error');
+    } finally {
+      setPwdSaving(false);
     }
   };
 
@@ -729,6 +783,62 @@ const CustomerSettings = () => {
           disabled={saving || !hasProfileChanges()}
         >
           {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+
+      {/* Change Password */}
+      <div className="cuset-form-container">
+        <div className="cuset-form-header">
+          <h3><FaLock /> Change Password</h3>
+          <button
+            className="cuset-btn-save"
+            onClick={changePassword}
+            disabled={pwdSaving || !pwdForm.currentPassword || !pwdForm.newPassword || !pwdForm.confirmPassword}
+          >
+            <FaSave /> {pwdSaving ? 'Updating...' : 'Update Password'}
+          </button>
+        </div>
+
+        <div className="cuset-form">
+          {[
+            { name: 'currentPassword', label: 'Current Password' },
+            { name: 'newPassword', label: 'New Password' },
+            { name: 'confirmPassword', label: 'Confirm New Password' }
+          ].map((field) => (
+            <div className="cuset-form-field" key={field.name}>
+              <label>{field.label} <span className="cuset-required">*</span></label>
+              <div className="cuset-password-wrap">
+                <input
+                  type={showPwd[field.name] ? 'text' : 'password'}
+                  name={field.name}
+                  value={pwdForm[field.name]}
+                  onChange={handlePwdChange}
+                  placeholder={`Enter ${field.label.toLowerCase()}`}
+                  className={pwdErrors[field.name] ? 'error' : ''}
+                  autoComplete={field.name === 'currentPassword' ? 'current-password' : 'new-password'}
+                />
+                <button
+                  type="button"
+                  className="cuset-password-toggle"
+                  onClick={() => setShowPwd(prev => ({ ...prev, [field.name]: !prev[field.name] }))}
+                  aria-label={showPwd[field.name] ? 'Hide password' : 'Show password'}
+                >
+                  {showPwd[field.name] ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {pwdErrors[field.name] && <span className="cuset-error-text">{pwdErrors[field.name]}</span>}
+            </div>
+          ))}
+          <small className="cuset-email-note">8-16 characters, at least one uppercase letter and one special character.</small>
+        </div>
+
+        {/* Mobile-only bottom update (mirrors mobile app) */}
+        <button
+          className="cuset-btn-save-bottom"
+          onClick={changePassword}
+          disabled={pwdSaving || !pwdForm.currentPassword || !pwdForm.newPassword || !pwdForm.confirmPassword}
+        >
+          {pwdSaving ? 'Updating...' : 'Update Password'}
         </button>
       </div>
     </div>

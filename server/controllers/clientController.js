@@ -3,6 +3,7 @@ const Client = require('../models/Clients');
 const Address = require('../models/Address');
 const User = require('../models/Users');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { processUpload, getFileUrl } = require('../middleware/uploadMiddleware');
 
 // Update client info (personal info only - address handled separately)
@@ -349,6 +350,54 @@ exports.setPrimaryAddress = async (req, res) => {
     });
   } catch (error) {
     console.error('Set primary address error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Change own password (logged-in customer — must confirm current password)
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.passwordHash) {
+      return res.status(400).json({ message: 'This account uses Google sign-in. Use Forgot Password instead.' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    if (newPassword.length < 8 || newPassword.length > 16) {
+      return res.status(400).json({ message: 'New password must be 8-16 characters' });
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.status(400).json({ message: 'New password must contain at least one uppercase letter' });
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({ message: 'New password must contain at least one special character' });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ message: 'New password must be different from the current one' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

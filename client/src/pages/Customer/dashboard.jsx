@@ -5,10 +5,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   FaCalendarAlt, FaProjectDiagram, FaFileInvoiceDollar, FaHeadset,
-  FaClock, FaMapMarkerAlt, FaChevronRight, FaCheckCircle, FaCircle,
+  FaClock, FaMapMarkerAlt, FaChevronRight,
   FaExclamationTriangle, FaBell, FaArrowRight, FaSolarPanel
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import InfoTip from '../../components/InfoTip';
+import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/dashboard.css';
 
 const Dashboard = () => {
@@ -23,6 +25,7 @@ const Dashboard = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [projectsList, setProjectsList] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
+  const [estimatedSavings, setEstimatedSavings] = useState(null);
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -70,6 +73,23 @@ const Dashboard = () => {
 
       // Set assessments
       const assessments = preAssessmentsRes.data.assessments || [];
+
+      // Estimated monthly savings from the project's assessment figures
+      const paData = recentProject?.preAssessmentId && typeof recentProject.preAssessmentId === 'object'
+        ? recentProject.preAssessmentId
+        : null;
+      let savingsBill = paData?.monthlyBill;
+      let savingsTarget = paData?.targetSavings;
+      if ((!savingsBill || !savingsTarget) && assessments.length > 0) {
+        const withData = [...assessments]
+          .sort((a, b) => new Date(b.bookedAt) - new Date(a.bookedAt))
+          .find((a) => a.monthlyBill && a.targetSavings);
+        savingsBill = savingsBill || withData?.monthlyBill;
+        savingsTarget = savingsTarget || withData?.targetSavings;
+      }
+      setEstimatedSavings(
+        savingsBill && savingsTarget ? Math.round((savingsBill * savingsTarget) / 100) : null
+      );
 
       // Set invoices
       const invoices = invoicesRes.data.invoices || [];
@@ -159,19 +179,29 @@ const Dashboard = () => {
 
   const getProjectProgress = () => {
     if (!project || project.totalCost === 0) return 0;
-    return Math.round((project.amountPaid / project.totalCost) * 100);
+    return Math.min(100, Math.round((project.amountPaid / project.totalCost) * 100));
   };
 
+  // Customer-friendly statuses: Pending / Ongoing / For checking / Done
   const getStatusBadge = (status) => {
-    const map = {
-      'pending': 'pending', 'pending_payment': 'pending', 'paid': 'paid',
-      'for_verification': 'verifying', 'processing': 'processing',
-      'quoted': 'quoted', 'approved': 'approved', 'in_progress': 'in-progress',
-      'completed': 'completed', 'scheduled': 'scheduled',
-      'overdue': 'overdue', 'partial': 'partial'
+    const label = getCustomerStatusLabel(status);
+    const toneMap = {
+      'Pending': 'pending',
+      'Ongoing': 'in-progress',
+      'For checking': 'verifying',
+      'Done': 'paid'
     };
-    const cls = map[status] || status;
-    return <span className={`status-badge-cusdash ${cls}`}>{cls.charAt(0).toUpperCase() + cls.slice(1).replace('-', ' ')}</span>;
+    if (toneMap[label]) {
+      return <span className={`status-badge-cusdash ${toneMap[label]}`}>{label}</span>;
+    }
+    const plainMap = {
+      'Cancelled': 'cancelled',
+      'Refunded': 'paid',
+      'Overdue': 'overdue',
+      'Partial': 'partial'
+    };
+    const cls = plainMap[label] || 'pending';
+    return <span className={`status-badge-cusdash ${cls}`}>{label}</span>;
   };
 
   const ProgressRing = ({ progress }) => {
@@ -365,8 +395,20 @@ const Dashboard = () => {
                     </div>
                     <div className="project-metric-cusdash">
                       <span className="metric-label-cusdash">Balance</span>
-                      <span className="metric-value-cusdash">{formatCurrency(project.balance)}</span>
+                      <span className="metric-value-cusdash">{formatCurrency(Math.max(project.balance || 0, 0))}</span>
                     </div>
+                    {project.balance < 0 && (
+                      <div className="project-overpaid-note-cusdash">
+                        You paid {formatCurrency(Math.abs(project.balance))} extra — it counts as advance payment.
+                      </div>
+                    )}
+                    {estimatedSavings > 0 && (
+                      <div className="project-savings-line-cusdash">
+                        <FaSolarPanel className="savings-icon-cusdash" />
+                        <span>Est. savings: <strong>{formatCurrency(estimatedSavings)}/mo</strong></span>
+                        <InfoTip text="Based on your monthly electric bill and the savings target from your assessment. Your actual savings depend on sunlight and usage." />
+                      </div>
+                    )}
                     <div className="project-actions-cusdash">
                       <Link to="/app/customer/project" className="action-link-cusdash">
                         View Full Details <FaChevronRight className="action-arrow-cusdash" />

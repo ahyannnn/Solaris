@@ -766,8 +766,8 @@ const Dashboard = () => {
           isDropdown: false,
           items: [
             { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
-            { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaCalendarAlt />, label: 'Book Assessment', shortLabel: 'Book', path: '/app/customer/book-assessment' },
+            { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaReceipt />, label: 'Billing', path: '/app/customer/billing' },
           ]
         },

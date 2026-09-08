@@ -548,6 +548,10 @@ html {
   transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .comparison-card-land::before {
@@ -603,6 +607,7 @@ html {
   padding: 0;
   margin: 32px 0;
   text-align: left;
+  flex: 1;
 }
 
 .feature-list-land li {
@@ -628,6 +633,16 @@ html {
   color: rgba(26, 42, 62, 0.6);
   margin: 24px 0;
   font-style: italic;
+}
+
+.comparison-card-land .btn-outline-land,
+.comparison-card-land .btn-primary-land {
+  margin-top: auto;
+  align-self: center;
+}
+
+.comparison-card-land .card-badge-land {
+  align-self: center;
 }
 
 /* ============================================== ESTIMATOR SECTION ============================================== */

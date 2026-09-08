@@ -632,6 +632,29 @@ const Supports = () => {
                 <p>Sun: Closed</p>
               </div>
             </div>
+
+            <div className="cusup-map-wrap">
+              <div className="cusup-map-header">
+                <FaMapMarkerAlt />
+                <h3>Find Us</h3>
+              </div>
+              <iframe
+                title="Salfer Engineering office location"
+                src="https://www.google.com/maps?q=San%20Nicolas%20St.%20Bunsuran%203rd%2C%20Pandi%2C%20Bulacan&output=embed"
+                className="cusup-map-frame"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+              <a
+                className="cusup-map-directions"
+                href="https://www.google.com/maps/dir/?api=1&destination=San+Nicolas+St.+Bunsuran+3rd,+Pandi,+Bulacan"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get Directions
+              </a>
+            </div>
           </div>
         );
 
@@ -783,27 +806,13 @@ const Supports = () => {
                   );
                 })}
               </div>
+              {activeBlock && (
+                <small className="cusup-field-hint warn">
+                  You already have an active “{activeBlock.serviceType}” request ({activeBlock.referenceNo} – {activeBlock.status}). New booking unlocks after completed or cancelled.
+                </small>
+              )}
 
               <form onSubmit={handleServiceSubmit} className="cusup-contact-form" style={{ marginTop: '1rem' }} noValidate>
-                <div className="cusup-form-group">
-                  <label>Service to avail *</label>
-                  <select
-                    name="serviceType"
-                    value={serviceForm.serviceType}
-                    onChange={handleServiceInputChange}
-                    required
-                  >
-                    <option value="">Select a service...</option>
-                    {SERVICE_OPTIONS.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                  {activeBlock && (
-                    <small className="cusup-field-hint warn">
-                      You already have an active “{activeBlock.serviceType}” request ({activeBlock.referenceNo} – {activeBlock.status}). New booking unlocks after completed or cancelled.
-                    </small>
-                  )}
-                </div>
 
                 <div className="cusup-form-row">
                   <div className="cusup-form-group">

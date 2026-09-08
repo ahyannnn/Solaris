@@ -443,6 +443,33 @@ body.dark-mode {
   cursor: not-allowed;
 }
 
+.cuset-password-wrap {
+  position: relative;
+}
+
+.cuset-password-wrap input {
+  padding-right: 2.5rem;
+}
+
+.cuset-password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.cuset-password-toggle:hover {
+  color: var(--text-primary);
+}
+
 .cuset-form-field select option {
   background: var(--bg-select-option);
   color: var(--text-select-option);

@@ -638,22 +638,48 @@ const Supports = () => {
                 <FaMapMarkerAlt />
                 <h3>Find Us</h3>
               </div>
-              <iframe
-                title="Salfer Engineering office location"
-                src="https://www.google.com/maps?q=San%20Nicolas%20St.%20Bunsuran%203rd%2C%20Pandi%2C%20Bulacan&output=embed"
-                className="cusup-map-frame"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-              <a
-                className="cusup-map-directions"
-                href="https://www.google.com/maps/dir/?api=1&destination=San+Nicolas+St.+Bunsuran+3rd,+Pandi,+Bulacan"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get Directions
-              </a>
+              <div className="cusup-map-grid">
+                <div className="cusup-map-cell">
+                  <p className="cusup-map-label">Map</p>
+                  <iframe
+                    title="Salfer Engineering office map"
+                    src="https://maps.google.com/maps?q=14.8654406,120.9285809&z=18&output=embed"
+                    className="cusup-map-frame"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="cusup-map-cell">
+                  <p className="cusup-map-label">Street View</p>
+                  <iframe
+                    title="Salfer Engineering office street view"
+                    src="https://www.google.com/maps?q=&layer=c&cbll=14.8654406,120.9285809&cbp=11,182.35,,0,5&output=svembed"
+                    className="cusup-map-frame"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+              <div className="cusup-map-links">
+                <a
+                  className="cusup-map-directions"
+                  href="https://maps.app.goo.gl/hmyirS9YGBP2QX2X9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Maps
+                </a>
+                <a
+                  className="cusup-map-directions"
+                  href="https://www.google.com/maps/dir/?api=1&destination=14.8654406,120.9285809"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get Directions
+                </a>
+              </div>
             </div>
           </div>
         );

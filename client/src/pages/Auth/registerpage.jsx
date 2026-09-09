@@ -568,7 +568,7 @@ const RegisterPage = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      const parsedName = parseGoogleName(user.displayName);
+      const parsedName = parseGoogleName(user.displayName, result.additionalUserInfo?.profile);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
         method: "POST",
@@ -618,7 +618,16 @@ const RegisterPage = () => {
     }
   };
 
-  const parseGoogleName = (displayName) => {
+  const parseGoogleName = (displayName, profile) => {
+    // Google already knows the real first/last split (given_name/family_name
+    // handle 2-word first or last names). Split of displayName is fallback only.
+    // Middle name is dropped by design.
+    const given = (profile?.given_name || '').trim();
+    const family = (profile?.family_name || '').trim();
+    if (given || family) {
+      return { firstName: given, middleName: '', lastName: family };
+    }
+
     if (!displayName) return { firstName: '', middleName: '', lastName: '' };
 
     const parts = displayName.trim().split(/\s+/);
@@ -627,11 +636,8 @@ const RegisterPage = () => {
     if (parts.length === 1) return { firstName: parts[0], middleName: '', lastName: '' };
     if (parts.length === 2) return { firstName: parts[0], middleName: '', lastName: parts[1] };
 
-    const firstName = parts[0];
-    const lastName = parts[parts.length - 1];
-    const middleName = parts.slice(1, -1).join(' ');
-
-    return { firstName, middleName, lastName };
+    // 3+ parts: first + last only, middle name dropped by design.
+    return { firstName: parts[0], middleName: '', lastName: parts[parts.length - 1] };
   };
 
   const handleBackToLogin = () => {

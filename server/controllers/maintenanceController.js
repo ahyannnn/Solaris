@@ -3,6 +3,12 @@ const Maintenance = require('../models/Maintenance');
 const SystemConfig = require('../models/SystemConfig');
 const MaintenanceTask = require('../models/MaintenanceTask');
 const AuditLog = require('../models/AuditLog');
+const PreAssessment = require('../models/PreAssessment');
+const FreeQuote = require('../models/FreeQuote');
+const SolarInvoice = require('../models/SolarInvoice');
+const BankTransferPayment = require('../models/BankTransferPayment');
+const Project = require('../models/Project');
+const axios = require('axios');
 
 // Helper function to generate task ID
 const generateTaskId = () => {
@@ -383,6 +389,171 @@ exports.getPublicAssessmentFee = async (req, res) => {
   } catch (error) {
     console.error('Get public assessment fee error:', error);
     res.json({ success: true, assessmentFee: 1500 });
+  }
+};
+
+// Short in-memory cache so repeated admin views don't spam the Brevo API
+let emailQuotaCache = { data: null, fetchedAt: 0 };
+const EMAIL_QUOTA_CACHE_MS = 5 * 60 * 1000;
+const BREVO_FREE_DAILY_LIMIT = 300;
+
+// @desc    Get remaining Brevo email quota for today (free plan: 300/day, resets daily)
+// @route   GET /api/maintenance/email-quota
+// @access  Private (Admin)
+exports.getEmailQuota = async (req, res) => {
+  try {
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        message: 'BREVO_API_KEY is not configured on the server'
+      });
+    }
+
+    const now = Date.now();
+    if (emailQuotaCache.data && (now - emailQuotaCache.fetchedAt) < EMAIL_QUOTA_CACHE_MS) {
+      return res.json({ success: true, cached: true, ...emailQuotaCache.data });
+    }
+
+    const response = await axios.get('https://api.brevo.com/v3/account', {
+      headers: { 'api-key': process.env.BREVO_API_KEY },
+      timeout: 10000
+    });
+
+    const plans = response.data?.plan || [];
+    // Prefer the free plan entry; fall back to any sendLimit entry
+    const planEntry = plans.find(p => p.type === 'free' && p.creditsType === 'sendLimit')
+      || plans.find(p => p.creditsType === 'sendLimit');
+
+    if (!planEntry || planEntry.credits == null) {
+      return res.status(503).json({
+        success: false,
+        message: 'Brevo did not return quota info for this account'
+      });
+    }
+
+    const remaining = Math.max(0, Math.floor(Number(planEntry.credits)));
+    const result = {
+      remaining,
+      used: Math.max(0, BREVO_FREE_DAILY_LIMIT - remaining),
+      dailyLimit: BREVO_FREE_DAILY_LIMIT,
+      plan: planEntry.type || 'free',
+      resetsDaily: true
+    };
+
+    emailQuotaCache = { data: result, fetchedAt: now };
+    res.json({ success: true, cached: false, ...result });
+  } catch (error) {
+    const brevoMsg = error.response?.data?.message;
+    console.error('Get Brevo email quota error:', brevoMsg || error.message);
+    res.status(503).json({
+      success: false,
+      message: brevoMsg || 'Failed to reach Brevo API'
+    });
+  }
+};
+
+// @desc    Count items waiting on admin action (sidebar badges for
+//          Site Assessments + Billing). View-only states (details, receipts,
+//          auto-verified, completed, customer-pending invoices, etc.) excluded.
+// @route   GET /api/maintenance/action-counts
+// @access  Private (Admin)
+exports.getActionCounts = async (req, res) => {
+  try {
+    const [
+      preAssessments,
+      freeQuotesPending,
+      billingVerifyPre,
+      invoicesToSend,
+      invoicesToVerify,
+      bankWaiting,
+      projApprove,
+      projAssign,
+      projRecordProgress,
+      projComplete
+    ] = await Promise.all([
+      PreAssessment.countDocuments({
+        $or: [
+          // 1. Approve / Reject Booking
+          { assessmentStatus: 'pending_review' },
+          // 2. Verify Cash Payment
+          { paymentMethod: 'cash', paymentStatus: 'pending' },
+          // 3. Verify GCash Payment (manual proof, not yet auto-verified)
+          {
+            paymentMethod: 'gcash',
+            paymentStatus: 'for_verification',
+            paymentGateway: { $in: [null, ''] }
+          },
+          // 4. Assign Engineer & Device (null matches missing field too)
+          {
+            paymentStatus: 'paid',
+            assessmentStatus: 'scheduled',
+            assignedEngineerId: null
+          },
+          // 5. Process Refund
+          {
+            assessmentStatus: 'cancelled',
+            'cancellation.refundStatus': { $in: ['pending', 'processing'] }
+          }
+        ]
+      }),
+      // 6. Free quotes waiting for engineer assignment (no owner yet)
+      FreeQuote.countDocuments({ status: 'pending' }),
+      // 7. Billing: pre-assessments with payment to verify (either page can act;
+      //    counted in both badges, both clear on verify). Cancelled/refund-flow
+      //    bookings are never payable again, so they are excluded.
+      PreAssessment.countDocuments({
+        assessmentStatus: { $ne: 'cancelled' },
+        paymentStatus: { $nin: ['cancelled', 'refund_pending', 'refunded', 'no_refund'] },
+        $or: [
+          { paymentMethod: 'gcash', paymentStatus: 'for_verification' },
+          { paymentMethod: 'cash', paymentStatus: 'for_verification' }
+        ]
+      }),
+      // 8. Billing: draft invoices waiting to be sent to customer
+      SolarInvoice.countDocuments({ status: 'draft' }),
+      // 9. Billing: invoices with payment to verify/reject
+      SolarInvoice.countDocuments({ paymentStatus: 'for_verification' }),
+      // 10. Billing: bank transfers waiting for approve/reject
+      BankTransferPayment.countDocuments({ status: 'waiting_verification' }),
+      // 11. Projects: quoted waiting for approval (cancelled excluded)
+      Project.countDocuments({ status: 'quoted' }),
+      // 12. Projects: approved/initial_paid with no engineer yet
+      Project.countDocuments({
+        status: { $in: ['approved', 'initial_paid'] },
+        assignedEngineerId: null
+      }),
+      // 13. Projects: initial_paid waiting for progress payment recording
+      Project.countDocuments({ status: 'initial_paid' }),
+      // 14. Projects: in_progress waiting to be marked completed
+      Project.countDocuments({ status: 'in_progress' })
+    ]);
+
+    const billingTotal = billingVerifyPre + invoicesToSend + invoicesToVerify + bankWaiting;
+    const projectsTotal = projApprove + projAssign + projRecordProgress + projComplete;
+
+    res.json({
+      success: true,
+      preAssessments,
+      freeQuotesPending,
+      total: preAssessments + freeQuotesPending,
+      billing: {
+        verifyPreAssessments: billingVerifyPre,
+        invoicesToSend,
+        invoicesToVerify,
+        bankTransfers: bankWaiting,
+        total: billingTotal
+      },
+      projects: {
+        approve: projApprove,
+        assignEngineer: projAssign,
+        recordProgress: projRecordProgress,
+        toComplete: projComplete,
+        total: projectsTotal
+      }
+    });
+  } catch (error) {
+    console.error('Get action counts error:', error);
+    res.status(500).json({ message: 'Failed to fetch action counts', error: error.message });
   }
 };
 

@@ -38,7 +38,7 @@ import '../../styles/Admin/billing.css';
 
 // Recharts Imports
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 
 const AdminBilling = () => {
@@ -92,6 +92,7 @@ const AdminBilling = () => {
   const [selectedBankTransfer, setSelectedBankTransfer] = useState(null);
   const [showBankTransferDetailModal, setShowBankTransferDetailModal] = useState(false);
   const [showBankRejectModal, setShowBankRejectModal] = useState(false);
+  const [showBankApproveModal, setShowBankApproveModal] = useState(false);
   const [bankRejectionReason, setBankRejectionReason] = useState('');
   const [bankTransferFilter, setBankTransferFilter] = useState('all');
   const [bankTransferSearch, setBankTransferSearch] = useState('');
@@ -109,7 +110,7 @@ const AdminBilling = () => {
   const [transactionTotalItems, setTransactionTotalItems] = useState(0);
 
   // CHART DATA STATES
-  const [paymentMethodChartData, setPaymentMethodChartData] = useState([]);
+  const [revenueTrendData, setRevenueTrendData] = useState([]);
   const [revenueChartData, setRevenueChartData] = useState([]);
 
   // Filter and pagination
@@ -392,8 +393,6 @@ const AdminBilling = () => {
   };
 
   const handleApproveBankTransfer = async (paymentId) => {
-    if (!window.confirm('Are you sure you want to approve this bank transfer payment?')) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -408,7 +407,9 @@ const AdminBilling = () => {
         fetchBankTransfers();
         fetchBankTransferStats();
         fetchStats();
+        setShowBankApproveModal(false);
         setShowBankTransferDetailModal(false);
+        setSelectedBankTransfer(null);
       }
     } catch (error) {
       console.error('Error approving bank transfer:', error);
@@ -612,19 +613,7 @@ const AdminBilling = () => {
         projectPayments: projectPayments
       });
 
-      // --- PROCESS CHART DATA (Payment Method Distribution - COUNTS) ---
-      let cashCount = 0;
-      let gcashCount = 0;
-      let bankCount = 0;
-      let paymongoCount = 0;
-
-      assessments.forEach(a => {
-        if (a.assessmentStatus === 'cancelled') return;
-        if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') cashCount++;
-        else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') gcashCount++;
-        else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') paymongoCount++;
-      });
-
+      // --- FETCH VERIFIED BANK TRANSFERS (used by revenue + trend charts) ---
       const bankTransfersRes = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -632,14 +621,6 @@ const AdminBilling = () => {
 
       const bankTransfersData = bankTransfersRes.data.data || [];
       const verifiedBankTransfers = bankTransfersData.filter(bt => bt.status === 'verified');
-      bankCount = verifiedBankTransfers.length;
-
-      setPaymentMethodChartData([
-        { name: 'Cash', count: cashCount },
-        { name: 'GCash', count: gcashCount },
-        { name: 'Bank Transfer', count: bankCount },
-        { name: 'PayMongo', count: paymongoCount }
-      ]);
 
       // --- PROCESS REVENUE CHART DATA (Revenue by Payment Method - AMOUNTS) ---
       let cashRevenue = 0;
@@ -699,6 +680,59 @@ const AdminBilling = () => {
         { name: 'Bank Transfer', revenue: bankRevenue },
         { name: 'PayMongo', revenue: paymongoRevenue }
       ]);
+
+      // --- MONTHLY COLLECTION TREND (Collected vs Pending, last 6 months) ---
+      // Collected = money received in that month. Pending = still-outstanding
+      // amounts from items created in that month (mirrors the pendingAmount
+      // definition above: no cancelled / refund-flow / draft).
+      const trendBuckets = [];
+      const trendKeys = [];
+      const trendNow = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(trendNow.getFullYear(), trendNow.getMonth() - i, 1);
+        trendKeys.push(`${d.getFullYear()}-${d.getMonth()}`);
+        trendBuckets.push({ name: d.toLocaleString('en-US', { month: 'short' }), collected: 0, pending: 0 });
+      }
+      const trendIndex = (dateVal) => {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return -1;
+        return trendKeys.indexOf(`${d.getFullYear()}-${d.getMonth()}`);
+      };
+      const addTrend = (dateVal, field, amount) => {
+        const idx = trendIndex(dateVal);
+        if (idx >= 0 && amount > 0) trendBuckets[idx][field] += amount;
+      };
+
+      const isDeadFlow = (a) =>
+        a.assessmentStatus === 'cancelled' ||
+        ['cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a.paymentStatus);
+
+      assessments.forEach(a => {
+        if (isDeadFlow(a)) return;
+        if (a.paymentStatus === 'paid') {
+          addTrend(a.paymentCompletedAt || a.confirmedAt || a.bookedAt, 'collected', a.assessmentFee || 0);
+        } else if (a.paymentStatus === 'pending' || a.paymentStatus === 'for_verification') {
+          addTrend(a.bookedAt, 'pending', a.assessmentFee || 0);
+        }
+      });
+
+      verifiedBankTransfers.forEach(bt => {
+        addTrend(bt.verifiedAt || bt.updatedAt || bt.createdAt, 'collected', bt.amount || 0);
+      });
+
+      solarInvoices.forEach(invoice => {
+        if (invoice.status === 'cancelled') return;
+        (invoice.payments || []).forEach(p => {
+          if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
+            addTrend(p.date || invoice.createdAt, 'collected', p.amount || 0);
+          }
+        });
+        if ((invoice.balance || 0) > 0 && ['pending', 'partial', 'for_verification', 'overdue'].includes(invoice.paymentStatus)) {
+          addTrend(invoice.createdAt, 'pending', invoice.balance || 0);
+        }
+      });
+
+      setRevenueTrendData(trendBuckets);
 
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -1286,7 +1320,7 @@ const AdminBilling = () => {
       actions.push(
         {
           label: 'Approve Payment',
-          action: () => { handleApproveBankTransfer(payment._id); setOpenDropdownId(null); },
+          action: () => { setSelectedBankTransfer(payment); setShowBankApproveModal(true); setOpenDropdownId(null); },
           color: 'success'
         },
         {
@@ -1340,14 +1374,16 @@ const AdminBilling = () => {
   };
 
   // ============ CUSTOM TOOLTIPS - Uses CSS variables for theming ============
-  const PaymentTooltip = ({ active, payload, label }) => {
+  const TrendTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="chart-tooltip-adminbilling">
           <p className="tooltip-label-adminbilling">{label}</p>
-          <p className="tooltip-item-adminbilling">
-            Count: {payload[0].value}
-          </p>
+          {payload.map((entry) => (
+            <p key={entry.dataKey} className="tooltip-item-adminbilling">
+              {entry.dataKey === 'collected' ? 'Collected' : 'Pending'}: {formatCurrency(entry.value)}
+            </p>
+          ))}
         </div>
       );
     }
@@ -1411,22 +1447,26 @@ const AdminBilling = () => {
         {/* ============================================ */}
         <div className="billing-charts-row-adminbilling">
 
-          {/* CHART 1: Payment Method Distribution */}
+          {/* CHART 1: Monthly Collection Trend */}
           <div className="billing-chart-card-adminbilling">
             <div className="billing-chart-header-adminbilling">
-              <h3>Payment Method Distribution</h3>
-              <span className="billing-chart-period-adminbilling">Paid Transactions</span>
+              <h3>Collection Trend</h3>
+              <span className="billing-chart-period-adminbilling">Collected vs Pending • Last 6 Months</span>
             </div>
             <div className="billing-chart-wrapper-adminbilling">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={paymentMethodChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={revenueTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorPayment" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
+                    <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color, #EEF0ED)" />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
@@ -1438,12 +1478,24 @@ const AdminBilling = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
-                    width={40}
-                    allowDecimals={false}
+                    width={65}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000) return `₱${(value / 1000000).toFixed(1)}M`;
+                      if (value >= 1000) return `₱${(value / 1000).toFixed(0)}k`;
+                      return `₱${value}`;
+                    }}
                   />
-                  <Tooltip content={<PaymentTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                  <Bar dataKey="count" fill="url(#colorPayment)" radius={[4, 4, 0, 0]} barSize={45} />
-                </BarChart>
+                  <Tooltip content={<TrendTooltip />} cursor={{ stroke: 'var(--border-color, #EEF0ED)' }} />
+                  <Legend
+                    formatter={(value) => (
+                      <span style={{ color: 'var(--text-secondary, #17212B)', fontSize: 12 }}>
+                        {value === 'collected' ? 'Collected' : 'Pending'}
+                      </span>
+                    )}
+                  />
+                  <Area type="monotone" dataKey="collected" stroke="#10B981" strokeWidth={2} fill="url(#colorCollected)" />
+                  <Area type="monotone" dataKey="pending" stroke="#F59E0B" strokeWidth={2} fill="url(#colorPending)" />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -2510,7 +2562,7 @@ const AdminBilling = () => {
                     <button className="btn-reject-adminbilling" onClick={() => setShowBankRejectModal(true)} disabled={isSubmitting}>
                       Reject
                     </button>
-                    <button className="btn-approve-adminbilling" onClick={() => handleApproveBankTransfer(selectedBankTransfer._id)} disabled={isSubmitting}>
+                    <button className="btn-approve-adminbilling" onClick={() => setShowBankApproveModal(true)} disabled={isSubmitting}>
                       {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : <FaCheckCircle />}
                       Approve Payment
                     </button>
@@ -2560,6 +2612,39 @@ const AdminBilling = () => {
                 <button className="btn-reject-confirm-adminbilling" onClick={handleRejectBankTransfer} disabled={isSubmitting || !bankRejectionReason.trim()}>
                   {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : <FaTimes />}
                   Confirm Rejection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bank Transfer Approve Modal */}
+        {showBankApproveModal && selectedBankTransfer && (
+          <div className="modal-overlay-adminbilling" onClick={() => setShowBankApproveModal(false)}>
+            <div className="modal-content-adminbilling reject-modal-adminbilling" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminbilling">
+                <h3>Approve Bank Transfer Payment</h3>
+                <button className="modal-close-adminbilling" onClick={() => setShowBankApproveModal(false)}><FaTimes /></button>
+              </div>
+
+              <div className="modal-body-adminbilling">
+                <div className="reject-info-adminbilling">
+                  <FaCheckCircle className="success-icon-adminbilling" />
+                  <p>You are about to approve this bank transfer payment. A receipt will be generated automatically.</p>
+                  <div className="payment-summary-adminbilling">
+                    <div><strong>Customer:</strong> {selectedBankTransfer.clientId?.contactFirstName} {selectedBankTransfer.clientId?.contactLastName}</div>
+                    <div><strong>Invoice:</strong> {selectedBankTransfer.invoiceId?.invoiceNumber}</div>
+                    <div><strong>Amount:</strong> {formatCurrency(selectedBankTransfer.amount)}</div>
+                    <div><strong>Bank:</strong> {selectedBankTransfer.bankName}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowBankApproveModal(false)}>Cancel</button>
+                <button className="btn-approve-adminbilling" onClick={() => handleApproveBankTransfer(selectedBankTransfer._id)} disabled={isSubmitting}>
+                  {isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : <FaCheckCircle />}
+                  Confirm Approval
                 </button>
               </div>
             </div>

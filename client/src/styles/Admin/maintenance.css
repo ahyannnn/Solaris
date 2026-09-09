@@ -195,10 +195,8 @@ body.dark-mode {
   align-items: center;
   justify-content: space-between;
   padding: 0;
-  border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
   flex-wrap: wrap;
-  transition: border-color 0.3s ease;
 }
 
 /* ============================================
@@ -278,6 +276,8 @@ body.dark-mode {
   color: var(--text-primary);
   margin: 0 0 4px 0;
   transition: color 0.3s ease;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .toggle-info-admain p {
@@ -285,6 +285,8 @@ body.dark-mode {
   color: var(--text-muted);
   margin: 0;
   transition: color 0.3s ease;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .active-badge-admain {
@@ -925,6 +927,8 @@ body.dark-mode {
   font-family: 'Poppins', sans-serif;
   transition: all 200ms ease;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group-admain input:focus,
@@ -1298,15 +1302,29 @@ body.dark-mode {
     flex-wrap: nowrap;
     overflow-x: auto;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 4px;
     gap: 4px;
     -webkit-overflow-scrolling: touch;
     border-radius: 8px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    /* fade on the right edge to signal more tabs are scrollable */
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  }
+  .main-tabs-admain::-webkit-scrollbar {
+    display: none;
   }
   .main-tab-btn-admain {
     padding: 8px 14px;
     font-size: 12px;
     white-space: nowrap;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .main-tab-btn-admain .tab-icon-admain {
     flex-shrink: 0;
   }
   .toggle-card-admain {
@@ -1455,6 +1473,9 @@ body.dark-mode {
   .main-tab-btn-admain {
     padding: 6px 10px;
     font-size: 11px;
+  }
+  .main-tab-btn-admain .tab-icon-admain {
+    display: none;
   }
   .subtab-btn-admain {
     padding: 6px 8px;
@@ -1615,6 +1636,30 @@ body.dark-mode {
   background: var(--icon-danger);
   box-shadow: 0 0 6px var(--icon-danger);
 }
+.health-dot-admain.warn-admain {
+  background: var(--icon-warning);
+  box-shadow: 0 0 6px var(--icon-warning);
+}
+.health-bar-admain {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.health-fill-admain {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--icon-success);
+  transition: width 0.4s ease;
+}
+.health-fill-admain.warning-admain {
+  background: var(--icon-warning);
+}
+.health-fill-admain.critical-admain {
+  background: var(--icon-danger);
+}
 .health-desc-admain {
   color: var(--text-secondary);
   margin-bottom: 16px;
@@ -1630,6 +1675,8 @@ body.dark-mode {
   border-radius: 6px;
   padding: 1px 6px;
   color: var(--text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .health-error-admain {
   margin-bottom: 12px;

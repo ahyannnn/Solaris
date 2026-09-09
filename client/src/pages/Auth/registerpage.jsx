@@ -601,7 +601,10 @@ const RegisterPage = () => {
       sessionStorage.setItem("userRole", data.user.role);
       if (data.user.photoURL) sessionStorage.setItem("userPhotoURL", data.user.photoURL);
 
-      navigate("/app");
+      // 201 = brand-new account → setup like a signup.
+      // 200 = existing account logging in → app (setup guard backs up
+      // incomplete accounts).
+      navigate(response.status === 201 ? "/setup" : "/app");
 
     } catch (error) {
       console.error("Google registration error:", error);

@@ -836,6 +836,15 @@ body.dark-mode {
   overflow: hidden;
 }
 
+/* The address form sits between modal content and body/footer — make it a
+   flex column so the body scrolls and the footer never gets clipped. */
+.cuset-modal-content > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .cuset-modal-content.cuset-confirm-modal {
   max-width: 420px;
 }

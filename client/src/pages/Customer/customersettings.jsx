@@ -161,16 +161,23 @@ const CustomerSettings = () => {
   }, []);
 
   useEffect(() => {
+    // Fetch-only: never clears form values here. Clearing happens in
+    // handleAddressFormChange when the user picks a different parent, so
+    // editing a saved address keeps its values while lists load.
     const fetchProvinces = async () => {
       if (!addressForm.region) {
         setProvinces([]);
         setCitiesMunicipalities([]);
         setBarangays([]);
-        setAddressForm(prev => ({ ...prev, province: '', cityMunicipality: '', barangay: '' }));
         return;
       }
       const selectedRegion = regions.find(r => r.name === addressForm.region);
-      if (!selectedRegion) { setProvinces([]); return; }
+      if (!selectedRegion) {
+        setProvinces([]);
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        return;
+      }
       setLoadingProvinces(true);
       try {
         const response = await fetch(`${PSGC_API_BASE}/regions/${selectedRegion.code}/provinces`, {
@@ -179,9 +186,6 @@ const CustomerSettings = () => {
         if (!response.ok) throw new Error('Failed to fetch provinces');
         const data = await response.json();
         setProvinces(data || []);
-        setCitiesMunicipalities([]);
-        setBarangays([]);
-        setAddressForm(prev => ({ ...prev, province: '', cityMunicipality: '', barangay: '' }));
       } catch (error) {
         console.error('Error fetching provinces:', error);
         showToast('Failed to load provinces. Please try again.', 'error');
@@ -193,15 +197,19 @@ const CustomerSettings = () => {
   }, [addressForm.region, regions]);
 
   useEffect(() => {
+    // Fetch-only (see above): preserves saved values when editing.
     const fetchCitiesMunicipalities = async () => {
       if (!addressForm.province) {
         setCitiesMunicipalities([]);
         setBarangays([]);
-        setAddressForm(prev => ({ ...prev, cityMunicipality: '', barangay: '' }));
         return;
       }
       const selectedProvince = provinces.find(p => p.name === addressForm.province);
-      if (!selectedProvince) { setCitiesMunicipalities([]); return; }
+      if (!selectedProvince) {
+        setCitiesMunicipalities([]);
+        setBarangays([]);
+        return;
+      }
       setLoadingCities(true);
       try {
         const response = await fetch(`${PSGC_API_BASE}/provinces/${selectedProvince.code}/cities-municipalities`, {
@@ -210,8 +218,6 @@ const CustomerSettings = () => {
         if (!response.ok) throw new Error('Failed to fetch cities/municipalities');
         const data = await response.json();
         setCitiesMunicipalities(data || []);
-        setBarangays([]);
-        setAddressForm(prev => ({ ...prev, cityMunicipality: '', barangay: '' }));
       } catch (error) {
         console.error('Error fetching cities/municipalities:', error);
         showToast('Failed to load cities/municipalities. Please try again.', 'error');
@@ -223,14 +229,17 @@ const CustomerSettings = () => {
   }, [addressForm.province, provinces]);
 
   useEffect(() => {
+    // Fetch-only (see above): preserves saved values when editing.
     const fetchBarangays = async () => {
       if (!addressForm.cityMunicipality) {
         setBarangays([]);
-        setAddressForm(prev => ({ ...prev, barangay: '' }));
         return;
       }
       const selectedCity = citiesMunicipalities.find(c => c.name === addressForm.cityMunicipality);
-      if (!selectedCity) { setBarangays([]); return; }
+      if (!selectedCity) {
+        setBarangays([]);
+        return;
+      }
       setLoadingBarangays(true);
       try {
         const response = await fetch(`${PSGC_API_BASE}/cities-municipalities/${selectedCity.code}/barangays`, {
@@ -239,7 +248,6 @@ const CustomerSettings = () => {
         if (!response.ok) throw new Error('Failed to fetch barangays');
         const data = await response.json();
         setBarangays(data || []);
-        setAddressForm(prev => ({ ...prev, barangay: '' }));
       } catch (error) {
         console.error('Error fetching barangays:', error);
         showToast('Failed to load barangays. Please try again.', 'error');
@@ -977,7 +985,7 @@ const CustomerSettings = () => {
         {/* ========== ADDRESS MODAL - NO SCROLL ========== */}
         {showAddressModal && (
           <div className="cuset-modal-overlay" onClick={() => setShowAddressModal(false)}>
-            <div className="cuset-modal-content cuset-no-scroll" onClick={e => e.stopPropagation()}>
+            <div className="cuset-modal-content" onClick={e => e.stopPropagation()}>
               <div className="cuset-modal-header">
                 <h3>{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
                 <button className="cuset-modal-close" onClick={() => setShowAddressModal(false)}>
@@ -985,7 +993,7 @@ const CustomerSettings = () => {
                 </button>
               </div>
               <form onSubmit={handleAddressSubmit}>
-                <div className="cuset-modal-body cuset-no-scroll-body">
+                <div className="cuset-modal-body">
                   <div className="cuset-modal-form-grid">
                     {/* Label & Primary */}
                     <div className="cuset-modal-row">

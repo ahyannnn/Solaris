@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const PayMongoService = require('../services/paymongoService');
 const receiptService = require('../services/receiptService');
 const AuditLog = require('../models/AuditLog');
+const SystemConfig = require('../models/SystemConfig');
 // Add this at the top of preAssessmentControllers.js with other requires
 const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 
@@ -1007,6 +1008,17 @@ exports.createPreAssessment = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const bookingReference = `PA-${year}${month}${day}-${random}`;
 
+    // Use the current admin-configured assessment fee so Maintenance changes apply to new bookings
+    let currentAssessmentFee = 1500;
+    try {
+      const sysConfig = await SystemConfig.findOne().select('assessmentFee');
+      if (sysConfig?.assessmentFee != null && Number(sysConfig.assessmentFee) > 0) {
+        currentAssessmentFee = Number(sysConfig.assessmentFee);
+      }
+    } catch (feeErr) {
+      console.error('Failed to load SystemConfig.assessmentFee, using default 1500:', feeErr.message);
+    }
+
     // Prepare the pre-assessment data with appliances
     const preAssessmentData = {
       clientId: client._id,
@@ -1017,6 +1029,7 @@ exports.createPreAssessment = async (req, res) => {
       roofType: roofType || '',
       roofLength: roofLength ? parseFloat(roofLength) : null,
       roofWidth: roofWidth ? parseFloat(roofWidth) : null,
+      assessmentFee: currentAssessmentFee,
 
       paymentStatus: 'pending',
       assessmentStatus: 'pending_review',

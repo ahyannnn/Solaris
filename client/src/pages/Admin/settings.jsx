@@ -1,5 +1,6 @@
 // pages/Admin/Settings.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { 
   FaUser, 
@@ -195,14 +196,43 @@ const Settings = () => {
     }, 1000);
   };
 
-  const handleSaveFees = () => {
+  const handleSaveFees = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSuccess('Assessment fees updated');
-      setSaving(false);
+    setError(null);
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/maintenance/config?reason=${encodeURIComponent('Updated from Settings > Assessment Fees')}`,
+        { assessmentFee: Number(feeSettings.preAssessmentFee) || 0 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuccess('Assessment fee updated — new bookings will use this price');
       setTimeout(() => setSuccess(null), 3000);
-    }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update assessment fee');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // Load the real fee from SystemConfig so this tab stays in sync with Maintenance > System Config
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const token = sessionStorage.getItem('token');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/config`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const fee = res.data?.config?.assessmentFee;
+        if (fee != null) {
+          setFeeSettings(prev => ({ ...prev, preAssessmentFee: fee }));
+        }
+      } catch {
+        // keep default 1500 if fetch fails
+      }
+    };
+    fetchFee();
+  }, []);
 
   const handleSaveDevice = () => {
     setSaving(true);
@@ -681,7 +711,7 @@ const Settings = () => {
                     value={feeSettings.preAssessmentFee}
                     onChange={handleFeeChange}
                   />
-                  <small>7-day IoT monitoring + assessment report</small>
+                  <small>7-day IoT monitoring + assessment report. Synced with Maintenance &gt; System Config — new bookings use this price.</small>
                 </div>
                 <div className="form-group">
                   <label>Site Assessment Fee</label>

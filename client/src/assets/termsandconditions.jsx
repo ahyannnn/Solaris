@@ -98,7 +98,7 @@ const TermsModal = ({
               <h4>3. Booking and Payment Policy</h4>
               <p>Certain services available through the System may require payment.</p>
               <p>Booking of services such as solar site pre-assessment is confirmed only after payment of the required assessment fee.</p>
-              <p><strong>Assessment fee: ₱1,500.00</strong></p>
+              <p><strong>Assessment fee: prevailing fee shown at booking time (currently ₱1,500.00, subject to change by admin).</strong></p>
               <p>Payment must be completed prior to equipment deployment or service execution.</p>
               <p>The assessment fee may cover:</p>
               <ul>

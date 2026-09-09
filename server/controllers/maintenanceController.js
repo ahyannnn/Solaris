@@ -365,6 +365,27 @@ exports.removeAllowedIP = async (req, res) => {
 
 // ============ SYSTEM CONFIGURATION FUNCTIONS ============
 
+// @desc    Get public pre-assessment fee (for customer booking display)
+// @route   GET /api/maintenance/public-fee
+// @access  Public
+exports.getPublicAssessmentFee = async (req, res) => {
+  try {
+    let config = await SystemConfig.findOne().select('assessmentFee');
+
+    if (!config) {
+      return res.json({ success: true, assessmentFee: 1500 });
+    }
+
+    res.json({
+      success: true,
+      assessmentFee: Number(config.assessmentFee) || 1500
+    });
+  } catch (error) {
+    console.error('Get public assessment fee error:', error);
+    res.json({ success: true, assessmentFee: 1500 });
+  }
+};
+
 // @desc    Get system configuration
 // @route   GET /api/maintenance/config
 // @access  Private (Admin, Engineer)

@@ -53,6 +53,8 @@ const ScheduleAssessment = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestFilter, setRequestFilter] = useState('all');
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
+  // Dynamic pre-assessment fee from admin Maintenance (SystemConfig). Falls back to 1500.
+  const [assessmentFee, setAssessmentFee] = useState(1500);
   // Meralco bill guide modal (shared by free-quote + pre-assessment forms)
   const [showBillGuideModal, setShowBillGuideModal] = useState(false);
 
@@ -465,7 +467,18 @@ const ScheduleAssessment = () => {
     fetchClientAddresses();
     fetchMyRequests();
     fetchProjects();
+    fetchAssessmentFee();
   }, []);
+
+  const fetchAssessmentFee = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/public-fee`);
+      const fee = Number(response.data?.assessmentFee);
+      if (fee > 0) setAssessmentFee(fee);
+    } catch (err) {
+      console.error('Failed to load assessment fee, using default:', err?.message);
+    }
+  };
 
   useEffect(() => {
     if (showPreAssessmentSuccess || submitted) {
@@ -1108,7 +1121,8 @@ const ScheduleAssessment = () => {
       setTermsAccepted(false);
       setPreAssessmentData({
         reference: response.data.booking.bookingReference,
-        invoiceNumber: response.data.booking.invoiceNumber
+        invoiceNumber: response.data.booking.invoiceNumber,
+        assessmentFee: response.data.booking.assessmentFee ?? assessmentFee
       });
       setShowPreAssessmentSuccess(true);
       showToast('Pre-assessment booked successfully!', 'success');
@@ -1990,6 +2004,9 @@ const ScheduleAssessment = () => {
         <div className="schedule-booking-details-cusset">
           <p><strong>Booking Reference:</strong> {preAssessmentData?.reference}</p>
           <p><strong>Invoice Number:</strong> {preAssessmentData?.invoiceNumber}</p>
+          {preAssessmentData?.assessmentFee != null && (
+            <p><strong>Assessment Fee:</strong> {formatCurrency(preAssessmentData.assessmentFee)}</p>
+          )}
           <p><strong>Status:</strong> Pending Admin Confirmation</p>
         </div>
         <div className="schedule-next-steps-cusset">
@@ -2072,7 +2089,7 @@ const ScheduleAssessment = () => {
             <div className="service-card-cusset paid-cusset">
               <div className="service-card-header-cusset">
                 <h2>Pre Assessment</h2>
-                <span className="service-badge-cusset paid-cusset">₱1,500</span>
+                <span className="service-badge-cusset paid-cusset">{formatCurrency(assessmentFee)}</span>
               </div>
               <p className="service-description-cusset">Professional on-site assessment with detailed energy consumption analysis and accurate system sizing.</p>
               <ul className="service-features-cusset">
@@ -2735,7 +2752,7 @@ const ScheduleAssessment = () => {
 
           <div className="form-page-header-cusset">
             <h1 className="form-page-title-cusset">Book Pre Assessment</h1>
-            <p className="form-page-subtitle-cusset">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
+            <p className="form-page-subtitle-cusset">Complete the form below to schedule your professional pre-assessment ({formatCurrency(assessmentFee)})</p>
           </div>
           {/* ✅ ADD THIS - Pending Pre-Assessment Warning (same as Free Quote) */}
           {hasPendingPreAssessment && (
@@ -3085,7 +3102,7 @@ const ScheduleAssessment = () => {
                     <FaFileInvoice />
                   </div>
                   <div className="fee-card-content-cusset">
-                    <strong>Pre Assessment Fee: ₱1,500.00</strong>
+                    <strong>Pre Assessment Fee: {formatCurrency(assessmentFee)}</strong>
                     <p>Your booking will be confirmed by our admin. You will receive payment instructions after confirmation.</p>
                     <small>Includes: On-site visit, 7-day monitoring, detailed analysis, and system recommendation.</small>
                   </div>
@@ -3281,7 +3298,7 @@ const ScheduleAssessment = () => {
                     <h4>Assessment Details</h4>
                     <p><strong>Property:</strong> {formData.propertyType}</p>
                     <p><strong>Monthly Bill:</strong> {formatCurrency(electricBillInput.monthlyBill) || 'Not provided'}</p>
-                    <p><strong>Fee:</strong> ₱1,500.00</p>
+                    <p><strong>Fee:</strong> {formatCurrency(assessmentFee)}</p>
                     {formData.targetSavings && (
                       <p><strong>Target Savings:</strong> {formData.targetSavings}%</p>
                     )}

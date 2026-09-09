@@ -954,6 +954,93 @@ exports.getEngineerProjects = async (req, res) => {
   }
 };
 
+// Mirror of the frontend getProjectAction start/update rules
+// (Engineer/project.jsx): counts my projects where it's my turn.
+// Excluded: quoted/approved (waiting payment), completed, cancelled, view-only.
+const engineerSchedPaid = (project, type) => {
+  const item = (project.paymentSchedule || []).find(p => p.type === type);
+  if (item?.status === 'paid') return true;
+  if (type === 'full' && project.fullPaymentCompleted) return true;
+  return false;
+};
+
+// Mirror of the frontend isWaitingForPayment modal lock
+// (Engineer/project.jsx): the sidebar counts ONLY updates whose modal
+// Upload + Update button is enabled — not merely table actions.
+const engineerModalLocked = (project) => {
+  const status = project.status;
+  const pref = project.paymentPreference;
+
+  if (status === 'quoted' || status === 'approved') return true;
+
+  if (status === 'in_progress') {
+    if (pref === 'fifty_fifty') return !engineerSchedPaid(project, 'final');
+    // thirty_sixty_ten: locked only while the 60% progress payment is unpaid.
+    // After 60% is paid, updates/photos are allowed even if final is unpaid.
+    if (pref === 'thirty_sixty_ten') return !engineerSchedPaid(project, 'progress');
+    if (pref === 'full') return !engineerSchedPaid(project, 'full');
+  }
+
+  if (status === 'progress_paid') {
+    if (pref === 'fifty_fifty') return !engineerSchedPaid(project, 'final');
+    // thirty_sixty_ten: 60% verified means proof upload + update are allowed.
+    if (pref === 'thirty_sixty_ten') return false;
+  }
+
+  return false;
+};
+
+const engineerHasAction = (project) => {
+  const status = project.status;
+  const pref = project.paymentPreference;
+
+  if (status === 'completed' || status === 'cancelled') return false;
+  if (status === 'quoted' || status === 'approved') return false;
+
+  let tableAction = false;
+
+  // Ready to start
+  if (status === 'initial_paid') {
+    if (pref === 'full') tableAction = engineerSchedPaid(project, 'full');
+    else if (pref === 'fifty_fifty' || pref === 'thirty_sixty_ten') tableAction = engineerSchedPaid(project, 'initial');
+  } else if (status === 'full_paid' && pref === 'full') {
+    tableAction = engineerSchedPaid(project, 'full');
+  } else if (status === 'full_paid' && pref !== 'full') {
+    tableAction = true;
+  } else if (status === 'in_progress') {
+    tableAction = true;
+  } else if (status === 'progress_paid') {
+    tableAction = true;
+  }
+
+  // Count only if the modal Upload + Update button is actually enabled.
+  return tableAction && !engineerModalLocked(project);
+};
+
+// @desc    Count my projects waiting on my update (engineer sidebar badge)
+// @route   GET /api/projects/engineer/action-counts
+// @access  Private (Engineer)
+exports.getEngineerActionCounts = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+
+    const mine = await Project.find({ assignedEngineerId: engineerId })
+      .select('status paymentPreference paymentSchedule fullPaymentCompleted')
+      .lean();
+
+    const actionable = mine.filter(engineerHasAction);
+
+    res.json({
+      success: true,
+      total: actionable.length,
+      assigned: mine.filter(p => p.status !== 'completed' && p.status !== 'cancelled').length
+    });
+  } catch (error) {
+    console.error('Get engineer action counts error:', error);
+    res.status(500).json({ message: 'Failed to fetch action counts', error: error.message });
+  }
+};
+
 // @desc    Update project progress (Engineer)
 // @route   PUT /api/projects/:id/progress
 // @access  Private (Engineer)

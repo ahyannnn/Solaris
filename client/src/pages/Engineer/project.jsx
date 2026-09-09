@@ -13,7 +13,6 @@ import {
   FaChevronDown,
   FaFolderOpen,
   FaPlay,
-  FaUpload,
   FaCamera,
   FaTrash,
   FaImage,
@@ -34,7 +33,7 @@ const EngineerProject = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
@@ -46,10 +45,12 @@ const EngineerProject = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [filter, currentPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ============================================================
-  // FETCH PROJECTS - API
+  // FETCH PROJECTS - API (full list; filter/sort/paginate client-side
+  // so needs-action rows stay on top across ALL pages)
   // ============================================================
   const fetchProjects = async () => {
     try {
@@ -57,12 +58,11 @@ const EngineerProject = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/my-projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
+        params: { limit: 1000 }
       });
 
       const projectsData = response.data.projects || [];
       setProjects(projectsData);
-      setTotalPages(response.data.totalPages || 1);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -138,10 +138,10 @@ const EngineerProject = () => {
   // ============================================================
 
   const uploadPhotos = async () => {
-    if (!selectedProject) return;
+    if (!selectedProject) return false;
     if (newPhotoFiles.length === 0) {
       showToast('Please select photos to upload', 'warning');
-      return;
+      return false;
     }
 
     setUploadingPhotos(true);
@@ -170,12 +170,30 @@ const EngineerProject = () => {
       await fetchProjects();
 
       showToast(`${uploadedPhotoUrls.length} photo(s) uploaded successfully!`, 'success');
+      return true;
     } catch (uploadError) {
       console.error('Error uploading photos:', uploadError);
       showToast(uploadError.response?.data?.message || 'Failed to upload photos', 'error');
+      return false;
     } finally {
       setUploadingPhotos(false);
     }
+  };
+
+  // Combined flow: upload selected photos first (if any), then update progress.
+  // Photos are REQUIRED for every Update/Complete across all payment types.
+  // Start Installation keeps photos optional (work hasn't begun).
+  const handleUploadAndUpdate = async (actionType, isFinalAction) => {
+    const needsPhotos = actionType === 'update' || actionType === 'complete' || isFinalAction;
+    if (needsPhotos && newPhotoFiles.length === 0) {
+      showToast('Please select at least one photo — photos are required to update progress', 'warning');
+      return;
+    }
+    if (newPhotoFiles.length > 0) {
+      const uploaded = await uploadPhotos();
+      if (!uploaded) return;
+    }
+    await updateProgress(actionType, isFinalAction);
   };
 
   const handlePhotoSelect = (e) => {
@@ -277,6 +295,12 @@ const EngineerProject = () => {
 
   /**
    * Check if project is waiting for payment (used in modal to lock the submit button)
+   *
+   * RULE: locked only while waiting for the CURRENT-stage payment.
+   * thirty_sixty_ten: once the 60% (progress) is paid, the engineer can
+   * upload 60%-completion photos + update WITHOUT waiting for the final 10%.
+   * (Before, the back-to-back 60 -> 10 steps deadlocked: proof photos needed
+   * for the final payment couldn't be uploaded until the final was paid.)
    */
   const isWaitingForPayment = (project) => {
     const { status, paymentPreference } = project;
@@ -290,10 +314,9 @@ const EngineerProject = () => {
         return !isPaymentPaid(project, 'final');
       }
       if (paymentPreference === 'thirty_sixty_ten') {
-        if (isPaymentPaid(project, 'progress')) {
-          return !isPaymentPaid(project, 'final');
-        }
-        return true;
+        // Locked only while the 60% progress payment is still unpaid.
+        // After 60% is paid, updates/photos are allowed even if final is unpaid.
+        return !isPaymentPaid(project, 'progress');
       }
       if (paymentPreference === 'full') {
         return !isPaymentPaid(project, 'full');
@@ -305,7 +328,9 @@ const EngineerProject = () => {
         return !isPaymentPaid(project, 'final');
       }
       if (paymentPreference === 'thirty_sixty_ten') {
-        return !isPaymentPaid(project, 'final');
+        // 60% verified (that's why status is progress_paid) — engineer must
+        // be able to upload proof photos + update without waiting for final.
+        return false;
       }
     }
 
@@ -507,14 +532,35 @@ const EngineerProject = () => {
     );
   };
 
-  const filteredProjects = projects.filter(project => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return project.projectName?.toLowerCase().includes(searchLower) ||
-      project.projectReference?.toLowerCase().includes(searchLower) ||
-      project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-      project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
-  });
+  // Row priority: 0 = modal Update/Start enabled (act now),
+  // 1 = Update button in table but modal locked (waiting payment),
+  // 2 = everything else (view-only / no action).
+  const getRowPriority = (project) => {
+    const action = getProjectAction(project);
+    if ((action.type === 'start' || action.type === 'update') && !isWaitingForPayment(project)) return 0;
+    if (action.type === 'update' && isWaitingForPayment(project)) return 1;
+    return 2;
+  };
+
+  const filteredProjects = projects
+    .filter(project => filter === 'all' || project.status === filter)
+    .filter(project => {
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      return project.projectName?.toLowerCase().includes(searchLower) ||
+        project.projectReference?.toLowerCase().includes(searchLower) ||
+        project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
+        project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
+    })
+    // Stable sort: priority groups first, API order (newest) kept within groups.
+    .sort((a, b) => getRowPriority(a) - getRowPriority(b));
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const pagedProjects = filteredProjects.slice(
+    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+    safeCurrentPage * ITEMS_PER_PAGE
+  );
 
   const SkeletonLoader = () => (
     <div className="engineer-project-container">
@@ -620,15 +666,15 @@ const EngineerProject = () => {
         <div className="project-filters-engineerproject">
           <div className="search-group-engineerproject">
             <FaSearch className="search-icon-engineerproject" />
-            <input
-              type="text"
-              placeholder="Search by project name, reference or client..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              <input
+                type="text"
+                placeholder="Search by project name, reference or client..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              />
           </div>
           <div className="filter-group-engineerproject">
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Status</option>
               <option value="quoted">Quoted</option>
               <option value="approved">Approved</option>
@@ -667,7 +713,7 @@ const EngineerProject = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProjects.map(project => {
+                  {pagedProjects.map(project => {
                     const action = getProjectAction(project);
                     const isViewOnly = action.type === 'view';
                     const isStart = action.type === 'start';
@@ -790,15 +836,15 @@ const EngineerProject = () => {
                 <button
                   className="page-btn"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
+                  disabled={safeCurrentPage === 1}
                 >
                   <FaChevronLeft /> Previous
                 </button>
-                <span className="page-info">Page {currentPage} of {totalPages}</span>
+                <span className="page-info">Page {safeCurrentPage} of {totalPages}</span>
                 <button
                   className="page-btn"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
+                  disabled={safeCurrentPage === totalPages}
                 >
                   Next <FaChevronRight />
                 </button>
@@ -1112,7 +1158,7 @@ const EngineerProject = () => {
                         ? `${newPhotoFiles.length} new photo(s) selected`
                         : isWaitingForPayment(selectedProject)
                           ? 'Upload disabled - payment required'
-                          : 'Select new photos to add to this project'}
+                          : 'Select new photos (required when updating progress)'}
                     </p>
                   </div>
 
@@ -1149,35 +1195,27 @@ const EngineerProject = () => {
                   Cancel
                 </button>
                 <div className="action-buttons-group">
-                  <button
-                    className="upload-photos-btn"
-                    onClick={uploadPhotos}
-                    disabled={uploadingPhotos || newPhotoFiles.length === 0 || isWaitingForPayment(selectedProject)}
-                  >
-                    {uploadingPhotos ? <FaSpinner className="spinning" /> : <FaUpload />}
-                    {uploadingPhotos ? 'Uploading...' : 'Upload Photos'}
-                  </button>
-
                   {(() => {
                     const action = getProjectAction(selectedProject);
                     const isFinal = action.isFinal || false;
                     const progressLocked = isWaitingForPayment(selectedProject);
+                    const busy = isSubmitting || uploadingPhotos;
 
-                    let buttonText = 'Update Progress';
+                    let buttonText = 'Upload & Update Progress';
                     if (action.type === 'start') buttonText = 'Start Installation';
-                    else if (isFinal) buttonText = 'Complete Project';
+                    else if (isFinal) buttonText = 'Upload & Complete Project';
 
                     return (
                       <button
                         className="update-btn"
                         onClick={() => {
-                          if (progressLocked) return;
-                          updateProgress(action.type, isFinal);
+                          if (progressLocked || busy) return;
+                          handleUploadAndUpdate(action.type, isFinal);
                         }}
-                        disabled={isSubmitting || progressLocked}
+                        disabled={busy || progressLocked}
                       >
-                        {isSubmitting ? <FaSpinner className="spinning" /> : null}
-                        {isSubmitting ? 'Submitting...' : buttonText}
+                        {busy ? <FaSpinner className="spinning" /> : null}
+                        {busy ? 'Submitting...' : buttonText}
                       </button>
                     );
                   })()}

@@ -11,6 +11,7 @@ import {
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import InfoTip from '../../components/InfoTip';
 import { getCustomerStatusLabel } from '../../utils/customerFriendly';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Customer/dashboard.css';
 
 const Dashboard = () => {
@@ -164,6 +165,14 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: admin/engineer updates (project status, invoice, booking)
+  // refresh this dashboard without manual reload. Debounced in hook.
+  useRealtimeTable(
+    ['projects', 'pre-assessments', 'solar-invoices', 'schedules', 'free-quotes'],
+    () => { fetchDashboardData(); },
+    { debounceMs: 600 }
+  );
 
   const getFullName = () => {
     if (!user) return '';

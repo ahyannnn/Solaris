@@ -8,6 +8,7 @@ import InfoTip from '../../components/InfoTip';
 import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/quotation.css';
 import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, FaChevronDown, FaSearch } from 'react-icons/fa';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 
 // =========================================
 // CARD INPUT FORMATTING HELPERS
@@ -262,6 +263,13 @@ const Quotation = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: admin/engineer invoice or quotation updates appear without reload.
+  useRealtimeTable(
+    ['pre-assessments', 'solar-invoices', 'projects', 'free-quotes', 'bank-transfers'],
+    () => { fetchData(); },
+    { debounceMs: 600 }
+  );
 
   const getProjectPaymentPlan = (projectId) => {
     const project = projects.find(p => p._id?.toString() === projectId?.toString());

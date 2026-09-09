@@ -24,6 +24,7 @@ import {
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import InfoTip from '../../components/InfoTip';
 import { getCustomerStatusLabel } from '../../utils/customerFriendly';
+import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
 import '../../styles/Customer/myproject.css';
 
 const MyProject = () => {
@@ -103,6 +104,18 @@ const MyProject = () => {
       console.error('Error fetching solar invoices:', error);
     }
   };
+
+  // Realtime: patch the changed row instantly (0 API calls), then refetch
+  // the affected list to pick up server-populated fields. Debounced in hook.
+  useRealtimeTable(['projects', 'solar-invoices'], (payload) => {
+    if (payload?.entity === 'projects') {
+      setProjects((prev) => applyRealtimeRecord(prev, payload));
+      fetchProjects();
+    } else {
+      setSolarInvoices((prev) => applyRealtimeRecord(prev, payload));
+      fetchSolarInvoices();
+    }
+  });
 
   const isPaymentPaid = (project, paymentType) => {
     const scheduleItem = project.paymentSchedule?.find(p => p.type === paymentType);

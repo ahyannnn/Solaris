@@ -28,6 +28,7 @@ import SiteInspectionTab from '../../components/Engineer/SiteInspectionTab.jsx';
 import { useSystemCalculation } from '../../hooks/useSystemCalculation.js';
 
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 
 // Detail-view tabs: first two stay visible on mobile, the rest move under "More"
 const DETAIL_TABS = [
@@ -1008,6 +1009,13 @@ const MyAssessments = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: new assignments or admin/customer updates refresh without reload.
+  useRealtimeTable(
+    ['pre-assessments', 'free-quotes', 'schedules'],
+    () => { fetchAllAssessments(); },
+    { debounceMs: 600 }
+  );
 
   // Calculate dashboard stats
   useEffect(() => {

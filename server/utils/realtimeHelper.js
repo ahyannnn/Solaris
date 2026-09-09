@@ -5,6 +5,11 @@
 const { getIO } = require('../socket');
 
 const ADMIN_ROOM = 'admins';
+const ENGINEER_ROOM = 'engineers';
+const CUSTOMER_ROOM = 'customers';
+// Single emit targets all role rooms. Tiny payload, only on writes,
+// so overhead is negligible even on a single free-tier instance.
+const ROLE_ROOMS = [ADMIN_ROOM, ENGINEER_ROOM, CUSTOMER_ROOM];
 
 /**
  * Remove sensitive fields before broadcasting.
@@ -20,7 +25,7 @@ function sanitizeRecord(entity, record) {
 }
 
 /**
- * Emit a table change to admin clients.
+ * Emit a table change to admin + engineer + customer clients.
  * @param {string} entity - e.g. 'users' | 'devices' | 'schedules' | 'projects' | 'solar-invoices' | 'bank-transfers' | 'free-quotes' | 'pre-assessments'
  * @param {string} action - 'created' | 'updated' | 'deleted'
  * @param {*} record - Mongoose doc or plain object (may be null for delete)
@@ -28,17 +33,40 @@ function sanitizeRecord(entity, record) {
 function emitTableChange(entity, action, record) {
   try {
     const io = getIO();
-    if (!io) return;
+    if (!io) {
+      if (process.env.DEBUG_REALTIME === '1') {
+        console.log(`[realtime] skipped ${entity}:${action} (no socket IO)`);
+      }
+      return;
+    }
     const clean = sanitizeRecord(entity, record);
     const id =
       (clean && (clean._id || clean.id)) ||
       (record && (record._id || record.id)) ||
       null;
     const payload = { entity, action, record: clean, id: id ? String(id) : null };
-    // Primary channel: single event all tables listen to (with entity filter client-side)
-    io.to(ADMIN_ROOM).emit('table:changed', payload);
+    // Emit to each role room explicitly (per-room loop avoids any
+    // array-form ambiguity; still one tiny frame per room, writes-only).
+    // Primary channel: single event all tables listen to (entity filter client-side)
+    for (const room of ROLE_ROOMS) {
+      io.to(room).emit('table:changed', payload);
+    }
     // Convenience channel per entity+action (e.g. 'users:created')
-    io.to(ADMIN_ROOM).emit(`${entity}:${action}`, payload);
+    for (const room of ROLE_ROOMS) {
+      io.to(room).emit(`${entity}:${action}`, payload);
+    }
+    // Lightweight proof of broadcast (one line per write only).
+    // Room occupancy shows who is actually listening, e.g.
+    // rooms[admins:1 engineers:1 customers:1]. Set DEBUG_REALTIME=1
+    // locally to force logs; errors always log.
+    if (process.env.DEBUG_REALTIME === '1' || process.env.NODE_ENV !== 'production') {
+      let occupancy = '';
+      try {
+        const rooms = io.sockets?.adapter?.rooms;
+        occupancy = ROLE_ROOMS.map((r) => `${r}:${rooms?.get(r)?.size ?? 0}`).join(' ');
+      } catch (e) { occupancy = 'n/a'; }
+      console.log(`[realtime] emitted ${entity}:${action} id=${payload.id || 'n/a'} rooms[${occupancy}]`);
+    }
   } catch (err) {
     console.error('[realtimeHelper] emit failed:', err.message);
   }
@@ -118,10 +146,33 @@ function attachRealtimeHooks(schema, entity) {
       } catch (e) { /* ignore */ }
     });
   } catch (e) { /* ignore */ }
+
+  // updateOne / updateMany → updated (query middleware has no doc,
+  // so emit a lightweight invalidation; clients debounced-refetch).
+  // Covers controllers that use bulk status updates.
+  try {
+    schema.post('updateOne', function () {
+      try {
+        const filter = typeof this.getFilter === 'function' ? this.getFilter() : null;
+        emitTableChange(entity, 'updated', filter && filter._id ? { _id: filter._id } : null);
+      } catch (e) { /* ignore */ }
+    });
+  } catch (e) { /* ignore */ }
+
+  try {
+    schema.post('updateMany', function () {
+      try {
+        emitTableChange(entity, 'updated', null);
+      } catch (e) { /* ignore */ }
+    });
+  } catch (e) { /* ignore */ }
 }
 
 module.exports = {
   ADMIN_ROOM,
+  ENGINEER_ROOM,
+  CUSTOMER_ROOM,
+  ROLE_ROOMS,
   emitTableChange,
   attachRealtimeHooks,
 };

@@ -34,6 +34,7 @@ import {
   FaFolderOpen
 } from 'react-icons/fa';
 import InfoTip from '../../components/InfoTip';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -608,6 +609,13 @@ const ScheduleAssessment = () => {
       showToast('Failed to load your requests', 'error');
     }
   };
+
+  // Realtime: engineer/admin status or quotation changes appear without reload.
+  useRealtimeTable(
+    ['pre-assessments', 'free-quotes', 'projects', 'schedules'],
+    () => { fetchMyRequests(); fetchProjects(); },
+    { debounceMs: 600 }
+  );
 
   // ============ QUOTATION HANDLERS ============
 

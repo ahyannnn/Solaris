@@ -5,6 +5,7 @@ class SocketService {
   constructor() {
     this.socket = null;
     this.currentUserId = null;
+    this.currentRole = null;
     this.isConnected = false;
     this.listeners = new Map(); // event -> Set of callbacks
   }
@@ -17,18 +18,47 @@ class SocketService {
   }
 
   /**
-   * Initialize and connect socket for the current user
-   * @param {string} userId - Current user MongoDB _id
+   * Build the joinUser payload (role included so the server can skip
+   * the per-connect User.findById role lookup).
    */
-  connect(userId) {
+  getJoinPayload() {
+    if (!this.currentUserId) return null;
+    if (this.currentRole) return { userId: this.currentUserId, role: this.currentRole };
+    return this.currentUserId;
+  }
+
+  joinRooms() {
+    const payload = this.getJoinPayload();
+    if (this.socket && this.isConnected && payload) {
+      this.socket.emit('joinUser', payload);
+    }
+  }
+
+  /**
+   * Initialize and connect socket for the current user.
+   * Backward compatible: connect(userId) or connect(userId, role)
+   * or connect({ userId, role }).
+   * @param {string|object} userIdOrPayload - Current user MongoDB _id or payload
+   * @param {string} [role] - 'admin' | 'engineer' | 'user'
+   */
+  connect(userIdOrPayload, role) {
+    let userId = userIdOrPayload;
+    let resolvedRole = role || null;
+    if (userIdOrPayload && typeof userIdOrPayload === 'object') {
+      userId = userIdOrPayload.userId || userIdOrPayload.id;
+      resolvedRole = userIdOrPayload.role || resolvedRole;
+    }
     if (!userId) {
       console.warn('⚠️ [SocketService] connect called without userId');
       return;
     }
+    if (!resolvedRole) {
+      resolvedRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || null;
+    }
 
-    // If already connected with the same user, just re-join room to be safe
-    if (this.socket && this.isConnected && this.currentUserId === userId) {
-      this.socket.emit('joinUser', userId);
+    // If already connected with the same user+role, just re-join rooms
+    if (this.socket && this.isConnected && this.currentUserId === userId && this.currentRole === resolvedRole) {
+      this.joinRooms();
       return;
     }
 
@@ -38,6 +68,7 @@ class SocketService {
     }
 
     this.currentUserId = userId;
+    this.currentRole = resolvedRole;
     const serverUrl = this.getServerUrl();
 
     this.socket = io(serverUrl, {
@@ -53,7 +84,7 @@ class SocketService {
       this.isConnected = true;
       console.log(`🔌 [SocketService] Connected to server (${this.socket.id})`);
       if (this.currentUserId) {
-        this.socket.emit('joinUser', this.currentUserId);
+        this.joinRooms();
         console.log(`👤 [SocketService] Joined room user:${this.currentUserId}`);
       }
     });
@@ -62,7 +93,7 @@ class SocketService {
       this.isConnected = true;
       console.log(`🔄 [SocketService] Reconnected on attempt ${attemptNumber}`);
       if (this.currentUserId) {
-        this.socket.emit('joinUser', this.currentUserId);
+        this.joinRooms();
       }
     });
 
@@ -145,6 +176,7 @@ class SocketService {
     }
     this.isConnected = false;
     this.currentUserId = null;
+    this.currentRole = null;
     this.listeners.clear();
     console.log('🔌 [SocketService] Disconnected and cleaned up');
   }

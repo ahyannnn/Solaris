@@ -26,6 +26,7 @@ import {
   FaMicrochip
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Admin/schedule.css';
 
 // ============================================================
@@ -470,6 +471,13 @@ const EngineerSchedule = () => {
       setLoadingProjects(false);
     }
   };
+
+  // Realtime: admin/customer booking or schedule changes refresh without reload.
+  useRealtimeTable(
+    ['schedules', 'pre-assessments', 'projects'],
+    () => { fetchAllData(); },
+    { debounceMs: 600 }
+  );
 
   // ============================================================
   // TIMELINE FUNCTIONS - SAME AS ADMIN

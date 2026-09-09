@@ -21,6 +21,7 @@ import {
   FaClock
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
 import '../../styles/Engineer/project.css';
 
 const EngineerProject = () => {
@@ -69,6 +70,15 @@ const EngineerProject = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: admin assignment/status or payment changes patch instantly.
+  useRealtimeTable(['projects', 'solar-invoices'], (payload) => {
+    if (payload?.entity === 'projects') {
+      setProjects((prev) => applyRealtimeRecord(prev, payload));
+    }
+    // Paginated list: merged row covers edits; refetch covers new assignments.
+    fetchProjects();
+  });
 
   // ============================================================
   // TIMELINE LOGIC

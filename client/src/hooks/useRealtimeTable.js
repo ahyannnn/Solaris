@@ -7,8 +7,11 @@
 //   useRealtimeTable(['free-quotes', 'pre-assessments'], handleChange);
 //
 // - Single 'table:changed' channel emitted by server/utils/realtimeHelper.js
-//   to the shared "admins" room (server.js auto-joins admin roles).
-// - Filters by entity client-side, debounces bursts, cleans up on unmount.
+//   to role rooms "admins" / "engineers" / "customers"
+//   (server.js auto-joins by role in joinUser).
+// - Filters by entity client-side, debounces bursts, defers hidden tabs
+//   (queues 1 pending update, flushes on visible/focus) to avoid
+//   refetch storms without losing updates, cleans up on unmount.
 // - socketService already dedups identical callbacks; we still call off().
 
 import { useEffect, useRef } from 'react';
@@ -18,7 +21,7 @@ import socketService from '../services/socketService';
  * Subscribe to real-time table changes.
  * @param {string|string[]} entities - entity name(s), e.g. 'users'
  * @param {(payload:{entity,action,record,id})=>void} onChange - refetch/merge callback
- * @param {{debounceMs?:number}} options
+ * @param {{debounceMs?:number, skipWhenHidden?:boolean}} options
  */
 export function useRealtimeTable(entities, onChange, options = {}) {
   const cbRef = useRef(onChange);
@@ -28,19 +31,61 @@ export function useRealtimeTable(entities, onChange, options = {}) {
     ? [...entities].sort().join(',')
     : String(entities || '');
   const debounceMs = options.debounceMs ?? 400;
+  const skipWhenHidden = options.skipWhenHidden ?? true;
 
   useEffect(() => {
     const list = Array.isArray(entities) ? entities : [entities];
 
     let timer = null;
+    // Queued payloads while hidden, keyed by entity so a projects update
+    // + a solar-invoices update both flush (pages branching on
+    // payload.entity need one call per entity). One entry max per entity.
+    const pendingByEntity = new Map();
+
+    const isHidden = () =>
+      skipWhenHidden &&
+      typeof document !== 'undefined' &&
+      document.hidden;
+
+    const flush = () => {
+      if (pendingByEntity.size === 0) return;
+      if (isHidden()) return;
+      const batch = [...pendingByEntity.values()];
+      pendingByEntity.clear();
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      try {
+        if (import.meta.env?.DEV) {
+          console.debug('[realtime] flushed on visible', batch.map((p) => p?.entity).join(','));
+        }
+        batch.forEach((payload) => cbRef.current?.(payload));
+      } catch (e) {
+        console.error('[useRealtimeTable] onChange failed:', e);
+      }
+    };
 
     const handler = (payload) => {
       if (!payload) return;
       // Ignore events for other entities sharing the channel
       if (payload.entity && !list.includes(payload.entity)) return;
+      if (import.meta.env?.DEV) {
+        console.debug('[realtime] recv', payload?.entity, payload?.action);
+      }
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         try {
+          // Lightweight guard: hidden tabs defer (not drop) to avoid
+          // background refetch storms. Flushed once on visible/focus.
+          if (isHidden()) {
+            pendingByEntity.set(payload?.entity || '__all__', payload);
+            if (import.meta.env?.DEV) {
+              console.debug('[realtime] queued while hidden', payload?.entity);
+            }
+            return;
+          }
+          pendingByEntity.clear();
           cbRef.current?.(payload);
         } catch (e) {
           console.error('[useRealtimeTable] onChange failed:', e);
@@ -48,11 +93,30 @@ export function useRealtimeTable(entities, onChange, options = {}) {
       }, debounceMs);
     };
 
+    const onVisible = () => {
+      flush();
+    };
+    const onFocus = () => {
+      flush();
+    };
+
     socketService.on('table:changed', handler);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisible);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', onFocus);
+    }
 
     return () => {
       if (timer) clearTimeout(timer);
       socketService.off('table:changed', handler);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisible);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', onFocus);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);

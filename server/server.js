@@ -405,11 +405,12 @@ io.on(
         );
 
         // --------------------------------------------------
-        // ADMIN ROOM FOR REAL-TIME TABLE UPDATES
+        // ROLE ROOMS FOR REAL-TIME TABLE UPDATES
         // --------------------------------------------------
-        // Table events (table:changed) are emitted to the
-        // shared "admins" room so admin tables update live
-        // without polling or page refresh.
+        // Table events (table:changed) are emitted to role rooms
+        // so admin / engineer / customer tables update live
+        // without polling or page refresh. Lightweight: one
+        // emit to 3 rooms, tiny sanitized payload, only on writes.
 
         try {
           let role = claimedRole;
@@ -436,10 +437,22 @@ io.on(
             console.log(
               `👑 User ${userId} (${role}) joined admins room`
             );
+          } else if (role === "engineer") {
+            socket.join("engineers");
+
+            console.log(
+              `🔧 User ${userId} (${role}) joined engineers room`
+            );
+          } else if (role === "user") {
+            socket.join("customers");
+
+            console.log(
+              `👤 User ${userId} (${role}) joined customers room`
+            );
           }
         } catch (err) {
           console.error(
-            "⚠️ joinUser admin-room lookup failed:",
+            "⚠️ joinUser role-room lookup failed:",
             err.message
           );
         }

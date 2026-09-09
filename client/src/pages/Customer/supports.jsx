@@ -31,6 +31,7 @@ import {
   FaCalendarAlt
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
 import '../../styles/Customer/supports.css';
 
 const SERVICE_OPTIONS = [
@@ -310,6 +311,14 @@ const Supports = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // Realtime: admin status updates on my tickets appear without reload.
+  useRealtimeTable(['service-requests'], (payload) => {
+    setServiceRequests((prev) => applyRealtimeRecord(prev, payload));
+    if (activeTab === 'services') {
+      fetchMyServiceRequests();
+    }
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

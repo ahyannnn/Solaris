@@ -27,6 +27,7 @@ import {
   FaProjectDiagram,
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Engineer/dashboard.css';
 
 // Time-based greeting function
@@ -252,6 +253,13 @@ const EngineerDashboard = () => {
       setLoading(false);
     }
   };
+
+  // Realtime: admin assignments or customer updates refresh without reload.
+  useRealtimeTable(
+    ['projects', 'pre-assessments', 'schedules', 'free-quotes'],
+    () => { fetchDashboardData(); },
+    { debounceMs: 600 }
+  );
 
   const formatDate = (date) => {
     if (!date) return 'N/A';

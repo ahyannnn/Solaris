@@ -909,7 +909,8 @@ const Dashboard = () => {
     const userId = getAuthUserId();
     if (!userId) return;
 
-    socketService.connect(userId);
+    const storedRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || userRoleRef.current;
+    socketService.connect(userId, storedRole);
 
     const handleNewNotification = (data) => {
       console.log('🔔 [DashboardLayout] Real-time notification received:', data);

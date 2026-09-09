@@ -1542,6 +1542,12 @@ body.dark-mode {
   margin-bottom: 8px;
 }
 
+.success-icon-adminbilling {
+  font-size: 32px;
+  color: var(--text-success);
+  margin-bottom: 8px;
+}
+
 .reject-info-adminbilling p {
   font-size: 14px;
   color: var(--text-secondary);

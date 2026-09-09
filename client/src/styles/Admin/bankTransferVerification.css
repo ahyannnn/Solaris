@@ -677,6 +677,28 @@
   max-width: 500px;
 }
 
+/* Approve Modal (mirrors reject modal) */
+.approve-modal .modal-content {
+  max-width: 500px;
+}
+
+.approve-info {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.approve-info .success-icon {
+  font-size: 48px;
+  color: #10b981;
+  margin-bottom: 12px;
+}
+
+.approve-info p {
+  font-size: 15px;
+  color: #4b5563;
+  margin: 0 0 16px 0;
+}
+
 .reject-info {
   text-align: center;
   padding: 16px 0;

@@ -1,5 +1,5 @@
 // pages/Admin/Project.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
@@ -28,6 +28,7 @@ import '../../styles/Admin/project.css';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -105,7 +106,8 @@ const ProjectManagement = () => {
 
   // CHART DATA STATES
   const [projectStatusChartData, setProjectStatusChartData] = useState([]);
-  const [financialChartData, setFinancialChartData] = useState({ totalValue: 0, amountPaid: 0, outstandingBalance: 0 });
+  // Full project list for the workload chart (paginated table list is separate)
+  const [allProjectsList, setAllProjectsList] = useState([]);
 
   // ============================================
   // COMPACT CURRENCY FORMATTER - ALL SIZES
@@ -163,14 +165,40 @@ const ProjectManagement = () => {
     });
   };
 
-  // Compact formatter for chart labels with custom logic
-  const formatChartLabel = (value) => {
-    if (value === 0 || value < 1) return '';
-    if (value >= 1000000000) return `₱${(value / 1000000000).toFixed(1)}B`;
-    if (value >= 1000000) return `₱${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `₱${(value / 1000).toFixed(0)}k`;
-    return `₱${value}`;
-  };
+  // CHART 2 DATA: Engineer workload — active (non-completed, non-cancelled)
+  // projects per engineer, plus an Unassigned bar for the assign backlog.
+  // useMemo so it stays correct regardless of fetch order (engineers vs projects).
+  const workloadData = useMemo(() => {
+    const list = allProjectsList || [];
+    const engMap = {};
+    (engineers || []).forEach((eng) => {
+      engMap[String(eng._id)] = {
+        name: eng.fullName || [eng.firstName, eng.lastName].filter(Boolean).join(' ') || eng.email || 'Engineer',
+        active: 0
+      };
+    });
+    let unassigned = 0;
+    list.forEach((project) => {
+      if (project.status === 'completed' || project.status === 'cancelled') return;
+      const assigned = project.assignedEngineerId;
+      const engId = assigned && typeof assigned === 'object' ? assigned._id : assigned;
+      if (!engId) {
+        unassigned++;
+        return;
+      }
+      const key = String(engId);
+      if (!engMap[key]) {
+        const popName = assigned && typeof assigned === 'object'
+          ? (assigned.fullName || [assigned.firstName, assigned.lastName].filter(Boolean).join(' ') || null)
+          : null;
+        engMap[key] = { name: popName || 'Unknown', active: 0 };
+      }
+      engMap[key].active++;
+    });
+    const rows = Object.values(engMap).sort((a, b) => b.active - a.active);
+    rows.unshift({ name: 'Unassigned', active: unassigned, isUnassigned: true });
+    return rows;
+  }, [allProjectsList, engineers]);
 
   // Real-time table updates (no page refresh): refetch on socket event and
   // render only the complete server response, so rows never flash partial
@@ -259,31 +287,14 @@ const ProjectManagement = () => {
 
       setProjectStatusChartData(statusData);
 
-      // CHART 2: Financial Overview
+      // CHART 2 DATA: full project list for the engineer workload chart
+      // (grouped in a useMemo with the engineers list, so fetch order is safe)
       const projectsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { limit: 999 }
       });
 
-      const allProjects = projectsResponse.data.projects || [];
-
-      let totalValue = 0;
-      let amountPaid = 0;
-
-      allProjects.forEach(project => {
-        if (project.status !== 'cancelled') {
-          totalValue += (project.totalCost || 0);
-          amountPaid += (project.amountPaid || 0);
-        }
-      });
-
-      const outstandingBalance = totalValue - amountPaid;
-
-      setFinancialChartData({
-        totalValue: totalValue,
-        amountPaid: amountPaid,
-        outstandingBalance: outstandingBalance
-      });
+      setAllProjectsList(projectsResponse.data.projects || []);
 
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -598,22 +609,14 @@ const ProjectManagement = () => {
     return null;
   };
 
-  const FinancialTooltip = ({ active, payload, label }) => {
+  const WorkloadTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const value = payload[0].value || 0;
-      const dataKey = payload[0]?.payload?.name || label;
-      const colors = {
-        'Total Value': '#10B981',
-        'Amount Paid': '#3B82F6',
-        'Outstanding': '#EF4444'
-      };
-      const color = colors[dataKey] || '#10B981';
-
+      const count = payload[0].value || 0;
       return (
         <div className="recharts-custom-tooltip-projectmanagement">
           <p className="tooltip-label-projectmanagement">{label}</p>
           <p className="tooltip-item-projectmanagement">
-            {value === 0 ? '₱0' : formatCurrency(value)}
+            {count} active project{count !== 1 ? 's' : ''}
           </p>
         </div>
       );
@@ -712,35 +715,27 @@ const ProjectManagement = () => {
             </div>
           </div>
 
-          {/* CHART 2: Financial Overview - COMPACT FORMATTING ALL SIZES */}
+          {/* CHART 2: Engineer Workload */}
           <div className="project-chart-card-projectmanagement">
             <div className="project-chart-header-projectmanagement">
-              <h3>Financial Overview</h3>
-              <span className="project-chart-period-projectmanagement">Current Project Finances</span>
+              <h3>Engineer Workload</h3>
+              <span className="project-chart-period-projectmanagement">Active Projects per Engineer</span>
             </div>
             <div className="project-chart-wrapper-projectmanagement">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={[
-                    { name: 'Total Value', value: financialChartData.totalValue },
-                    { name: 'Amount Paid', value: financialChartData.amountPaid },
-                    { name: 'Outstanding', value: financialChartData.outstandingBalance }
-                  ]}
+                  data={workloadData}
                   layout="vertical"
                   margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
                 >
                   <defs>
-                    <linearGradient id="colorFinancial" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2} />
+                    <linearGradient id="colorWorkload" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0.2} />
                     </linearGradient>
-                    <linearGradient id="colorPaid" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.2} />
-                    </linearGradient>
-                    <linearGradient id="colorOutstanding" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.2} />
+                    <linearGradient id="colorUnassigned" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.2} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="var(--border-color, #EEF0ED)" />
@@ -749,9 +744,7 @@ const ProjectManagement = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
-                    domain={[0, 'auto']}
-                    tickCount={4}
-                    tickFormatter={(value) => formatChartLabel(value)}
+                    allowDecimals={false}
                   />
                   <YAxis
                     type="category"
@@ -761,25 +754,21 @@ const ProjectManagement = () => {
                     tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
                     width={110}
                   />
-                  <Tooltip content={<FinancialTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Tooltip content={<WorkloadTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
                   <Bar
-                    dataKey="value"
+                    dataKey="active"
                     radius={[0, 4, 4, 0]}
                     barSize={28}
                     label={{
                       position: 'right',
                       fill: 'var(--text-primary, #17212B)',
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 600,
-                      formatter: (value) => formatChartLabel(value)
+                      formatter: (value) => value > 0 ? value : ''
                     }}
                   >
-                    {[
-                      { name: 'Total Value', fill: 'url(#colorFinancial)' },
-                      { name: 'Amount Paid', fill: 'url(#colorPaid)' },
-                      { name: 'Outstanding', fill: 'url(#colorOutstanding)' }
-                    ].map((entry, index) => (
-                      <Bar key={index} dataKey="value" fill={entry.fill} />
+                    {workloadData.map((entry, index) => (
+                      <Cell key={index} fill={entry.isUnassigned ? 'url(#colorUnassigned)' : 'url(#colorWorkload)'} />
                     ))}
                   </Bar>
                 </BarChart>

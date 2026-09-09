@@ -36,6 +36,7 @@ const BankTransferVerification = () => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stats, setStats] = useState(null);
@@ -131,8 +132,6 @@ const BankTransferVerification = () => {
   };
 
   const handleApprove = async (paymentId) => {
-    if (!window.confirm('Are you sure you want to approve this payment?')) return;
-
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -146,7 +145,9 @@ const BankTransferVerification = () => {
         showToast('Payment approved successfully!', 'success');
         fetchPayments();
         fetchStats();
+        setShowApproveModal(false);
         setShowDetailModal(false);
+        setSelectedPayment(null);
       }
     } catch (error) {
       console.error('Error approving payment:', error);
@@ -439,7 +440,10 @@ const BankTransferVerification = () => {
                         <>
                           <button
                             className="action-btn approve"
-                            onClick={() => handleApprove(payment._id)}
+                            onClick={() => {
+                              setSelectedPayment(payment);
+                              setShowApproveModal(true);
+                            }}
                             disabled={isSubmitting}
                             title="Approve Payment"
                           >
@@ -695,7 +699,7 @@ const BankTransferVerification = () => {
                     </button>
                     <button
                       className="btn-approve"
-                      onClick={() => handleApprove(selectedPayment._id)}
+                      onClick={() => setShowApproveModal(true)}
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? <FaSpinner className="spinning" /> : <FaCheck />}
@@ -757,6 +761,47 @@ const BankTransferVerification = () => {
                 >
                   {isSubmitting ? <FaSpinner className="spinning" /> : <FaTimes />}
                   Confirm Rejection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Approve Modal */}
+        {showApproveModal && selectedPayment && (
+          <div className="modal-overlay" onClick={() => setShowApproveModal(false)}>
+            <div className="modal-content approve-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Approve Payment</h3>
+                <button className="modal-close" onClick={() => setShowApproveModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <div className="approve-info">
+                  <FaCheckCircle className="success-icon" />
+                  <p>You are about to approve this payment submission. A receipt will be generated automatically.</p>
+                  <div className="payment-summary">
+                    <div><strong>Customer:</strong> {selectedPayment.clientId?.contactFirstName} {selectedPayment.clientId?.contactLastName}</div>
+                    <div><strong>Invoice:</strong> {selectedPayment.invoiceId?.invoiceNumber}</div>
+                    <div><strong>Amount:</strong> {formatCurrency(selectedPayment.amount)}</div>
+                    <div><strong>Bank:</strong> {selectedPayment.bankName}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={() => setShowApproveModal(false)}>
+                  Cancel
+                </button>
+                <button
+                  className="btn-approve"
+                  onClick={() => handleApprove(selectedPayment._id)}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <FaSpinner className="spinning" /> : <FaCheck />}
+                  Confirm Approval
                 </button>
               </div>
             </div>

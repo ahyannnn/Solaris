@@ -91,6 +91,13 @@ const Dashboard = () => {
   // billing has pending payable.
   const [bookNeedsAction, setBookNeedsAction] = useState(false);
   const [billingPending, setBillingPending] = useState(false);
+  // Admin sidebar badges: items waiting on admin action (view-only excluded).
+  // Site Assessments = approve/reject, verify payments, assign engineer,
+  // process refund, pending free quotes. Billing = verify payments, draft
+  // invoices to send, invoices/bank transfers to verify.
+  const [siteActionCount, setSiteActionCount] = useState(0);
+  const [billingActionCount, setBillingActionCount] = useState(0);
+  const [projectActionCount, setProjectActionCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -254,6 +261,25 @@ const Dashboard = () => {
       setBillingPending(pendingPayable);
     } catch (error) {
       console.error('Error fetching action alerts:', error);
+    }
+  }, []);
+
+  // Fetch admin sidebar action counts (admin only):
+  // number badges = items waiting on admin action (view-only excluded).
+  const fetchSidebarActionCounts = useCallback(async () => {
+    if (userRoleRef.current !== 'admin') return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/action-counts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSiteActionCount(response.data?.total || 0);
+      setBillingActionCount(response.data?.billing?.total || 0);
+      setProjectActionCount(response.data?.projects?.total || 0);
+    } catch (error) {
+      console.error('Error fetching sidebar action counts:', error);
     }
   }, []);
 
@@ -695,9 +721,9 @@ const Dashboard = () => {
           isDropdown: false,
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
-            { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
-            { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
-            { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
+            { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment', actionCountKey: 'siteAssessments' },
+            { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing', actionCountKey: 'billing' },
+            { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project', actionCountKey: 'projects' },
             { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
           ]
         },
@@ -937,13 +963,23 @@ const Dashboard = () => {
     socketService.on('notifications:readAll', handleReadAll);
     socketService.on('notification:deleted', handleNotificationDeleted);
 
+    // Pre-assessment / free-quote / invoice / bank-transfer / project changes
+    // affect the admin sidebar badges — refresh instantly instead of waiting.
+    const handleTableChanged = (data) => {
+      if (['pre-assessments', 'free-quotes', 'bank-transfers', 'solar-invoices', 'projects'].includes(data?.entity)) {
+        fetchSidebarActionCounts();
+      }
+    };
+    socketService.on('table:changed', handleTableChanged);
+
     return () => {
       socketService.off('notification:new', handleNewNotification);
       socketService.off('notification:read', handleNotificationRead);
       socketService.off('notifications:readAll', handleReadAll);
       socketService.off('notification:deleted', handleNotificationDeleted);
+      socketService.off('table:changed', handleTableChanged);
     };
-  }, [showNotificationToast, fetchActionAlerts]);
+  }, [showNotificationToast, fetchActionAlerts, fetchSidebarActionCounts]);
 
   // Poll for unread count as fallback
   useEffect(() => {
@@ -961,6 +997,15 @@ const Dashboard = () => {
     const interval = setInterval(fetchActionAlerts, 30000);
     return () => clearInterval(interval);
   }, [initialized, userRole, fetchActionAlerts]);
+
+  // Poll admin sidebar action counts as fallback (admin only)
+  useEffect(() => {
+    if (!initialized || userRole !== 'admin') return;
+
+    fetchSidebarActionCounts();
+    const interval = setInterval(fetchSidebarActionCounts, 30000);
+    return () => clearInterval(interval);
+  }, [initialized, userRole, fetchSidebarActionCounts]);
 
   // Refresh profile photo (Google users get theirs at login via storage;
   // customers refresh from clients/me, staff from auth/me — so an admin-set
@@ -1283,6 +1328,15 @@ const Dashboard = () => {
                       <span className="nav-label-layout-dashboard">{item.label}</span>
                       {item.badge && unreadCount > 0 && (
                         <span className="notification-badge-sidebar">{unreadCount}</span>
+                      )}
+                      {item.actionCountKey === 'siteAssessments' && siteActionCount > 0 && (
+                        <span className="notification-badge-sidebar">{siteActionCount > 99 ? '99+' : siteActionCount}</span>
+                      )}
+                      {item.actionCountKey === 'billing' && billingActionCount > 0 && (
+                        <span className="notification-badge-sidebar">{billingActionCount > 99 ? '99+' : billingActionCount}</span>
+                      )}
+                      {item.actionCountKey === 'projects' && projectActionCount > 0 && (
+                        <span className="notification-badge-sidebar">{projectActionCount > 99 ? '99+' : projectActionCount}</span>
                       )}
                       {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
                         (item.path === '/app/customer/billing' && billingPending)) && (

@@ -106,6 +106,28 @@ const MaintenancePanel = () => {
   const [healthError, setHealthError] = useState(null);
   const [lastChecked, setLastChecked] = useState(null);
 
+  // Brevo email quota State (admin-only backend proxy — API key never leaves the server)
+  const [emailQuota, setEmailQuota] = useState(null);
+  const [emailQuotaLoading, setEmailQuotaLoading] = useState(false);
+  const [emailQuotaError, setEmailQuotaError] = useState(null);
+
+  const fetchEmailQuota = async () => {
+    setEmailQuotaLoading(true);
+    setEmailQuotaError(null);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/email-quota`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEmailQuota(response.data);
+    } catch (err) {
+      setEmailQuota(null);
+      setEmailQuotaError(err.response?.data?.message || 'Email quota unavailable');
+    } finally {
+      setEmailQuotaLoading(false);
+    }
+  };
+
   const fetchHealth = async () => {
     setHealthLoading(true);
     setHealthError(null);
@@ -137,12 +159,27 @@ const MaintenancePanel = () => {
   };
 
   // Auto-refresh health while the System Health tab is open
+  // (server/DB status every 30s; email quota once per visit + manual refresh)
   useEffect(() => {
     if (activeMainTab !== 'health') return;
     fetchHealth();
+    fetchEmailQuota();
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
   }, [activeMainTab]);
+
+  const refreshHealthTab = () => {
+    fetchHealth();
+    fetchEmailQuota();
+  };
+
+  // Brevo quota bar color: green normally, amber below 50, red below 20
+  const getQuotaFillClass = (remaining) => {
+    if (remaining == null) return '';
+    if (remaining < 20) return 'critical-admain';
+    if (remaining < 50) return 'warning-admain';
+    return '';
+  };
 
   useEffect(() => {
     fetchMaintenanceData();
@@ -1094,8 +1131,34 @@ const MaintenancePanel = () => {
               </div>
             </div>
 
-            <button className="save-config-btn-admain" onClick={fetchHealth} disabled={healthLoading} style={{ marginTop: '16px' }}>
-              {healthLoading ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
+            <div className="health-card-admain" style={{ marginTop: '12px' }}>
+              <span className="health-label-admain">Email (Brevo) — remaining today</span>
+              {emailQuotaLoading && !emailQuota ? (
+                <span className="health-value-admain">Checking…</span>
+              ) : emailQuotaError && !emailQuota ? (
+                <span className="error-text-admain">{emailQuotaError}</span>
+              ) : emailQuota ? (
+                <>
+                  <span className="health-value-admain">
+                    <span className={`health-dot-admain ${emailQuota.remaining < 20 ? 'down-admain' : emailQuota.remaining < 50 ? 'warn-admain' : 'up-admain'}`} />
+                    {emailQuota.remaining} / {emailQuota.dailyLimit}
+                  </span>
+                  <div className="health-bar-admain">
+                    <div
+                      className={`health-fill-admain ${getQuotaFillClass(emailQuota.remaining)}`}
+                      style={{ width: `${Math.min(100, (emailQuota.remaining / emailQuota.dailyLimit) * 100)}%` }}
+                    />
+                  </div>
+                  <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                    {emailQuota.used} sent today • Free plan • Resets daily, no carry-over
+                    {emailQuota.cached ? ' • cached' : ''}
+                  </small>
+                </>
+              ) : null}
+            </div>
+
+            <button className="save-config-btn-admain" onClick={refreshHealthTab} disabled={healthLoading || emailQuotaLoading} style={{ marginTop: '16px' }}>
+              {(healthLoading || emailQuotaLoading) ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
             </button>
 
             <p className="health-tip-admain">

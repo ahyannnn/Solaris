@@ -1003,7 +1003,7 @@ body.dark-mode {
 }
 
 .nav-item-layout-dashboard.active-layout-dashboard .notification-badge-sidebar {
-  background: var(--sidebar-accent);
+  background: #EF4444;
   color: #FFFFFF;
 }
 
@@ -2118,7 +2118,7 @@ body.dark-mode .notification-badge-sidebar {
 }
 
 body.dark-mode .nav-item-layout-dashboard.active-layout-dashboard .notification-badge-sidebar {
-  background: var(--sidebar-accent);
+  background: #EF4444;
   color: #FFFFFF;
 }
 

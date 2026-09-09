@@ -7,6 +7,8 @@ const { admin, engineer } = require('../middleware/roleMiddleware');
 const {
   getMaintenanceStatus,
   getPublicAssessmentFee,
+  getEmailQuota,
+  getActionCounts,
   enableMaintenance,
   disableMaintenance,
   updateMaintenanceSettings,
@@ -41,6 +43,12 @@ router.get('/status', getMaintenanceStatus);
 
 // Public pre-assessment fee for customer booking display (no auth - only exposes the fee)
 router.get('/public-fee', getPublicAssessmentFee);
+
+// Brevo email quota for today (admin only - keeps BREVO_API_KEY server-side)
+router.get('/email-quota', verifyToken, admin, getEmailQuota);
+
+// Count of items waiting on admin action for the sidebar badge (admin only)
+router.get('/action-counts', verifyToken, admin, getActionCounts);
 
 // ============ SYSTEM CONFIGURATION ROUTES ============
 // Get config (admin and engineer can view)

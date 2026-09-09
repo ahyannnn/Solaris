@@ -309,6 +309,8 @@ const LoginPage = () => {
 
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/auth/google-login`;
 
+      const parsedName = parseGoogleName(user.displayName);
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -316,6 +318,9 @@ const LoginPage = () => {
         },
         body: JSON.stringify({
           fullName: user.displayName,
+          contactFirstName: parsedName.firstName,
+          contactMiddleName: parsedName.middleName,
+          contactLastName: parsedName.lastName,
           email: user.email.toLowerCase(),
           googleId: user.uid,
           photoURL: user.photoURL,
@@ -359,6 +364,24 @@ const LoginPage = () => {
     } catch (error) {
       handleAuthError(error);
     }
+  };
+
+  // Split Google displayName into first/middle/last (mirrors register page)
+  // so unregistered Google sign-ins still save real names in the database.
+  const parseGoogleName = (displayName) => {
+    if (!displayName) return { firstName: '', middleName: '', lastName: '' };
+
+    const parts = displayName.trim().split(/\s+/);
+
+    if (parts.length === 0) return { firstName: '', middleName: '', lastName: '' };
+    if (parts.length === 1) return { firstName: parts[0], middleName: '', lastName: '' };
+    if (parts.length === 2) return { firstName: parts[0], middleName: '', lastName: parts[1] };
+
+    const firstName = parts[0];
+    const lastName = parts[parts.length - 1];
+    const middleName = parts.slice(1, -1).join(' ');
+
+    return { firstName, middleName, lastName };
   };
 
   const getBrandingContent = () => {

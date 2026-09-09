@@ -27,8 +27,8 @@ import {
   FaBookOpen,
   FaExternalLinkAlt,
   FaTools,
-  FaClipboardList,
-  FaCalendarAlt
+  FaFolderOpen,
+  FaChevronRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
@@ -93,9 +93,7 @@ const Supports = () => {
     error: ''
   });
   const [serviceRequests, setServiceRequests] = useState([]);
-  const [loadingServices, setLoadingServices] = useState(false);
   const [submittingService, setSubmittingService] = useState(false);
-  const [cancellingServiceId, setCancellingServiceId] = useState(null);
 
   const ACTIVE_SERVICE_STATUSES = ['pending', 'contacted', 'scheduled'];
 
@@ -291,7 +289,6 @@ const Supports = () => {
   };
 
   const fetchMyServiceRequests = async () => {
-    setLoadingServices(true);
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/service-requests/my-requests`, {
         headers: getAuthHeader()
@@ -299,8 +296,6 @@ const Supports = () => {
       setServiceRequests(res.data?.requests || []);
     } catch (e) {
       console.error('Fetch service requests failed:', e);
-    } finally {
-      setLoadingServices(false);
     }
   };
 
@@ -448,24 +443,6 @@ const Supports = () => {
       showToast(err.response?.data?.message || 'Failed to submit service request', 'error');
     } finally {
       setSubmittingService(false);
-    }
-  };
-
-  const handleCancelService = async (id) => {
-    setCancellingServiceId(id);
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/service-requests/${id}/cancel`,
-        {},
-        { headers: getAuthHeader() }
-      );
-      const updated = res.data?.request;
-      if (updated) setServiceRequests(prev => prev.map(r => (r._id === id ? updated : r)));
-      showToast('Service request cancelled', 'success');
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to cancel request', 'error');
-    } finally {
-      setCancellingServiceId(null);
     }
   };
 
@@ -793,6 +770,24 @@ const Supports = () => {
         return (
           <>
             <div className="cusup-section">
+              <button
+                className="cusup-requests-row"
+                onClick={() => navigate('/app/customer/my-requests')}
+                aria-label="View my service requests"
+              >
+                <span className="cusup-requests-icon"><FaFolderOpen /></span>
+                <span className="cusup-requests-text">
+                  <strong>View My Requests</strong>
+                  <small>{serviceRequests.length > 0 ? `You have ${serviceRequests.length} request(s)` : 'No requests yet'}</small>
+                </span>
+                <span className="cusup-requests-right">
+                  {serviceRequests.length > 0 && <span className="cusup-count-pill">{serviceRequests.length}</span>}
+                  <FaChevronRight className="cusup-chevron" />
+                </span>
+              </button>
+            </div>
+
+            <div className="cusup-section">
               <div className="cusup-section-header">
                 <FaTools />
                 <h2>Avail a Service</h2>
@@ -899,62 +894,6 @@ const Supports = () => {
                 </button>
               </form>
             </div>
-
-            <div className="cusup-section">
-              <div className="cusup-section-header">
-                <FaClipboardList />
-                <h2>My Service Requests</h2>
-              </div>
-              {loadingServices ? (
-                <div className="cusup-empty-state">
-                  <FaSpinner className="empty-icon spinning" />
-                  <p>Loading your requests...</p>
-                </div>
-              ) : serviceRequests.length === 0 ? (
-                <div className="cusup-empty-state">
-                  <FaTools className="empty-icon" />
-                  <h3>No service requests yet</h3>
-                  <p>Submit the form above to avail a service</p>
-                </div>
-              ) : (
-                <div className="cusup-tickets-list">
-                  {serviceRequests.map(r => (
-                    <div key={r._id} className="cusup-ticket-card">
-                      <div className="cusup-ticket-header">
-                        <div className="cusup-ticket-id">{r.referenceNo || r._id.slice(-6).toUpperCase()}</div>
-                        {getStatusBadge(r.status)}
-                      </div>
-                      <div className="cusup-ticket-subject">{r.serviceType}</div>
-                      <div className="cusup-ticket-description">
-                        {r.serviceAddress}
-                        {r.preferredDate && (
-                          <span> &nbsp;•&nbsp; <FaCalendarAlt style={{ display: 'inline' }} /> {new Date(r.preferredDate).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                      {r.notes && <div className="cusup-ticket-description" style={{ fontStyle: 'italic' }}>“{r.notes}”</div>}
-                      {r.adminRemarks && (
-                        <div className="cusup-message support" style={{ marginTop: '0.5rem' }}>
-                          <strong>Update from our team:</strong>
-                          <p>{r.adminRemarks}</p>
-                        </div>
-                      )}
-                      <div className="cusup-ticket-footer">
-                        <span className="cusup-ticket-date">{new Date(r.createdAt).toLocaleDateString()}</span>
-                        {r.status === 'pending' && (
-                          <button
-                            className="cusup-view-ticket-btn"
-                            onClick={() => handleCancelService(r._id)}
-                            disabled={cancellingServiceId === r._id}
-                          >
-                            <FaTimes /> {cancellingServiceId === r._id ? 'Cancelling...' : 'Cancel request'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </>
         );
       }
@@ -985,10 +924,6 @@ const Supports = () => {
               : activeTab === 'services' ? 'Services'
               : 'Contact Us'}
           </span>
-          <div className="cusup-header-content">
-            <h1>Support Center</h1>
-            <p>How can we help you today?</p>
-          </div>
           <div className="cusup-header-icon">
             <FaHeadset />
           </div>

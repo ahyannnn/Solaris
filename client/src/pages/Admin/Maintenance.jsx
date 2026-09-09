@@ -1,6 +1,7 @@
 // pages/Admin/Maintenance.admain.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   FaTools,
@@ -20,7 +21,11 @@ import {
   FaMoneyBillWave,
   FaReceipt,
   FaMobileAlt,
-  FaHeartbeat
+  FaHeartbeat,
+  FaClipboardList,
+  FaFileInvoiceDollar,
+  FaProjectDiagram,
+  FaMicrochip
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
@@ -28,6 +33,7 @@ import AppManagement from '../../components/Admin/AppManagement';
 
 const MaintenancePanel = () => {
   const { toast, showToast, hideToast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [activeMainTab, setActiveMainTab] = useState('maintenance');
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
@@ -159,11 +165,12 @@ const MaintenancePanel = () => {
   };
 
   // Auto-refresh health while the System Health tab is open
-  // (server/DB status every 30s; email quota once per visit + manual refresh)
+  // (server/DB status every 30s; email quota + extras once per visit + manual refresh)
   useEffect(() => {
     if (activeMainTab !== 'health') return;
     fetchHealth();
     fetchEmailQuota();
+    fetchHealthExtras();
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
   }, [activeMainTab]);
@@ -171,6 +178,7 @@ const MaintenancePanel = () => {
   const refreshHealthTab = () => {
     fetchHealth();
     fetchEmailQuota();
+    fetchHealthExtras();
   };
 
   // Brevo quota bar color: green normally, amber below 50, red below 20
@@ -179,6 +187,41 @@ const MaintenancePanel = () => {
     if (remaining < 20) return 'critical-admain';
     if (remaining < 50) return 'warning-admain';
     return '';
+  };
+
+  const formatMegabytes = (bytes) => {
+    if (bytes == null) return '—';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 100 ? `${Math.round(mb)} MB` : `${mb.toFixed(1)} MB`;
+  };
+
+  // Extra widgets: open-action counts + IoT fleet snapshot (admin endpoints).
+  // Fail silently — cards fall back to '—' so health tab never breaks.
+  const [actionCounts, setActionCounts] = useState(null);
+  const [fleetStats, setFleetStats] = useState(null);
+
+  const fetchHealthExtras = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const base = import.meta.env.VITE_API_URL;
+      const [countsRes, fleetRes] = await Promise.all([
+        axios.get(`${base}/api/maintenance/action-counts`, { headers }).catch(() => null),
+        axios.get(`${base}/api/admin/devices/stats`, { headers }).catch(() => null)
+      ]);
+      if (countsRes?.data?.success) setActionCounts(countsRes.data);
+      if (fleetRes?.data?.stats) setFleetStats(fleetRes.data.stats);
+    } catch {
+      // silent — fallbacks render instead
+    }
+  };
+
+  const formatActionCount = (n) => (n > 99 ? '99+' : (n ?? '—'));
+
+  const getDbTierPercent = () => {
+    const storage = health?.dbSize?.storageSize;
+    if (storage == null) return null;
+    return (storage / 536870912) * 100;
   };
 
   useEffect(() => {
@@ -1106,60 +1149,146 @@ const MaintenancePanel = () => {
               </div>
             )}
 
-            <div className="health-grid-admain">
-              <div className="health-card-admain">
-                <span className="health-label-admain">Server</span>
-                <span className="health-value-admain">
-                  <span className={`health-dot-admain ${health && health.status === 'ok' ? 'up-admain' : 'down-admain'}`} />
-                  {health ? (health.status === 'ok' ? 'Operational' : 'Degraded') : (healthLoading ? 'Checking…' : 'Unknown')}
-                </span>
-              </div>
-              <div className="health-card-admain">
-                <span className="health-label-admain">Database</span>
-                <span className="health-value-admain">
-                  <span className={`health-dot-admain ${health?.db === 'connected' ? 'up-admain' : 'down-admain'}`} />
-                  {health?.db ? health.db.charAt(0).toUpperCase() + health.db.slice(1) : (healthLoading ? 'Checking…' : 'Unknown')}
-                </span>
-              </div>
-              <div className="health-card-admain">
-                <span className="health-label-admain">Uptime</span>
-                <span className="health-value-admain">{formatUptime(health?.uptime)}</span>
-              </div>
-              <div className="health-card-admain">
-                <span className="health-label-admain">Last Checked</span>
-                <span className="health-value-admain">{lastChecked ? lastChecked.toLocaleTimeString() : '—'}</span>
-              </div>
-            </div>
-
-            <div className="health-card-admain" style={{ marginTop: '12px' }}>
-              <span className="health-label-admain">Email (Brevo) — remaining today</span>
-              {emailQuotaLoading && !emailQuota ? (
-                <span className="health-value-admain">Checking…</span>
-              ) : emailQuotaError && !emailQuota ? (
-                <span className="error-text-admain">{emailQuotaError}</span>
-              ) : emailQuota ? (
-                <>
-                  <span className="health-value-admain">
-                    <span className={`health-dot-admain ${emailQuota.remaining < 20 ? 'down-admain' : emailQuota.remaining < 50 ? 'warn-admain' : 'up-admain'}`} />
-                    {emailQuota.remaining} / {emailQuota.dailyLimit}
-                  </span>
-                  <div className="health-bar-admain">
-                    <div
-                      className={`health-fill-admain ${getQuotaFillClass(emailQuota.remaining)}`}
-                      style={{ width: `${Math.min(100, (emailQuota.remaining / emailQuota.dailyLimit) * 100)}%` }}
-                    />
+            <div className="health-layout-admain">
+              <div className="health-main-admain">
+                <div className="health-grid-admain">
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Server</span>
+                    <span className="health-value-admain">
+                      <span className={`health-dot-admain ${health && health.status === 'ok' ? 'up-admain' : 'down-admain'}`} />
+                      {health ? (health.status === 'ok' ? 'Operational' : 'Degraded') : (healthLoading ? 'Checking…' : 'Unknown')}
+                    </span>
                   </div>
-                  <small className="health-tip-admain" style={{ marginTop: '4px' }}>
-                    {emailQuota.used} sent today • Free plan • Resets daily, no carry-over
-                    {emailQuota.cached ? ' • cached' : ''}
-                  </small>
-                </>
-              ) : null}
-            </div>
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Database Status</span>
+                    <span className="health-value-admain">
+                      <span className={`health-dot-admain ${health?.db === 'connected' ? 'up-admain' : 'down-admain'}`} />
+                      {health?.db ? health.db.charAt(0).toUpperCase() + health.db.slice(1) : (healthLoading ? 'Checking…' : 'Unknown')}
+                    </span>
+                  </div>
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Uptime</span>
+                    <span className="health-value-admain">{formatUptime(health?.uptime)}</span>
+                  </div>
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Last Checked</span>
+                    <span className="health-value-admain">{lastChecked ? lastChecked.toLocaleTimeString() : '—'}</span>
+                  </div>
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Database Size</span>
+                    <span className="health-value-admain">
+                      {health?.dbSize ? formatMegabytes(health.dbSize.dataSize) : (healthLoading ? 'Checking…' : '—')}
+                    </span>
+                    {health?.dbSize != null && (
+                      <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                        {health.dbSize.collections} collections • {health.dbSize.objects?.toLocaleString()} docs
+                        {getDbTierPercent() != null && (
+                          <> • <span className={getDbTierPercent() >= 80 ? 'health-warn-admain' : undefined}>
+                            {getDbTierPercent().toFixed(1)}% of 512 MB
+                          </span></>
+                        )}
+                      </small>
+                    )}
+                  </div>
+                  <div className="health-card-admain">
+                    <span className="health-label-admain">Live Connections</span>
+                    <span className="health-value-admain">
+                      {health?.connections != null ? health.connections : (healthLoading ? 'Checking…' : '—')}
+                    </span>
+                    {health?.connections != null && (
+                      <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                        web + mobile sockets
+                      </small>
+                    )}
+                  </div>
+                </div>
 
-            <button className="save-config-btn-admain" onClick={refreshHealthTab} disabled={healthLoading || emailQuotaLoading} style={{ marginTop: '16px' }}>
-              {(healthLoading || emailQuotaLoading) ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
-            </button>
+                <div className="health-card-admain">
+                  <span className="health-label-admain">Email (Brevo) — remaining today</span>
+                  {emailQuotaLoading && !emailQuota ? (
+                    <span className="health-value-admain">Checking…</span>
+                  ) : emailQuotaError && !emailQuota ? (
+                    <span className="error-text-admain">{emailQuotaError}</span>
+                  ) : emailQuota ? (
+                    <>
+                      <span className="health-value-admain">
+                        <span className={`health-dot-admain ${emailQuota.remaining < 20 ? 'down-admain' : emailQuota.remaining < 50 ? 'warn-admain' : 'up-admain'}`} />
+                        {emailQuota.remaining} / {emailQuota.dailyLimit}
+                      </span>
+                      <div className="health-bar-admain">
+                        <div
+                          className={`health-fill-admain ${getQuotaFillClass(emailQuota.remaining)}`}
+                          style={{ width: `${Math.min(100, (emailQuota.remaining / emailQuota.dailyLimit) * 100)}%` }}
+                        />
+                      </div>
+                      <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                        {emailQuota.used} sent today • Free plan • Resets daily, no carry-over
+                        {emailQuota.cached ? ' • cached' : ''}
+                      </small>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+
+              <aside className="health-rail-admain">
+                <div className="health-card-admain">
+                  <span className="health-label-admain">Maintenance Mode</span>
+                  <span className="health-value-admain">
+                    <span className={`health-dot-admain ${health?.maintenance?.isUnderMaintenance ? 'warn-admain' : 'up-admain'}`} />
+                    {health?.maintenance == null
+                      ? (healthLoading ? 'Checking…' : '—')
+                      : (health.maintenance.isUnderMaintenance ? 'ON' : 'OFF')}
+                  </span>
+                </div>
+
+                <div className="health-card-admain">
+                  <span className="health-label-admain">Open Actions</span>
+                  {[
+                    { label: 'Site Assessments', icon: <FaClipboardList />, count: actionCounts?.total, path: '/app/admin/siteassessment' },
+                    { label: 'Billing', icon: <FaFileInvoiceDollar />, count: actionCounts?.billing?.total, path: '/app/admin/billing' },
+                    { label: 'Projects', icon: <FaProjectDiagram />, count: actionCounts?.projects?.total, path: '/app/admin/project' }
+                  ].map((row) => (
+                    <button
+                      key={row.label}
+                      className="health-action-row-admain"
+                      onClick={() => navigate(row.path)}
+                    >
+                      <span className="health-action-icon-admain">{row.icon}</span>
+                      <span>{row.label}</span>
+                      <span className={`health-count-admain ${(row.count ?? 0) === 0 ? 'zero-admain' : ''}`}>
+                        {formatActionCount(row.count)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="health-card-admain">
+                  <span className="health-label-admain">IoT Fleet</span>
+                  {fleetStats ? (
+                    <>
+                      <span className="health-value-admain">
+                        <FaMicrochip style={{ marginRight: '4px' }} />
+                        {fleetStats.total ?? 0} devices
+                      </span>
+                      <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                        {(fleetStats.deployed || 0) + (fleetStats.dataCollecting || 0)} in field • {fleetStats.available || 0} available
+                      </small>
+                      {((fleetStats.maintenance || 0) + (fleetStats.offline || 0) + (fleetStats.lowBattery || 0)) > 0 && (
+                        <small className="health-tip-admain health-warn-admain" style={{ marginTop: '2px' }}>
+                          {fleetStats.maintenance || 0} maintenance • {fleetStats.offline || 0} offline • {fleetStats.lowBattery || 0} low battery
+                        </small>
+                      )}
+                    </>
+                  ) : (
+                    <span className="health-value-admain">—</span>
+                  )}
+                </div>
+
+                <button className="save-config-btn-admain" onClick={refreshHealthTab} disabled={healthLoading || emailQuotaLoading}>
+                  {(healthLoading || emailQuotaLoading) ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
+                </button>
+              </aside>
+            </div>
 
             <p className="health-tip-admain">
               Tip: point a free uptime monitor (e.g. UptimeRobot) at{' '}

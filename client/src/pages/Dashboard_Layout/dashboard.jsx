@@ -503,6 +503,12 @@ const Dashboard = () => {
           description: 'View your invoices, quotations, payment history, and manage your billing information.'
         };
       }
+      if (currentPath === '/app/customer/my-requests') {
+        return {
+          title: 'My Requests',
+          description: 'Track your additional service requests and their status.'
+        };
+      }
       if (currentPath === '/app/customer/notifications') {
         return {
           title: 'Notifications',

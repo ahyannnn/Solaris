@@ -99,6 +99,7 @@ const fileRoutes = require("./routes/fileRoutes");
 
 const maintenanceMiddleware = require("./middleware/maintenanceMiddleware");
 const maintenanceRoutes = require("./routes/maintenanceRoutes");
+const Maintenance = require("./models/Maintenance");
 
 // Admin Routes
 const adminRoutes = require("./routes/adminRoutes");
@@ -134,7 +135,7 @@ app.use(
 // (e.g. UptimeRobot pinging this URL every 5 minutes).
 app.get(
   "/api/health",
-  (req, res) => {
+  async (req, res) => {
     const dbStates = [
       "disconnected",
       "connected",
@@ -145,14 +146,79 @@ app.get(
     const readyState = mongoose.connection.readyState;
     const healthy = readyState === 1;
 
+    // Database size (never breaks the endpoint if stats are unavailable)
+    let dbSize = null;
+    try {
+      if (mongoose.connection.db) {
+        const stats = await mongoose.connection.db.stats();
+        dbSize = {
+          dataSize: stats.dataSize || 0,
+          storageSize: stats.storageSize || 0,
+          collections: stats.collections || 0,
+          objects: stats.objects || 0,
+        };
+      }
+    } catch (statsError) {
+      console.error(
+        "Health db.stats error:",
+        statsError.message
+      );
+    }
+
+    // Live Socket.IO connections (web + mobile), if socket server is up
+    let connections = null;
+    try {
+      if (
+        typeof io !== "undefined" &&
+        io &&
+        io.engine &&
+        typeof io.engine.clientsCount === "number"
+      ) {
+        connections = io.engine.clientsCount;
+      }
+    } catch (connError) {
+      console.error(
+        "Health connections error:",
+        connError.message
+      );
+    }
+
+    // Maintenance mode status (never breaks the endpoint if unavailable)
+    let maintenance = null;
+    try {
+      const maintenanceDoc = await Maintenance.findOne()
+        .select("isUnderMaintenance")
+        .lean();
+      if (maintenanceDoc) {
+        maintenance = {
+          isUnderMaintenance: !!maintenanceDoc.isUnderMaintenance,
+        };
+      }
+    } catch (maintenanceError) {
+      console.error(
+        "Health maintenance error:",
+        maintenanceError.message
+      );
+    }
+
     res.status(healthy ? 200 : 503).json({
       status: healthy ? "ok" : "degraded",
       db: dbStates[readyState] || "unknown",
       uptime: Math.floor(process.uptime()),
+      dbSize,
+      connections,
+      maintenance,
       timestamp: new Date().toISOString(),
     });
   }
 );
+
+// Optional auth MUST run before maintenanceMiddleware so the maintenance
+// check can see req.user?.role (admin bypass + allowedRoles). It never
+// rejects — route-level verifyToken still enforces auth where required.
+const { optionalAuth } = require("./middleware/authMiddleware");
+
+app.use(optionalAuth);
 
 app.use(
   maintenanceMiddleware

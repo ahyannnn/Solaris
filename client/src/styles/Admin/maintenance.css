@@ -1571,3 +1571,66 @@ body.dark-mode {
     transform: none !important;
   }
 }
+/* ============ SYSTEM HEALTH TAB ============ */
+.health-grid-admain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.health-card-admain {
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.health-label-admain {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.health-value-admain {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.health-dot-admain {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--text-muted);
+}
+.health-dot-admain.up-admain {
+  background: var(--icon-success);
+  box-shadow: 0 0 6px var(--icon-success);
+}
+.health-dot-admain.down-admain {
+  background: var(--icon-danger);
+  box-shadow: 0 0 6px var(--icon-danger);
+}
+.health-desc-admain {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.health-tip-admain {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 12px;
+}
+.health-tip-admain code {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1px 6px;
+  color: var(--text-primary);
+}
+.health-error-admain {
+  margin-bottom: 12px;
+}

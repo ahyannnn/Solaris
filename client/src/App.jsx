@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { ToastProvider } from './context/ToastContext';
 
 import SolarisLandingPage from './pages/Auth/landingpage';
@@ -50,6 +51,7 @@ import ScheduleAssessment from './pages/Customer/scheduleassessment';
 import MyProject from './pages/Customer/myproject';
 import Quotation from './pages/Customer/quotation';
 import Supports from './pages/Customer/supports';
+import MyServiceRequests from './pages/Customer/myrequests';
 import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customersettings';
 import PaymentSuccess from './pages/Customer/PaymentSuccess';
@@ -73,6 +75,19 @@ const getUserData = () => {
   const photo = localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL');
 
   return { token, role, name, email, photo };
+};
+
+// Role fallback: decode it from the JWT when storage has no role saved
+// (prevents admin lockout on the maintenance page after storage clear).
+const getRoleWithFallback = (token, storedRole) => {
+  if (storedRole) return storedRole;
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded?.role || null;
+  } catch {
+    return null;
+  }
 };
 
 // Role-based route guard
@@ -99,7 +114,8 @@ const RoleRouteGuard = ({ children, allowedRoles }) => {
 const MaintenanceGuard = ({ children }) => {
   const [isUnderMaintenance, setIsUnderMaintenance] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const { role: userRole } = getUserData();
+  const { role: storedRole, token } = getUserData();
+  const userRole = getRoleWithFallback(token, storedRole);
 
   useEffect(() => {
     const checkMaintenance = async () => {
@@ -292,6 +308,7 @@ function App() {
             <Route path="book-assessment" element={<ScheduleAssessment />} />
             <Route path="billing" element={<Quotation />} />
             <Route path="support" element={<Supports />} />
+            <Route path="my-requests" element={<MyServiceRequests />} />
             <Route path="profile" element={<CustomerProfile />} />
             <Route path="settings" element={<CustomerSettings />} />
             <Route path="payment-success" element={<PaymentSuccess />} />

@@ -33,6 +33,7 @@ import {
   FaSolarPanel,
   FaFolderOpen
 } from 'react-icons/fa';
+import InfoTip from '../../components/InfoTip';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -52,6 +53,8 @@ const ScheduleAssessment = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestFilter, setRequestFilter] = useState('all');
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
+  // Meralco bill guide modal (shared by free-quote + pre-assessment forms)
+  const [showBillGuideModal, setShowBillGuideModal] = useState(false);
 
   // Quotation states
   const [showQuotationModal, setShowQuotationModal] = useState(false);
@@ -1880,6 +1883,46 @@ const ScheduleAssessment = () => {
   // Quotation review + acceptance now happens in the Accept modal on the
   // my-requests step (showAcceptModal). The old accept-quotation page was removed.
 
+  // Shared Meralco bill guide — a compact trigger in both free-quote and
+  // pre-assessment Assessment Details sections; the big bill picture lives
+  // in a modal so it never stretches the form.
+  const billGuidePanel = (
+    <div className="bill-guide-cusset">
+      <button
+        type="button"
+        className="bill-guide-toggle-cusset"
+        onClick={() => setShowBillGuideModal(true)}
+      >
+        <FaLightbulb className="bill-guide-bulb-cusset" />
+        <span>Where to find these on your Meralco bill</span>
+        <FaEye />
+      </button>
+    </div>
+  );
+
+  const billGuideModal = showBillGuideModal && (
+    <div className="schedule-modal-overlay-cusset" onClick={() => setShowBillGuideModal(false)}>
+      <div className="schedule-modal-cusset bill-guide-modal-cusset" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header-cusset">
+          <h3>Where to find these on your bill</h3>
+          <button className="modal-close-cusset" onClick={() => setShowBillGuideModal(false)}>×</button>
+        </div>
+        <div className="modal-body-cusset">
+          <ol className="bill-guide-steps-cusset">
+            <li><strong>Monthly Bill</strong> — copy the <strong>Total Amount Due</strong>, the big peso amount on your bill.</li>
+            <li><strong>Rate per kWh</strong> — look for <strong>"Your rate this month — ₱X per kWh"</strong> and type just the number.</li>
+          </ol>
+          <img
+            src="/meralco_bill.png"
+            alt="Sample Meralco electric bill highlighting the Total Amount Due and the rate per kWh"
+            className="bill-guide-img-cusset"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   // ============ LOADING, ERROR, SUBMITTED STATES ============
 
   if (loading) return <><Helmet><title>Get Solar Service | Salfer Engineering</title></Helmet><SkeletonLoader /></>;
@@ -2266,10 +2309,11 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="form-section-body-cusset">
+                {billGuidePanel}
                 {/* ROW 1: Monthly Bill | Property Type */}
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
-                    <label>Monthly Electricity Bill (₱) *</label>
+                    <label>Monthly Electricity Bill (₱) * <InfoTip text="Use the Total Amount Due on your Meralco bill — the big peso amount, not the kWh." /></label>
                     <input
                       type="number"
                       step="0.01"
@@ -2307,7 +2351,7 @@ const ScheduleAssessment = () => {
                 {/* ROW 2: Rate per kWh | Preferred System Type */}
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱) *</label>
+                    <label>Rate per kWh (₱) * <InfoTip text="Find 'Your rate this month — ₱X per kWh' on your bill (e.g. ₱8.59). Type just the number." /></label>
                     <input
                       type="number"
                       step="0.01"
@@ -2326,7 +2370,7 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Preferred System Type *</label>
+                    <label>Preferred System Type * <InfoTip text="Grid-Tie works with Meralco as backup. Hybrid adds batteries for brownouts. Off-Grid runs fully on solar + batteries." /></label>
                     <select
                       name="systemType"
                       value={freeQuoteData.systemType}
@@ -2345,7 +2389,7 @@ const ScheduleAssessment = () => {
                 {/* ROW 3: Target Savings | Roof Type */}
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Target Savings (%) *</label>
+                    <label>Target Savings (%) * <InfoTip text="Your goal, not from the bill. 100% means zero bill; most homes pick 50–75%." /></label>
                     <select
                       name="targetSavings"
                       value={freeQuoteData.targetSavings}
@@ -2671,6 +2715,8 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
+          {billGuideModal}
+
           <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
         </div>
       </>
@@ -2877,10 +2923,11 @@ const ScheduleAssessment = () => {
                 </div>
               </div>
               <div className="form-section-body-cusset">
+                {billGuidePanel}
                 {/* ROW 1: Monthly Bill | Property Type */}
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
-                    <label>Monthly Electricity Bill (₱) *</label>
+                    <label>Monthly Electricity Bill (₱) * <InfoTip text="Use the Total Amount Due on your Meralco bill — the big peso amount, not the kWh." /></label>
                     <input
                       type="number"
                       step="0.01"
@@ -2918,7 +2965,7 @@ const ScheduleAssessment = () => {
                 {/* ROW 2: Rate per kWh | Preferred System Type */}
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Rate per kWh (₱) *</label>
+                    <label>Rate per kWh (₱) * <InfoTip text="Find 'Your rate this month — ₱X per kWh' on your bill (e.g. ₱8.59). Type just the number." /></label>
                     <input
                       type="number"
                       step="0.01"
@@ -2937,7 +2984,7 @@ const ScheduleAssessment = () => {
                   </div>
 
                   <div className="schedule-form-group-cusset">
-                    <label>Preferred System Type *</label>
+                    <label>Preferred System Type * <InfoTip text="Grid-Tie works with Meralco as backup. Hybrid adds batteries for brownouts. Off-Grid runs fully on solar + batteries." /></label>
                     <select
                       name="systemType"
                       value={formData.systemType}
@@ -2956,7 +3003,7 @@ const ScheduleAssessment = () => {
                 {/* ROW 3: Target Savings | Roof Type */}
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
-                    <label>Target Savings (%) *</label>
+                    <label>Target Savings (%) * <InfoTip text="Your goal, not from the bill. 100% means zero bill; most homes pick 50–75%." /></label>
                     <select
                       name="targetSavings"
                       value={formData.targetSavings}
@@ -3262,6 +3309,8 @@ const ScheduleAssessment = () => {
               </div>
             </div>
           )}
+
+          {billGuideModal}
 
           <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
         </div>

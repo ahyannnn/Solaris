@@ -145,7 +145,7 @@ const LoginPage = () => {
   };
 
   // Trigger split animation and navigate - PURE SPLIT, NO FADE
-  const triggerSplitAndNavigate = () => {
+  const triggerSplitAndNavigate = (destination = "/app") => {
     if (navigationStartedRef.current) return;
     navigationStartedRef.current = true;
     
@@ -154,7 +154,7 @@ const LoginPage = () => {
     
     // Wait for split animation to complete (1.5s) then navigate directly
     splitTimerRef.current = setTimeout(() => {
-      navigate("/app", { replace: true });
+      navigate(destination, { replace: true });
       // Reset states after navigation
       setTimeout(() => {
         setIsLoggingIn(false);
@@ -351,7 +351,9 @@ const LoginPage = () => {
         });
 
         setSocialLoading('');
-        triggerSplitAndNavigate();
+        // Brand-new Google account → setup like a signup, else dashboard
+        // (the setup guard remains as backup for incomplete accounts).
+        triggerSplitAndNavigate(data.isNewUser ? "/setup" : "/app");
       }
 
     } catch (error) {

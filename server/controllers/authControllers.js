@@ -310,7 +310,10 @@ exports.googleLogin = async (req, res) => {
 
     let user = await User.findOne({ email });
 
+    // isNewUser tells clients to route straight to account setup (like signup)
+    let isNewUser = false;
     if (!user) {
+      isNewUser = true;
       const randomPassword = Math.random().toString(36).slice(-10);
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(randomPassword, salt);
@@ -354,6 +357,7 @@ exports.googleLogin = async (req, res) => {
     res.json({
       message: "Google login successful",
       token,
+      isNewUser,
       user
     });
 

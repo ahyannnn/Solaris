@@ -239,11 +239,15 @@ const Dashboard = () => {
       const billableAssessments = assessments.filter((a) =>
         a?.invoiceNumber != null && a?.assessmentStatus !== 'pending_review'
       );
-      const isUnresolvedPayStatus = (s) =>
-        !['paid', 'for_verification', 'cancelled', 'failed'].includes(s);
+      // Resolved = paid/verified/cancelled/refunded/failed (mirrors billing:
+      // cancelled and refund-flow bookings are never payable again).
+      const isPayableAssessment = (a) => {
+        if (!a || a.assessmentStatus === 'cancelled') return false;
+        return !['paid', 'for_verification', 'cancelled', 'failed', 'refund_pending', 'refunded', 'no_refund'].includes(a?.paymentStatus);
+      };
 
       const pendingPayable =
-        billableAssessments.some((a) => isUnresolvedPayStatus(a?.paymentStatus)) ||
+        billableAssessments.some((a) => isPayableAssessment(a)) ||
         invoices.some((inv) => inv?.paymentStatus === 'pending' && (inv?.balance ?? 1) > 0);
 
       setBookNeedsAction(needsAction);

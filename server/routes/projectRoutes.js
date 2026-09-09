@@ -14,6 +14,7 @@ const {
   
   // Engineer functions
   getEngineerProjects,
+  getEngineerActionCounts,
   updateProjectProgress,
   uploadProjectPhotos,
   
@@ -40,6 +41,7 @@ router.post('/:id/full-payment', verifyToken, upload.single('paymentProof'), pro
 
 // ============ ENGINEER ROUTES ============
 router.get('/engineer/my-projects', verifyToken, engineer, getEngineerProjects);
+router.get('/engineer/action-counts', verifyToken, engineer, getEngineerActionCounts);
 router.put('/:id/progress', verifyToken, engineer, updateProjectProgress);
 router.post('/:id/upload-photos', verifyToken, engineer, upload.array('photos', 10), uploadProjectPhotos);
 

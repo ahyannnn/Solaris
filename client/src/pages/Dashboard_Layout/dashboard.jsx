@@ -98,6 +98,8 @@ const Dashboard = () => {
   const [siteActionCount, setSiteActionCount] = useState(0);
   const [billingActionCount, setBillingActionCount] = useState(0);
   const [projectActionCount, setProjectActionCount] = useState(0);
+  // Engineer sidebar badge: my projects waiting on my update (start/update).
+  const [engineerProjectCount, setEngineerProjectCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -280,6 +282,23 @@ const Dashboard = () => {
       setProjectActionCount(response.data?.projects?.total || 0);
     } catch (error) {
       console.error('Error fetching sidebar action counts:', error);
+    }
+  }, []);
+
+  // Fetch engineer project action counts (engineer only):
+  // my projects where it's my turn (start/update), view-only excluded.
+  const fetchEngineerActionCounts = useCallback(async () => {
+    if (userRoleRef.current !== 'engineer') return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/action-counts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEngineerProjectCount(response.data?.total || 0);
+    } catch (error) {
+      console.error('Error fetching engineer action counts:', error);
     }
   }, []);
 
@@ -768,7 +787,7 @@ const Dashboard = () => {
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
             { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
-            { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
+            { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project', actionCountKey: 'engineerProjects' },
           ]
         },
         {
@@ -972,9 +991,11 @@ const Dashboard = () => {
 
     // Pre-assessment / free-quote / invoice / bank-transfer / project changes
     // affect the admin sidebar badges — refresh instantly instead of waiting.
+    // Project changes also refresh the engineer badge.
     const handleTableChanged = (data) => {
       if (['pre-assessments', 'free-quotes', 'bank-transfers', 'solar-invoices', 'projects'].includes(data?.entity)) {
         fetchSidebarActionCounts();
+        fetchEngineerActionCounts();
       }
     };
     socketService.on('table:changed', handleTableChanged);
@@ -986,7 +1007,7 @@ const Dashboard = () => {
       socketService.off('notification:deleted', handleNotificationDeleted);
       socketService.off('table:changed', handleTableChanged);
     };
-  }, [showNotificationToast, fetchActionAlerts, fetchSidebarActionCounts]);
+  }, [showNotificationToast, fetchActionAlerts, fetchSidebarActionCounts, fetchEngineerActionCounts]);
 
   // Poll for unread count as fallback
   useEffect(() => {
@@ -1013,6 +1034,15 @@ const Dashboard = () => {
     const interval = setInterval(fetchSidebarActionCounts, 30000);
     return () => clearInterval(interval);
   }, [initialized, userRole, fetchSidebarActionCounts]);
+
+  // Poll engineer project action counts as fallback (engineer only)
+  useEffect(() => {
+    if (!initialized || userRole !== 'engineer') return;
+
+    fetchEngineerActionCounts();
+    const interval = setInterval(fetchEngineerActionCounts, 30000);
+    return () => clearInterval(interval);
+  }, [initialized, userRole, fetchEngineerActionCounts]);
 
   // Refresh profile photo (Google users get theirs at login via storage;
   // customers refresh from clients/me, staff from auth/me — so an admin-set
@@ -1344,6 +1374,9 @@ const Dashboard = () => {
                       )}
                       {item.actionCountKey === 'projects' && projectActionCount > 0 && (
                         <span className="notification-badge-sidebar">{projectActionCount > 99 ? '99+' : projectActionCount}</span>
+                      )}
+                      {item.actionCountKey === 'engineerProjects' && engineerProjectCount > 0 && (
+                        <span className="notification-badge-sidebar">{engineerProjectCount > 99 ? '99+' : engineerProjectCount}</span>
                       )}
                       {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
                         (item.path === '/app/customer/billing' && billingPending)) && (

@@ -125,6 +125,35 @@ app.use(
   scheduleRoutes
 );
 
+// ======================================================
+// PUBLIC HEALTH CHECK
+// ======================================================
+// Registered BEFORE maintenanceMiddleware on purpose so it always
+// answers — even while maintenance mode is ON. Used by the Admin
+// Maintenance > System Health tab and external uptime monitors
+// (e.g. UptimeRobot pinging this URL every 5 minutes).
+app.get(
+  "/api/health",
+  (req, res) => {
+    const dbStates = [
+      "disconnected",
+      "connected",
+      "connecting",
+      "disconnecting",
+    ];
+
+    const readyState = mongoose.connection.readyState;
+    const healthy = readyState === 1;
+
+    res.status(healthy ? 200 : 503).json({
+      status: healthy ? "ok" : "degraded",
+      db: dbStates[readyState] || "unknown",
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+    });
+  }
+);
+
 app.use(
   maintenanceMiddleware
 );

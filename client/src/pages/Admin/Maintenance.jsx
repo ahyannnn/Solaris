@@ -19,7 +19,8 @@ import {
   FaCalculator,
   FaMoneyBillWave,
   FaReceipt,
-  FaMobileAlt
+  FaMobileAlt,
+  FaHeartbeat
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/maintenance.css';
@@ -98,6 +99,50 @@ const MaintenancePanel = () => {
 
   // Settings validation errors
   const [settingsErrors, setSettingsErrors] = useState({});
+
+  // System Health State (public /api/health — works even during maintenance mode)
+  const [health, setHealth] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthError, setHealthError] = useState(null);
+  const [lastChecked, setLastChecked] = useState(null);
+
+  const fetchHealth = async () => {
+    setHealthLoading(true);
+    setHealthError(null);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/health`);
+      setHealth(response.data);
+      setLastChecked(new Date());
+    } catch (err) {
+      setHealth(err.response?.data || null);
+      setHealthError(err.response?.data?.message || 'Server unreachable');
+      setLastChecked(new Date());
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
+  const formatUptime = (totalSeconds) => {
+    if (totalSeconds == null) return '—';
+    const d = Math.floor(totalSeconds / 86400);
+    const h = Math.floor((totalSeconds % 86400) / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const parts = [];
+    if (d > 0) parts.push(`${d}d`);
+    if (h > 0 || d > 0) parts.push(`${h}h`);
+    if (m > 0 || h > 0 || d > 0) parts.push(`${m}m`);
+    parts.push(`${s}s`);
+    return parts.join(' ');
+  };
+
+  // Auto-refresh health while the System Health tab is open
+  useEffect(() => {
+    if (activeMainTab !== 'health') return;
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 30000);
+    return () => clearInterval(interval);
+  }, [activeMainTab]);
 
   useEffect(() => {
     fetchMaintenanceData();
@@ -815,6 +860,13 @@ const MaintenancePanel = () => {
             <FaCog className="tab-icon-admain" />
             System Configuration
           </button>
+          <button
+            className={`main-tab-btn-admain ${activeMainTab === 'health' ? 'active-admain' : ''}`}
+            onClick={() => setActiveMainTab('health')}
+          >
+            <FaHeartbeat className="tab-icon-admain" />
+            System Health
+          </button>
         </div>
 
         {/* MAINTENANCE MODE TAB */}
@@ -999,6 +1051,59 @@ const MaintenancePanel = () => {
               )}
             </div>
           </>
+        )}
+
+        {/* SYSTEM HEALTH TAB */}
+        {activeMainTab === 'health' && (
+          <div className="settings-card-admain">
+            <h3><FaHeartbeat style={{ marginRight: '8px' }} />System Health</h3>
+            <p className="health-desc-admain">
+              Live status of the backend server and database. Refreshes automatically every 30 seconds
+              while this tab is open — and works even when maintenance mode is ON.
+            </p>
+
+            {healthError && !health && (
+              <div className="error-text-admain health-error-admain">
+                {healthError} — the server may be down. Last checked:{' '}
+                {lastChecked ? lastChecked.toLocaleString() : 'never'}
+              </div>
+            )}
+
+            <div className="health-grid-admain">
+              <div className="health-card-admain">
+                <span className="health-label-admain">Server</span>
+                <span className="health-value-admain">
+                  <span className={`health-dot-admain ${health && health.status === 'ok' ? 'up-admain' : 'down-admain'}`} />
+                  {health ? (health.status === 'ok' ? 'Operational' : 'Degraded') : (healthLoading ? 'Checking…' : 'Unknown')}
+                </span>
+              </div>
+              <div className="health-card-admain">
+                <span className="health-label-admain">Database</span>
+                <span className="health-value-admain">
+                  <span className={`health-dot-admain ${health?.db === 'connected' ? 'up-admain' : 'down-admain'}`} />
+                  {health?.db ? health.db.charAt(0).toUpperCase() + health.db.slice(1) : (healthLoading ? 'Checking…' : 'Unknown')}
+                </span>
+              </div>
+              <div className="health-card-admain">
+                <span className="health-label-admain">Uptime</span>
+                <span className="health-value-admain">{formatUptime(health?.uptime)}</span>
+              </div>
+              <div className="health-card-admain">
+                <span className="health-label-admain">Last Checked</span>
+                <span className="health-value-admain">{lastChecked ? lastChecked.toLocaleTimeString() : '—'}</span>
+              </div>
+            </div>
+
+            <button className="save-config-btn-admain" onClick={fetchHealth} disabled={healthLoading} style={{ marginTop: '16px' }}>
+              {healthLoading ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
+            </button>
+
+            <p className="health-tip-admain">
+              Tip: point a free uptime monitor (e.g. UptimeRobot) at{' '}
+              <code>{import.meta.env.VITE_API_URL}/api/health</code> every 5 minutes
+              to get an alert when the server goes down.
+            </p>
+          </div>
         )}
 
         {/* SYSTEM CONFIGURATION TAB */}

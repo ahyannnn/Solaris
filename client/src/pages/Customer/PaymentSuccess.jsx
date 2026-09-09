@@ -93,7 +93,9 @@ const PaymentSuccess = () => {
             <div className="payment-details">
               <p><strong>Booking Reference:</strong> {paymentData.data?.bookingReference}</p>
               <p><strong>Invoice Number:</strong> {paymentData.data?.invoiceNumber}</p>
-              <p><strong>Amount Paid:</strong> ₱1,500</p>
+              <p><strong>Amount Paid:</strong> {paymentData.data?.amountPaid != null || paymentData.data?.assessmentFee != null
+                ? `₱${Number(paymentData.data?.amountPaid ?? paymentData.data?.assessmentFee).toLocaleString()}`
+                : '—'}</p>
             </div>
             <div className="next-steps">
               <h3>What's Next?</h3>

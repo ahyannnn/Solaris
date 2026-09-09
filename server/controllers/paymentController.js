@@ -767,7 +767,9 @@ exports.processCardPayment = async (req, res) => {
             bookingReference: assessment.bookingReference,
             invoiceNumber: assessment.invoiceNumber,
             receiptUrl: assessment.receiptUrl,
-            receiptNumber: assessment.receiptNumber
+            receiptNumber: assessment.receiptNumber,
+            amountPaid: assessment.assessmentFee,
+            assessmentFee: assessment.assessmentFee
           }
         });
       }

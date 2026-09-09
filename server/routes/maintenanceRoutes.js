@@ -6,6 +6,7 @@ const { admin, engineer } = require('../middleware/roleMiddleware');
 
 const {
   getMaintenanceStatus,
+  getPublicAssessmentFee,
   enableMaintenance,
   disableMaintenance,
   updateMaintenanceSettings,
@@ -37,6 +38,9 @@ const authorizeRoles = (...roles) => {
 
 // ============ PUBLIC MAINTENANCE ROUTES ============
 router.get('/status', getMaintenanceStatus);
+
+// Public pre-assessment fee for customer booking display (no auth - only exposes the fee)
+router.get('/public-fee', getPublicAssessmentFee);
 
 // ============ SYSTEM CONFIGURATION ROUTES ============
 // Get config (admin and engineer can view)

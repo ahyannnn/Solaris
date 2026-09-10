@@ -311,6 +311,20 @@ const Quotation = () => {
       NON_PAYABLE_PREASSESSMENT_STATUSES.includes(item.paymentStatus || item.status);
   };
 
+  // Due-now check: future installments must NOT count as pending/payable
+  // until the prior stage is paid (mirrors isPayNowDisabled, but also used
+  // by the PENDING stat card so it only shows what the customer can pay now).
+  const isPayableNow = (item) => {
+    if (!item) return false;
+    if (item.type === 'pre-assessment') {
+      return (item.status === 'pending' || item.status === 'pending_payment') &&
+        !isNonPayablePreAssessment(item);
+    }
+    if (item.type !== 'project') return false;
+    if (item.status !== 'pending' && item.status !== 'partial') return false;
+    return !isPayNowDisabled(item);
+  };
+
   const isPayNowDisabled = (item) => {
     if (isNonPayablePreAssessment(item)) return true;
     if (item.type !== 'project') return false;
@@ -1246,12 +1260,22 @@ const Quotation = () => {
   };
 
   const getStatistics = () => {
-    const totalItems = allItems.length;
-    const pendingItems = allItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').length;
+    // TOTAL counts only "active" transactions — future installments that are
+    // not due yet are excluded (same due-now rule as the PENDING card).
+    const countableItems = allItems.filter((i) => {
+      if (i.type === 'project' && (i.status === 'pending' || i.status === 'partial')) {
+        return isPayableNow(i);
+      }
+      return true;
+    });
+    const totalItems = countableItems.length;
+    const dueNowItems = allItems.filter(isPayableNow);
+    const pendingItems = dueNowItems.length;
     const paidItems = allItems.filter(i => i.status === 'paid').length;
     const forVerificationItems = allItems.filter(i => i.status === 'for_verification').length;
     const totalAmount = allItems.reduce((sum, i) => sum + (i.amount || 0), 0);
-    const pendingAmount = allItems.filter(i => i.status === 'pending' || i.status === 'pending_payment').reduce((sum, i) => sum + (i.amount || 0), 0);
+    // Use remaining balance when known (partials), not the full amount.
+    const pendingAmount = dueNowItems.reduce((sum, i) => sum + (i.balance ?? i.amount ?? 0), 0);
 
     return { totalItems, pendingItems, paidItems, forVerificationItems, totalAmount, pendingAmount };
   };

@@ -65,7 +65,6 @@ const AdminBilling = () => {
   const [filteredSolarInvoices, setFilteredSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSolarVerifyModal, setShowSolarVerifyModal] = useState(false);
   const [invoiceFormData, setInvoiceFormData] = useState({
     projectId: '',
@@ -78,13 +77,6 @@ const AdminBilling = () => {
     totalAmount: 0,
     dueDate: ''
   });
-  const [paymentData, setPaymentData] = useState({
-    amount: '',
-    method: 'gcash',
-    reference: '',
-    notes: ''
-  });
-
   // Bank Transfer state
   const [allBankTransfers, setAllBankTransfers] = useState([]);
   const [filteredBankTransfers, setFilteredBankTransfers] = useState([]);
@@ -259,8 +251,29 @@ const AdminBilling = () => {
   }, []);
 
   // ============================================
-  // FILTER FUNCTIONS
+  // FILTER FUNCTIONS (needs-action rows first, mirrors page actions
+  // and the sidebar badge counts; newest kept within each group)
   // ============================================
+
+  const timeOf = (value) => {
+    const t = new Date(value).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  };
+
+  const getBillingPrePriority = (a) => {
+    if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification') return 1;
+    if (a.paymentMethod === 'cash' && a.paymentStatus === 'for_verification') return 2;
+    return 3;
+  };
+
+  const getBillingInvoicePriority = (inv) => {
+    if (inv.paymentStatus === 'for_verification') return 1;
+    if (inv.status === 'draft') return 2;
+    if (inv.paymentStatus === 'pending' || inv.paymentStatus === 'partial') return 3;
+    return 4;
+  };
+
+  const getBillingBankPriority = (p) => (p.status === 'waiting_verification' ? 1 : 2);
 
   const applyPreAssessmentFilters = () => {
     let filtered = [...allAssessments];
@@ -278,6 +291,11 @@ const AdminBilling = () => {
         return clientName.includes(term) || reference.includes(term) || invoice.includes(term);
       });
     }
+
+    filtered.sort((a, b) =>
+      getBillingPrePriority(a) - getBillingPrePriority(b) ||
+      timeOf(b.bookedAt || b.createdAt) - timeOf(a.bookedAt || a.createdAt)
+    );
 
     setFilteredAssessments(filtered);
     setTotalItems(filtered.length);
@@ -301,6 +319,11 @@ const AdminBilling = () => {
       });
     }
 
+    filtered.sort((a, b) =>
+      getBillingInvoicePriority(a) - getBillingInvoicePriority(b) ||
+      timeOf(b.createdAt) - timeOf(a.createdAt)
+    );
+
     setFilteredSolarInvoices(filtered);
     setTotalItems(filtered.length);
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
@@ -322,6 +345,11 @@ const AdminBilling = () => {
         return clientName.includes(term) || reference.includes(term) || invoiceNumber.includes(term);
       });
     }
+
+    filtered.sort((a, b) =>
+      getBillingBankPriority(a) - getBillingBankPriority(b) ||
+      timeOf(b.createdAt) - timeOf(a.createdAt)
+    );
 
     setFilteredBankTransfers(filtered);
     setBankTransferTotalItems(filtered.length);
@@ -967,36 +995,6 @@ const AdminBilling = () => {
     }
   };
 
-  const handleRecordPayment = async () => {
-    if (!selectedInvoice || !paymentData.amount) {
-      showToast('Please enter payment amount', 'warning');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/solar-invoices/${selectedInvoice._id}/payment`,
-        paymentData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      showToast('Payment recorded successfully!', 'success');
-      setShowPaymentModal(false);
-      setSelectedInvoice(null);
-      setPaymentData({ amount: '', method: 'gcash', reference: '', notes: '' });
-      setOpenDropdownId(null);
-      fetchSolarInvoices();
-      fetchStats();
-    } catch (error) {
-      console.error('Error recording payment:', error);
-      showToast('Failed to record payment', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleSendInvoice = async (invoice) => {
     try {
       const token = sessionStorage.getItem('token');
@@ -1279,12 +1277,6 @@ const AdminBilling = () => {
     if (invoice.status === 'draft') {
       actions.push(
         { label: 'Send to Customer', action: () => { handleSendInvoice(invoice); setOpenDropdownId(null); } }
-      );
-    }
-
-    if (invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') {
-      actions.push(
-        { label: 'Record Payment', action: () => { setSelectedInvoice(invoice); setShowPaymentModal(true); setOpenDropdownId(null); }, color: 'warning' }
       );
     }
 
@@ -2320,42 +2312,6 @@ const AdminBilling = () => {
                   </>
                 )
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Payment Modal */}
-        {showPaymentModal && selectedInvoice && (
-          <div className="modal-overlay-adminbilling" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
-              <h3>Record Payment</h3>
-              <div className="modal-body-adminbilling">
-                <div className="payment-info-adminbilling">
-                  <p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p>
-                  <p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p>
-                </div>
-                <div className="form-group-adminbilling">
-                  <label>Amount *</label>
-                  <input type="number" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} />
-                </div>
-                <div className="form-group-adminbilling">
-                  <label>Method</label>
-                  <select value={paymentData.method} onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}>
-                    <option value="gcash">GCash</option>
-                    <option value="cash">Cash</option>
-                  </select>
-                </div>
-                <div className="form-group-adminbilling">
-                  <label>Reference</label>
-                  <input type="text" value={paymentData.reference} onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })} />
-                </div>
-              </div>
-              <div className="modal-actions-adminbilling">
-                <button className="btn-cancel-adminbilling" onClick={() => setShowPaymentModal(false)}>Cancel</button>
-                <button className="btn-record-adminbilling" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>
-                  {isSubmitting ? 'Recording...' : 'Record'}
-                </button>
-              </div>
             </div>
           </div>
         )}

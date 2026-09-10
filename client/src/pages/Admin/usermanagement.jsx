@@ -299,8 +299,12 @@ const UserManagement = () => {
       if (confirmError) errors.confirmPassword = confirmError;
     }
 
-    if (modalMode === 'create' && !formData.role) {
-      errors.role = 'Role is required';
+    if (modalMode === 'create') {
+      if (!formData.role) {
+        errors.role = 'Role is required';
+      } else if (!['admin', 'engineer'].includes(formData.role)) {
+        errors.role = 'Role must be Admin or Engineer';
+      }
     }
 
     return errors;
@@ -486,12 +490,14 @@ const UserManagement = () => {
     }
   };
 
+  const getContactNumber = (user) => user?.contactNumber || user?.clientInfo?.contactNumber || '';
+
   const filteredUsers = users.filter(user => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return user.fullName?.toLowerCase().includes(searchLower) ||
       user.email?.toLowerCase().includes(searchLower) ||
-      user.clientInfo?.contactNumber?.includes(searchTerm);
+      getContactNumber(user)?.includes(searchTerm);
   });
 
   // Client-side pagination over the full filtered list (search already
@@ -528,20 +534,27 @@ const UserManagement = () => {
     return fullName;
   };
 
+  const getEmptyUserForm = () => ({
+    firstName: '',
+    lastName: '',
+    email: '',
+    contactNumber: '',
+    password: '',
+    confirmPassword: '',
+    role: 'engineer'
+  });
+
   const handleOpenCreateModal = () => {
     setModalMode('create');
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      contactNumber: '',
-      password: '',
-      confirmPassword: '',
-      role: 'engineer'
-    });
+    setSelectedUser(null);
+    setFormData(getEmptyUserForm());
     setFormErrors({});
+    setPasswordErrors({});
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setPhotoBroken(false);
     setShowUserModal(true);
   };
 
@@ -570,7 +583,7 @@ const UserManagement = () => {
       firstName: firstName,
       lastName: lastName,
       email: user.email || '',
-      contactNumber: user.clientInfo?.contactNumber || '',
+      contactNumber: user.contactNumber || user.clientInfo?.contactNumber || '',
       password: '',
       confirmPassword: '',
       role: user.role || 'engineer'
@@ -661,7 +674,6 @@ const UserManagement = () => {
             firstName: formData.firstName,
             lastName: formData.lastName,
             contactNumber: formData.contactNumber,
-            role: formData.role,
             email: normalizedEmail // TEMP-EMAIL-EDIT: remove to re-lock email editing
           },
           { headers: { Authorization: `Bearer ${token}` } }
@@ -728,17 +740,17 @@ const UserManagement = () => {
       );
 
       if (response.data.success) {
-        fetchUsers();
-        fetchStats();
-        if (activeTab === 'audit') fetchAuditLogs();
+        await fetchUsers();
+        await fetchStats();
+        if (activeTab === 'audit') await fetchAuditLogs();
         setShowStatusConfirm(false);
         setSelectedUser(null);
         setStatusAction(null);
-        showToast(response.data.message, 'success');
+        showToast(response.data.message || 'User status updated successfully', 'success');
       }
     } catch (error) {
       console.error('Error toggling user status:', error);
-      showToast('Failed to update user status', 'error');
+      showToast(error.response?.data?.message || 'Failed to update user status', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -1023,18 +1035,19 @@ const UserManagement = () => {
             <table className="users-table-usermanagement">
               <thead>
                 <tr>
-                  <th style={{ width: '25%' }}>User</th>
-                  <th style={{ width: '25%' }}>Email</th>
-                  <th style={{ width: '10%' }}>Role</th>
+                  <th style={{ width: '22%' }}>User</th>
+                  <th style={{ width: '22%' }}>Email</th>
+                  <th style={{ width: '14%' }}>Contact Number</th>
+                  <th style={{ width: '9%' }}>Role</th>
                   <th style={{ width: '10%' }}>Status</th>
-                  <th style={{ width: '10%' }}>Created</th>
-                  <th style={{ width: '8%', textAlign: 'center' }}>Actions</th>
+                  <th style={{ width: '13%' }}>Created</th>
+                  <th style={{ width: '10%', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" data-label="" className="empty-state-usermanagement">
+                    <td colSpan="7" data-label="" className="empty-state-usermanagement">
                       <p>No users found</p>
                     </td>
                   </tr>
@@ -1067,6 +1080,9 @@ const UserManagement = () => {
                         <td data-label="Email" className="email-cell-usermanagement">
                           <FaEnvelope className="email-icon-usermanagement" />
                           <span className="email-text-usermanagement">{user.email}</span>
+                        </td>
+                        <td data-label="Contact Number">
+                          <span className="email-text-usermanagement">{getContactNumber(user) || '—'}</span>
                         </td>
                         <td data-label="Role">{getRoleBadge(user.role)}</td>
                         <td data-label="Status">{getStatusBadge(user.isActive)}</td>
@@ -1287,6 +1303,7 @@ const UserManagement = () => {
                       <h4>Account Information</h4>
                       <div className="detail-row-usermanagement"><span>Full Name:</span><strong>{selectedUser.fullName || '—'}</strong></div>
                       <div className="detail-row-usermanagement"><span>Email:</span><strong>{selectedUser.email}</strong></div>
+                      <div className="detail-row-usermanagement"><span>Contact Number:</span><strong>{getContactNumber(selectedUser) || '—'}</strong></div>
                       <div className="detail-row-usermanagement"><span>Role:</span><strong>{getRoleBadge(selectedUser.role)}</strong></div>
                       <div className="detail-row-usermanagement"><span>Status:</span><strong>{getStatusBadge(selectedUser.isActive)}</strong></div>
                       <div className="detail-row-usermanagement"><span>Created:</span><strong>{formatDate(selectedUser.createdAt)}</strong></div>
@@ -1396,26 +1413,27 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    <div className="form-row-usermanagement">
-                      <div className="form-group-usermanagement">
-                        <label>Role *</label>
-                        <div className="select-chevron-wrap-usermanagement">
-                          <select
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                            className={formErrors.role ? 'error' : ''}
-                          >
-                            <option value="admin">Admin</option>
-                            <option value="engineer">Engineer</option>
-                            <option value="user">Customer</option>
-                          </select>
+                    {modalMode === 'create' && (
+                      <div className="form-row-usermanagement">
+                        <div className="form-group-usermanagement">
+                          <label>Role *</label>
+                          <div className="select-chevron-wrap-usermanagement">
+                            <select
+                              value={formData.role}
+                              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                              className={formErrors.role ? 'error' : ''}
+                            >
+                              <option value="admin">Admin</option>
+                              <option value="engineer">Engineer</option>
+                            </select>
+                          </div>
+                          {formErrors.role && <span className="error-text-usermanagement">{formErrors.role}</span>}
+                          <small>Select the user's role and permissions</small>
                         </div>
-                        {formErrors.role && <span className="error-text-usermanagement">{formErrors.role}</span>}
-                        <small>Select the user's role and permissions</small>
+                        <div className="form-group-usermanagement">
+                        </div>
                       </div>
-                      <div className="form-group-usermanagement">
-                      </div>
-                    </div>
+                    )}
 
                     {modalMode === 'create' && (
                       <div className="form-row-usermanagement">
@@ -1577,7 +1595,12 @@ const UserManagement = () => {
               <p>Are you sure you want to <strong>{statusAction}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
               <div className="modal-actions-usermanagement">
                 <button className="cancel-btn-usermanagement" onClick={() => setShowStatusConfirm(false)}>Cancel</button>
-                <button className="delete-btn-usermanagement" onClick={handleToggleStatus} disabled={isSubmitting}>
+                <button
+                  className={statusAction === 'deactivate' ? 'delete-btn-usermanagement' : 'save-btn-usermanagement'}
+                  onClick={handleToggleStatus}
+                  disabled={isSubmitting}
+                  style={{ textTransform: 'capitalize' }}
+                >
                   {isSubmitting ? 'Processing...' : statusAction}
                 </button>
               </div>

@@ -1,5 +1,5 @@
 // App.jsx - WITH NO FULL SCREEN LOADING SPINNER
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -156,6 +156,39 @@ const MaintenanceGuard = ({ children }) => {
   return children;
 };
 
+// Public auth pages (landing/login/register/forgot) always stay light —
+// dashboard dark-mode must never paint their fields dark via global CSS.
+const PUBLIC_AUTH_PATHS = ['/', '/login', '/register', '/forgotpassword'];
+
+// Route-aware theme guard: strips dark-mode on public auth routes (e.g. after
+// logout while dark is saved), re-applies the saved theme everywhere else.
+// DashboardLayout re-syncs on mount as well; this covers in-app navigation.
+const PublicThemeGuard = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const isPublicAuth = PUBLIC_AUTH_PATHS.includes(pathname);
+    if (isPublicAuth) {
+      document.body.classList.remove('dark-mode');
+      document.documentElement.classList.remove('dark-mode');
+    } else {
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.body.classList.add('dark-mode');
+          document.documentElement.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+          document.documentElement.classList.remove('dark-mode');
+        }
+      } catch {
+        // storage unavailable — leave as-is
+      }
+    }
+  }, [pathname]);
+
+  return null;
+};
+
 // Auth Guard for public routes - redirects to dashboard if already logged in
 const PublicRouteGuard = ({ children }) => {
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -180,6 +213,7 @@ function App() {
 
   return (
     <Router>
+      <PublicThemeGuard />
       <ToastProvider>
         <Routes>
           {/* Public Routes */}

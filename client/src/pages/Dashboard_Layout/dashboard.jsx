@@ -118,14 +118,13 @@ const Dashboard = () => {
     localStorage.getItem('userPhotoURL') || sessionStorage.getItem('userPhotoURL') || ''
   );
   
-  // Dark mode state - initialize from localStorage
+  // Dark mode state - default to light/white, persist choice in localStorage
   const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme === 'dark';
+    try {
+      return localStorage.getItem('theme') === 'dark';
+    } catch {
+      return false;
     }
-    // Check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   // Dropdown states
@@ -136,12 +135,18 @@ const Dashboard = () => {
 
   // Apply dark mode class to body when darkMode changes
   useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.remove('dark-mode');
-      localStorage.setItem('theme', 'light');
+    try {
+      if (darkMode) {
+        document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+      }
+    } catch {
+      document.body.classList.toggle('dark-mode', darkMode);
     }
   }, [darkMode]);
 
@@ -1226,8 +1231,22 @@ const Dashboard = () => {
     setIsNavigating(true);
     setShowLogoutModal(false);
     socketService.disconnect();
+    // Preserve the user's theme choice across logout
+    let savedTheme = null;
+    try {
+      savedTheme = localStorage.getItem('theme');
+    } catch {
+      savedTheme = null;
+    }
     localStorage.clear();
     sessionStorage.clear();
+    try {
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        localStorage.setItem('theme', savedTheme);
+      }
+    } catch {
+      // storage unavailable — ignore
+    }
     setTimeout(() => {
       navigate('/');
     }, 100);

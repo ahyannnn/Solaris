@@ -964,6 +964,60 @@ html {
   transform: scale(1.3) rotate(360deg);
 }
 
+/* ---- Display-only service cards (mirrors Support → Services options) ---- */
+.services-section-land {
+  text-align: center;
+}
+
+.services-cards-grid-land {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.service-card-land {
+  background: white;
+  padding: 40px 32px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+  border-top: 4px solid transparent;
+}
+
+.service-card-land:hover {
+  transform: translateY(-12px);
+  box-shadow: var(--shadow-xl);
+  border-top-color: var(--orange);
+}
+
+.service-icon-land {
+  font-size: 44px;
+  color: var(--orange);
+  margin-bottom: 20px;
+  transition: all var(--transition-spring);
+}
+
+.service-card-land:hover .service-icon-land {
+  transform: scale(1.15);
+}
+
+.service-card-land h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.service-card-land p {
+  font-size: 15px;
+  color: rgba(26, 42, 62, 0.7);
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* ============================================== WHY CHOOSE US - CARD GRID ============================================== */
 .whyus-section-land {
   background: var(--light-gray);
@@ -1434,6 +1488,11 @@ html {
     gap: 24px;
   }
 
+  .services-cards-grid-land {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
   .results-grid-land {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1528,6 +1587,10 @@ html {
     padding: 32px 24px;
   }
 
+  .service-card-land {
+    padding: 32px 24px;
+  }
+
   .whyus-icon-land {
     font-size: 40px;
   }
@@ -1617,7 +1680,8 @@ html {
   }
 
   .results-grid-land,
-  .whyus-grid-land {
+  .whyus-grid-land,
+  .services-cards-grid-land {
     grid-template-columns: 1fr;
   }
 

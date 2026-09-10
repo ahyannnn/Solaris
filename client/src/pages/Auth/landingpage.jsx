@@ -13,11 +13,52 @@ import {
   FaDownload,
   FaCalculator,
   FaCalendarAlt,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaBolt,
+  FaVideo,
+  FaBroadcastTower,
+  FaLightbulb,
+  FaGraduationCap
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import "../../styles/Auth/landingpage.css";
 import AppDownload from '../../components/AppDownload';
+
+// Display-only landing copy of the bookable customer services.
+// NOTE: keep `name` values in sync with SERVICE_OPTIONS in
+// pages/Customer/supports.jsx (Support → Services tab).
+const LANDING_SERVICES = [
+  {
+    name: 'Electrical Design and Wiring',
+    icon: FaBolt,
+    description: 'Safe and compliant electrical design and wiring for homes and businesses.'
+  },
+  {
+    name: 'CCTV Installation',
+    icon: FaVideo,
+    description: 'Professional CCTV supply and installation for homes and businesses.'
+  },
+  {
+    name: 'Broadcast system integration',
+    icon: FaBroadcastTower,
+    description: 'Sound and broadcast system setup and integration for buildings and venues.'
+  },
+  {
+    name: 'Lighting system design and integration',
+    icon: FaLightbulb,
+    description: 'Energy-efficient lighting design and installation for any space.'
+  },
+  {
+    name: 'Solar Installation Course with hands on training',
+    icon: FaGraduationCap,
+    description: 'Learn solar installation with actual hands-on training from our engineers.'
+  },
+  {
+    name: 'Maintenance',
+    icon: FaTools,
+    description: 'Preventive maintenance and repair for your installed systems.'
+  }
+];
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -48,8 +89,7 @@ const LandingPage = () => {
 
   const images = {
     hero: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    about: "https://cjnsolar.com.au/wp-content/uploads/2024/02/Solar-panel-installation-process-1.jpg",
-    services: "https://www.naturalgen.co.uk/template/images/Client/NG-SolarPanelInstall-3.jpg"
+    about: "https://cjnsolar.com.au/wp-content/uploads/2024/02/Solar-panel-installation-process-1.jpg"
   };
 
   // Validation functions
@@ -704,26 +744,24 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Services Section — display-only cards mirroring Support → Services */}
       <section id="services" className="services-section-land animate-on-scroll">
         <div className="container-land">
-          <div className="services-grid-land">
-            <div className="services-image-land">
-              <img src={images.services} alt="Solar installation" />
-            </div>
-            <div className="services-content-land">
-              <h2 className="section-title-land">Our Services</h2>
-              <ul className="services-list-land">
-                <li>Solar System Design & Engineering</li>
-                <li>Professional Site Assessment</li>
-                <li>Complete Solar Installation</li>
-                <li>Project Monitoring & Management</li>
-                <li>Maintenance & Technical Support</li>
-                <li>7-Day IoT Data Collection</li>
-                <li>Detailed Performance Reports</li>
-                <li>Free Solar Savings Estimator</li>
-              </ul>
-            </div>
+          <h2 className="section-title-land">Our Services</h2>
+          <p className="section-subtitle-land">
+            Bookable through your customer account under Support → Services
+          </p>
+          <div className="services-cards-grid-land">
+            {LANDING_SERVICES.map((service) => {
+              const Icon = service.icon;
+              return (
+                <div key={service.name} className="service-card-land">
+                  <Icon className="service-icon-land" />
+                  <h3>{service.name}</h3>
+                  <p>{service.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

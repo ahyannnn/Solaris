@@ -87,6 +87,13 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Block deactivated accounts (set via Admin User Management)
+    if (user.isActive === false) {
+      return res.status(403).json({
+        message: "Account has been deactivated. Please contact an administrator."
+      });
+    }
+
     // Check if account is locked
     if (user.isLocked()) {
       const lockTimeRemaining = Math.ceil((user.lockUntil - new Date()) / 60000); // minutes remaining
@@ -213,6 +220,12 @@ exports.googleRegister = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
+      // Block deactivated accounts
+      if (user.isActive === false) {
+        return res.status(403).json({
+          message: "Account has been deactivated. Please contact an administrator."
+        });
+      }
       // User exists → login
       const token = jwt.sign(
         { id: user._id, role: user.role },
@@ -340,6 +353,12 @@ exports.googleLogin = async (req, res) => {
         client_type: "Residential"
       });
       await client.save();
+    }
+    // Block deactivated accounts (existing users only — new signups are active by default)
+    if (user.isActive === false) {
+      return res.status(403).json({
+        message: "Account has been deactivated. Please contact an administrator."
+      });
     }
     // Audit Trail
     await AuditLog.create({

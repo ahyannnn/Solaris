@@ -101,6 +101,14 @@ exports.createUser = async (req, res) => {
     const { email, password, role, fullName, firstName, lastName, contactNumber } = req.body;
     const adminId = req.user.id;
 
+    // Admin-created accounts are staff-only (Admin/Engineer). Customers self-register.
+    if (role === 'user') {
+      return res.status(400).json({ message: 'Customer accounts cannot be created by admin. Customers must self-register.' });
+    }
+    if (role && !['admin', 'engineer'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Role must be Admin or Engineer.' });
+    }
+
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -111,29 +119,17 @@ exports.createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Create user with hashed password
+    // Create user with hashed password (contactNumber stored on User for staff)
     const user = new User({
       fullName: fullName || `${firstName || ''} ${lastName || ''}`.trim(),
       email,
       passwordHash,
       provider: 'local',
-      role: role || 'user'
+      role: role || 'engineer',
+      contactNumber: contactNumber || ''
     });
 
     await user.save();
-
-    // Only create client record for users with role 'user' (customers)
-    if (role === 'user' || (!role && role !== 'admin' && role !== 'engineer')) {
-      const client = new Client({
-        userId: user._id,
-        contactFirstName: firstName || '',
-        contactLastName: lastName || '',
-        contactNumber: contactNumber || '',
-        client_type: 'Residential',
-        account_setup: false
-      });
-      await client.save();
-    }
 
     // Save audit trail
     await AuditLog.create({
@@ -151,12 +147,9 @@ exports.createUser = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
+        contactNumber: user.contactNumber || '',
         createdAt: user.createdAt,
-        clientInfo: (role === 'user') ? {
-          firstName: firstName || '',
-          lastName: lastName || '',
-          contactNumber: contactNumber || ''
-        } : null
+        clientInfo: null
       }
     });
 
@@ -180,8 +173,12 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update user fields
+    // Update user fields (contactNumber lives on User for admin/engineer,
+    // and on Client for customers — keep both in sync)
     if (fullName) user.fullName = fullName;
+    if (contactNumber !== undefined && contactNumber !== user.contactNumber) {
+      user.contactNumber = contactNumber;
+    }
 
     // TEMP-EMAIL-EDIT: allow email change — remove this block to re-lock
     if (email && email.toLowerCase() !== user.email.toLowerCase()) {
@@ -253,6 +250,7 @@ exports.updateUser = async (req, res) => {
         fullName: updatedUser.fullName,
         email: updatedUser.email,
         role: updatedUser.role,
+        contactNumber: updatedUser.contactNumber || updatedClient?.contactNumber || '',
         photoURL: updatedUser.photoURL || null,
         isActive: updatedUser.isActive,
         createdAt: updatedUser.createdAt,
@@ -376,6 +374,11 @@ exports.toggleUserStatus = async (req, res) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Safety guard: admin cannot deactivate their own account
+    if (String(user._id) === String(adminId)) {
+      return res.status(403).json({ success: false, message: 'You cannot deactivate your own account' });
     }
 
     user.isActive = !user.isActive;

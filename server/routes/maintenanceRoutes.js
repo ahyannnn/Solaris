@@ -8,6 +8,7 @@ const {
   getMaintenanceStatus,
   getPublicAssessmentFee,
   getEmailQuota,
+  getCloudinaryQuota,
   getActionCounts,
   enableMaintenance,
   disableMaintenance,
@@ -46,6 +47,9 @@ router.get('/public-fee', getPublicAssessmentFee);
 
 // Brevo email quota for today (admin only - keeps BREVO_API_KEY server-side)
 router.get('/email-quota', verifyToken, admin, getEmailQuota);
+
+// Cloudinary credit quota (admin only - keeps CLOUDINARY_API_SECRET server-side)
+router.get('/cloudinary-quota', verifyToken, admin, getCloudinaryQuota);
 
 // Count of items waiting on admin action for the sidebar badge (admin only)
 router.get('/action-counts', verifyToken, admin, getActionCounts);

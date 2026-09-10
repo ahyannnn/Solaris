@@ -452,6 +452,103 @@ exports.getEmailQuota = async (req, res) => {
   }
 };
 
+// Short in-memory cache so repeated admin views don't spam the Cloudinary Admin API
+// (rate-limited: 500 calls/hr on free plan — same 5-min window as the Brevo quota cache)
+let cloudinaryQuotaCache = { data: null, fetchedAt: 0 };
+const CLOUDINARY_QUOTA_CACHE_MS = 5 * 60 * 1000;
+
+// @desc    Get Cloudinary credit quota (credits-only: remaining + used %, no assumed MB quota math)
+// @route   GET /api/maintenance/cloudinary-quota
+// @access  Private (Admin)
+exports.getCloudinaryQuota = async (req, res) => {
+  try {
+    if (!process.env.CLOUDINARY_CLOUD_NAME ||
+        !process.env.CLOUDINARY_API_KEY ||
+        !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(503).json({
+        success: false,
+        configured: false,
+        message: 'Cloudinary is not configured on the server'
+      });
+    }
+
+    const now = Date.now();
+    if (cloudinaryQuotaCache.data && (now - cloudinaryQuotaCache.fetchedAt) < CLOUDINARY_QUOTA_CACHE_MS) {
+      return res.json({ success: true, cached: true, configured: true, ...cloudinaryQuotaCache.data });
+    }
+
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+
+    const usage = await Promise.race([
+      cloudinary.api.usage(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Cloudinary usage request timed out')), 10000))
+    ]);
+
+    const credits = usage?.credits || {};
+    const creditsLimit = credits.limit != null ? Number(credits.limit) : null;
+    const creditsUsed = credits.usage != null ? Number(credits.usage) : null;
+    const usedPercent = credits.used_percent != null
+      ? Number(credits.used_percent)
+      : (creditsLimit && creditsUsed != null && creditsLimit > 0
+        ? (creditsUsed / creditsLimit) * 100
+        : null);
+    const creditsRemaining = (creditsLimit != null && creditsUsed != null)
+      ? Math.max(0, Math.round((creditsLimit - creditsUsed) * 100) / 100)
+      : null;
+    const storageBytes = usage?.storage?.usage != null ? Number(usage.storage.usage) : null;
+    const storageUsedMB = storageBytes != null
+      ? Math.round((storageBytes / (1024 * 1024)) * 10) / 10
+      : null;
+    // Bandwidth = delivered/viewed data TODAY (this is what eats credits without growing stored MB)
+    const bandwidthBytes = usage?.bandwidth?.usage != null ? Number(usage.bandwidth.usage) : null;
+    const bandwidthUsedMB = bandwidthBytes != null
+      ? Math.round((bandwidthBytes / (1024 * 1024)) * 10) / 10
+      : null;
+    const bandwidthCredits = usage?.bandwidth?.credits_usage != null
+      ? Math.round(Number(usage.bandwidth.credits_usage) * 100) / 100
+      : null;
+    const storageCredits = usage?.storage?.credits_usage != null
+      ? Math.round(Number(usage.storage.credits_usage) * 100) / 100
+      : null;
+    const transformationCount = usage?.transformations?.usage != null
+      ? Number(usage.transformations.usage)
+      : null;
+    const transformationCredits = usage?.transformations?.credits_usage != null
+      ? Math.round(Number(usage.transformations.credits_usage) * 100) / 100
+      : null;
+
+    const result = {
+      plan: usage?.plan || 'unknown',
+      creditsUsed,
+      creditsLimit,
+      creditsRemaining,
+      usedPercent: usedPercent != null ? Math.round(usedPercent * 100) / 100 : null,
+      storageUsedMB,
+      storageCredits,
+      bandwidthUsedMB,
+      bandwidthCredits,
+      transformationCount,
+      transformationCredits,
+      lastUpdated: usage?.last_updated || null
+    };
+
+    cloudinaryQuotaCache = { data: result, fetchedAt: now };
+    res.json({ success: true, cached: false, configured: true, ...result });
+  } catch (error) {
+    console.error('Get Cloudinary quota error:', error.error?.message || error.message);
+    res.status(503).json({
+      success: false,
+      configured: true,
+      message: error.error?.message || error.message || 'Failed to reach Cloudinary API'
+    });
+  }
+};
+
 // @desc    Count items waiting on admin action (sidebar badges for
 //          Site Assessments + Billing). View-only states (details, receipts,
 //          auto-verified, completed, customer-pending invoices, etc.) excluded.

@@ -134,6 +134,28 @@ const MaintenancePanel = () => {
     }
   };
 
+  // Cloudinary credit quota State (admin-only backend proxy — API secret never leaves the server)
+  const [cloudinaryQuota, setCloudinaryQuota] = useState(null);
+  const [cloudinaryQuotaLoading, setCloudinaryQuotaLoading] = useState(false);
+  const [cloudinaryQuotaError, setCloudinaryQuotaError] = useState(null);
+
+  const fetchCloudinaryQuota = async () => {
+    setCloudinaryQuotaLoading(true);
+    setCloudinaryQuotaError(null);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenance/cloudinary-quota`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCloudinaryQuota(response.data);
+    } catch (err) {
+      setCloudinaryQuota(null);
+      setCloudinaryQuotaError(err.response?.data?.message || 'Cloudinary quota unavailable');
+    } finally {
+      setCloudinaryQuotaLoading(false);
+    }
+  };
+
   const fetchHealth = async () => {
     setHealthLoading(true);
     setHealthError(null);
@@ -165,11 +187,13 @@ const MaintenancePanel = () => {
   };
 
   // Auto-refresh health while the System Health tab is open
-  // (server/DB status every 30s; email quota + extras once per visit + manual refresh)
+  // (server/DB status every 30s; email + cloudinary quota + extras once per visit + manual refresh —
+  //  quota APIs are rate-limited so they never join the 30s poll)
   useEffect(() => {
     if (activeMainTab !== 'health') return;
     fetchHealth();
     fetchEmailQuota();
+    fetchCloudinaryQuota();
     fetchHealthExtras();
     const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
@@ -178,6 +202,7 @@ const MaintenancePanel = () => {
   const refreshHealthTab = () => {
     fetchHealth();
     fetchEmailQuota();
+    fetchCloudinaryQuota();
     fetchHealthExtras();
   };
 
@@ -186,6 +211,15 @@ const MaintenancePanel = () => {
     if (remaining == null) return '';
     if (remaining < 20) return 'critical-admain';
     if (remaining < 50) return 'warning-admain';
+    return '';
+  };
+
+  // Cloudinary credits bar color: green normally, amber below 50% of limit, red below 20%
+  const getCloudinaryFillClass = (remaining, limit) => {
+    if (remaining == null || limit == null || limit <= 0) return getQuotaFillClass(remaining);
+    const frac = remaining / limit;
+    if (frac < 0.2) return 'critical-admain';
+    if (frac < 0.5) return 'warning-admain';
     return '';
   };
 
@@ -1228,6 +1262,47 @@ const MaintenancePanel = () => {
                     </>
                   ) : null}
                 </div>
+
+                <div className="health-card-admain">
+                  <span className="health-label-admain">Cloudinary — credits remaining</span>
+                  {cloudinaryQuotaLoading && !cloudinaryQuota ? (
+                    <span className="health-value-admain">Checking…</span>
+                  ) : cloudinaryQuotaError && !cloudinaryQuota ? (
+                    <span className="error-text-admain">{cloudinaryQuotaError}</span>
+                  ) : cloudinaryQuota ? (
+                    <>
+                      <span className="health-value-admain">
+                        <span className={`health-dot-admain ${cloudinaryQuota.creditsRemaining != null && cloudinaryQuota.creditsLimit ? (cloudinaryQuota.creditsRemaining / cloudinaryQuota.creditsLimit < 0.2 ? 'down-admain' : cloudinaryQuota.creditsRemaining / cloudinaryQuota.creditsLimit < 0.5 ? 'warn-admain' : 'up-admain') : 'up-admain'}`} />
+                        {cloudinaryQuota.creditsRemaining ?? '—'} / {cloudinaryQuota.creditsLimit ?? '—'} credits
+                      </span>
+                      {cloudinaryQuota.creditsRemaining != null && cloudinaryQuota.creditsLimit ? (
+                        <div className="health-bar-admain">
+                          <div
+                            className={`health-fill-admain ${getCloudinaryFillClass(cloudinaryQuota.creditsRemaining, cloudinaryQuota.creditsLimit)}`}
+                            style={{ width: `${Math.min(100, Math.max(0, (cloudinaryQuota.creditsRemaining / cloudinaryQuota.creditsLimit) * 100))}%` }}
+                          />
+                        </div>
+                      ) : null}
+                      <small className="health-tip-admain" style={{ marginTop: '4px' }}>
+                        {cloudinaryQuota.usedPercent ?? '—'}% used
+                        {cloudinaryQuota.plan ? ` • ${cloudinaryQuota.plan} plan` : ''}
+                        {cloudinaryQuota.lastUpdated ? ` • updated ${cloudinaryQuota.lastUpdated}` : ''}
+                        {cloudinaryQuota.cached ? ' • cached' : ''}
+                      </small>
+                      <small className="health-tip-admain" style={{ marginTop: '2px' }}>
+                        Stored: {cloudinaryQuota.storageUsedMB != null ? `${cloudinaryQuota.storageUsedMB} MB` : '—'}
+                        {cloudinaryQuota.storageCredits != null ? ` (${cloudinaryQuota.storageCredits} credits)` : ''}
+                        {' • '}Delivered today: {cloudinaryQuota.bandwidthUsedMB != null ? `${cloudinaryQuota.bandwidthUsedMB} MB` : '—'}
+                        {cloudinaryQuota.bandwidthCredits != null ? ` (${cloudinaryQuota.bandwidthCredits} credits)` : ''}
+                      </small>
+                      <small className="health-tip-admain" style={{ marginTop: '2px' }}>
+                        Transformations: {cloudinaryQuota.transformationCount ?? '—'}
+                        {cloudinaryQuota.transformationCredits != null ? ` (${cloudinaryQuota.transformationCredits} credits)` : ''}
+                        {' • '}Views/downloads eat bandwidth credits — stored MB only grows on upload
+                      </small>
+                    </>
+                  ) : null}
+                </div>
               </div>
 
               <aside className="health-rail-admain">
@@ -1284,8 +1359,8 @@ const MaintenancePanel = () => {
                   )}
                 </div>
 
-                <button className="save-config-btn-admain" onClick={refreshHealthTab} disabled={healthLoading || emailQuotaLoading}>
-                  {(healthLoading || emailQuotaLoading) ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
+                <button className="save-config-btn-admain" onClick={refreshHealthTab} disabled={healthLoading || emailQuotaLoading || cloudinaryQuotaLoading}>
+                  {(healthLoading || emailQuotaLoading || cloudinaryQuotaLoading) ? <FaSpinner className="spinner-admain" /> : <FaHeartbeat />} Refresh Status
                 </button>
               </aside>
             </div>

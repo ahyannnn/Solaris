@@ -216,88 +216,153 @@ body.dark-mode {
 }
 
 /* ============================================
-   USER STATS CARDS - Premium Glass
+   CUSTOMER CHART (replaces 4 stat cards) - Premium Glass
+   Customer-only: 12-month signups, single full-width card
    ============================================ */
-.user-stats-grid-usermanagement {
+.user-charts-grid-usermanagement.single,
+.user-charts-grid-usermanagement {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.user-stat-card-usermanagement {
+.user-chart-card-usermanagement {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 14px;
   padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 200ms ease;
+  min-width: 0;
 }
 
-.user-stat-card-usermanagement:hover {
-  transform: translateY(-4px);
+.user-chart-card-usermanagement:hover {
   box-shadow: var(--shadow-card-hover);
   border-color: rgba(243, 156, 18, 0.25);
 }
 
-.user-stat-icon-usermanagement {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.user-chart-header-usermanagement {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.user-chart-header-usermanagement h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.user-chart-period-usermanagement {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.user-chart-kpi-usermanagement {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.user-chart-kpi-usermanagement strong {
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.user-chart-wrapper-usermanagement {
+  width: 100%;
+  height: 260px;
+  min-width: 0;
+}
+
+.user-chart-wrapper-usermanagement.donut {
+  display: flex;
+  flex-direction: column;
+  height: 260px;
+}
+
+.user-chart-wrapper-usermanagement.donut .recharts-responsive-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.user-chart-legend-usermanagement {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.legend-item-usermanagement {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-item-usermanagement strong {
+  color: var(--text-primary);
+}
+
+.legend-dot-usermanagement {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.chart-tooltip-usermanagement {
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border-dropdown);
+  border-radius: 10px;
+  box-shadow: var(--shadow-dropdown);
+  padding: 10px 14px;
+}
+
+.tooltip-label-usermanagement {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tooltip-item-usermanagement {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.user-chart-empty-usermanagement {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.user-stat-icon-usermanagement.admin {
-  background: var(--stat-admin-bg);
-  color: var(--stat-admin-color);
-}
-
-.user-stat-icon-usermanagement.engineer {
-  background: var(--stat-engineer-bg);
-  color: var(--stat-engineer-color);
-}
-
-.user-stat-icon-usermanagement.customer {
-  background: var(--stat-customer-bg);
-  color: var(--stat-customer-color);
-}
-
-.user-stat-icon-usermanagement.total {
-  background: var(--stat-total-bg);
-  color: var(--stat-total-color);
-}
-
-.user-stat-content-usermanagement {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-stat-value-usermanagement {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-  transition: color 0.3s ease;
-}
-
-.user-stat-label-usermanagement {
+  height: 100%;
   font-size: 13px;
-  font-weight: 500;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: color 0.3s ease;
+}
+
+.skeleton-chart-usermanagement {
+  height: 320px;
+  border-radius: 14px;
+  border: 1px solid var(--border-card);
+  background: var(--skeleton-gradient);
+  background-size: 200% 100%;
+  animation: shimmer-usermanagement 1.5s ease-in-out infinite;
 }
 
 /* ============================================
@@ -1478,8 +1543,8 @@ body.dark-mode {
   .form-row-usermanagement {
     grid-template-columns: 1fr 1fr;
   }
-  .user-stats-grid-usermanagement {
-    grid-template-columns: repeat(2, 1fr);
+  .user-charts-grid-usermanagement {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 }
@@ -1724,20 +1789,16 @@ body.dark-mode {
   .detail-row-usermanagement strong {
     font-size: 13px;
   }
-  .user-stats-grid-usermanagement {
-    grid-template-columns: repeat(2, 1fr);
+  .user-charts-grid-usermanagement {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
-  .user-stat-card-usermanagement {
+  .user-chart-card-usermanagement {
     padding: 14px 16px;
   }
-  .user-stat-value-usermanagement {
-    font-size: 20px;
-  }
-  .user-stat-icon-usermanagement {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
+  .user-chart-wrapper-usermanagement,
+  .user-chart-wrapper-usermanagement.donut {
+    height: 230px;
   }
 }
 
@@ -1789,25 +1850,20 @@ body.dark-mode {
   .confirm-modal-usermanagement h3 {
     font-size: 18px;
   }
-  .user-stats-grid-usermanagement {
-    grid-template-columns: 1fr 1fr;
+  .user-charts-grid-usermanagement {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
-  .user-stat-card-usermanagement {
+  .user-chart-card-usermanagement {
     padding: 12px;
     border-radius: 10px;
   }
-  .user-stat-value-usermanagement {
-    font-size: 17px;
+  .user-chart-wrapper-usermanagement,
+  .user-chart-wrapper-usermanagement.donut {
+    height: 220px;
   }
-  .user-stat-label-usermanagement {
-    font-size: 11px;
-  }
-  .user-stat-icon-usermanagement {
-    width: 34px;
-    height: 34px;
+  .user-chart-header-usermanagement h3 {
     font-size: 14px;
-    border-radius: 8px;
   }
 }
 
@@ -1845,21 +1901,16 @@ body.dark-mode {
     width: 100%;
     justify-content: flex-start;
   }
-  .user-stats-grid-usermanagement {
-    grid-template-columns: 1fr 1fr;
+  .user-charts-grid-usermanagement {
+    grid-template-columns: 1fr;
     gap: 6px;
   }
-  .user-stat-card-usermanagement {
-    padding: 8px 10px;
-    gap: 10px;
+  .user-chart-card-usermanagement {
+    padding: 10px 12px;
   }
-  .user-stat-value-usermanagement {
-    font-size: 14px;
-  }
-  .user-stat-icon-usermanagement {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+  .user-chart-wrapper-usermanagement,
+  .user-chart-wrapper-usermanagement.donut {
+    height: 210px;
   }
 }
 
@@ -1873,13 +1924,14 @@ body.dark-mode {
     transition-duration: 0.01ms !important;
   }
   .users-table-usermanagement tbody tr:hover,
-  .user-stat-card-usermanagement:hover {
+  .user-chart-card-usermanagement:hover {
     transform: none !important;
   }
   .skeleton-line-large-usermanagement,
   .skeleton-button-usermanagement,
   .skeleton-tab-usermanagement,
-  .skeleton-search-usermanagement {
+  .skeleton-search-usermanagement,
+  .skeleton-chart-usermanagement {
     animation: none !important;
     background: var(--skeleton-bg) !important;
   }

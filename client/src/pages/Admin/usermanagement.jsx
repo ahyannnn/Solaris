@@ -1,7 +1,16 @@
 // pages/Admin/UserManagement.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaUsers,
@@ -36,10 +45,79 @@ import {
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/usermanagement.css';
 
+// --- Stable (module-level) chart pieces ------------------------------------
+// Defined OUTSIDE UserManagement so their component identity never changes.
+// Previously CustomerCharts was declared inside the page component, so every
+// parent setState (search, pagination, dropdown, page click) created a new
+// component type → React unmounted/remounted the whole chart → it looked
+// like the charts "refresh" on every click. React.memo + stable props means
+// this now re-renders ONLY when the chart data actually changes.
+const SignupTooltip = React.memo(({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const fullLabel = payload[0]?.payload?.fullLabel || payload[0]?.payload?.label || '';
+    return (
+      <div className="chart-tooltip-usermanagement">
+        <p className="tooltip-label-usermanagement">{fullLabel}</p>
+        <p className="tooltip-item-usermanagement">
+          New customers: {payload[0].value}
+        </p>
+      </div>
+    );
+  }
+  return null;
+});
+
+const CustomerSignupChart = React.memo(({ signupData, totalCustomers, newThisMonth, hasCustomers }) => (
+  <div className="user-charts-grid-usermanagement single">
+    <div className="user-chart-card-usermanagement">
+      <div className="user-chart-header-usermanagement">
+        <div>
+          <h3>Customer Signups</h3>
+          <span className="user-chart-period-usermanagement">New customers · last 12 months</span>
+        </div>
+        <div className="user-chart-kpi-usermanagement">
+          <span><strong>{totalCustomers}</strong> total</span>
+          <span><strong>{newThisMonth}</strong> new this month</span>
+        </div>
+      </div>
+      <div className="user-chart-wrapper-usermanagement">
+        {hasCustomers ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={signupData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color, #EEF0ED)" />
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }}
+                dy={10}
+                interval={0}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 12, fontWeight: 500 }}
+                width={38}
+                allowDecimals={false}
+              />
+              <Tooltip content={<SignupTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+              <Bar dataKey="value" fill="#10B981" radius={[6, 6, 0, 0]} barSize={22} isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="user-chart-empty-usermanagement">No customer data yet</div>
+        )}
+      </div>
+    </div>
+  </div>
+));
+
 const UserManagement = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  // Customer-only dataset for the charts (independent of table role filter/search).
+  const [chartCustomers, setChartCustomers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
@@ -278,6 +356,21 @@ const UserManagement = () => {
     }
   };
 
+  // Customer-only fetch for charts — always role=user so table filters never blank the charts.
+  const fetchChartCustomers = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { role: 'user', limit: 1000 }
+      });
+      const list = response.data.users || [];
+      setChartCustomers(list.filter((u) => u.role === 'user'));
+    } catch (error) {
+      console.error('Error fetching chart customers:', error);
+    }
+  };
+
   const fetchAuditLogs = async () => {
     try {
       setAuditLoading(true);
@@ -311,6 +404,7 @@ const UserManagement = () => {
     if (activeTab === 'users') {
       fetchUsers();
       fetchStats();
+      fetchChartCustomers();
     } else if (activeTab === 'audit') {
       fetchAuditLogs();
     }
@@ -324,6 +418,7 @@ const UserManagement = () => {
     if (activeTab === 'users') {
       fetchUsers();
       fetchStats();
+      fetchChartCustomers();
     } else if (activeTab === 'audit') {
       fetchAuditLogs();
     }
@@ -771,11 +866,49 @@ const UserManagement = () => {
   const pageNumbers = getPageNumbers(totalPages, safeCurrentPage);
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
+  // --- Customer-only chart data (memoized at parent level so typing/search never remounts charts) ---
+  const chartCustomerList = useMemo(
+    () => (chartCustomers || []).filter((u) => u.role === 'user'),
+    [chartCustomers]
+  );
+
+  // Last 12 months (inclusive of current month), zero-filled.
+  const signupData = useMemo(() => {
+    const now = new Date();
+    const buckets = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      buckets.push({
+        key,
+        label: d.toLocaleString('en-PH', { month: 'short' }),
+        fullLabel: d.toLocaleString('en-PH', { month: 'short', year: 'numeric' }),
+        value: 0,
+      });
+    }
+    const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
+    chartCustomerList.forEach((u) => {
+      if (!u.createdAt) return;
+      const d = new Date(u.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (byKey[key]) byKey[key].value += 1;
+    });
+    return buckets;
+  }, [chartCustomerList]);
+
+  const totalChartCustomers = chartCustomerList.length;
+  const newChartCustomersThisMonth = signupData.length ? signupData[signupData.length - 1].value : 0;
+  const hasChartCustomers = totalChartCustomers > 0;
+
   const SkeletonLoader = () => (
     <div className="user-management-usermanagement">
       <div className="user-management-header-usermanagement">
         <div className="skeleton-line-large-usermanagement"></div>
         <div className="skeleton-button-usermanagement"></div>
+      </div>
+      <div className="user-charts-grid-usermanagement single">
+        <div className="skeleton-chart-usermanagement"></div>
       </div>
       <div className="user-tabs-usermanagement">
         <div className="skeleton-tab-usermanagement"></div>
@@ -791,44 +924,6 @@ const UserManagement = () => {
       </div>
     </div>
   );
-
-  // --- Stats Cards Component ---
-  const StatsCards = () => {
-    const { byRole } = stats;
-    
-    return (
-      <div className="user-stats-grid-usermanagement">
-        <div className="user-stat-card-usermanagement">
-          
-          <div className="user-stat-content-usermanagement">
-            <span className="user-stat-value-usermanagement">{byRole.admin || 0}</span>
-            <span className="user-stat-label-usermanagement">Admins</span>
-          </div>
-        </div>
-        <div className="user-stat-card-usermanagement">
-        
-          <div className="user-stat-content-usermanagement">
-            <span className="user-stat-value-usermanagement">{byRole.engineer || 0}</span>
-            <span className="user-stat-label-usermanagement">Engineers</span>
-          </div>
-        </div>
-        <div className="user-stat-card-usermanagement">
-         
-          <div className="user-stat-content-usermanagement">
-            <span className="user-stat-value-usermanagement">{byRole.user || 0}</span>
-            <span className="user-stat-label-usermanagement">Customers</span>
-          </div>
-        </div>
-        <div className="user-stat-card-usermanagement total">
-          
-          <div className="user-stat-content-usermanagement">
-            <span className="user-stat-value-usermanagement">{stats.total || 0}</span>
-            <span className="user-stat-label-usermanagement">Total Users</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   if (loading && users.length === 0 && activeTab === 'users') {
     return <SkeletonLoader />;
@@ -848,8 +943,13 @@ const UserManagement = () => {
         {/* --- Minimalist Header --- */}
       
 
-        {/* --- Stats Cards --- */}
-        <StatsCards />
+        {/* --- Customer Chart (customer-only, stable — never remounts on clicks) --- */}
+        <CustomerSignupChart
+          signupData={signupData}
+          totalCustomers={totalChartCustomers}
+          newThisMonth={newChartCustomersThisMonth}
+          hasCustomers={hasChartCustomers}
+        />
 
         {/* --- Tabs + Buttons Wrapper --- */}
         <div className="user-tabs-wrapper-usermanagement">
@@ -1163,10 +1263,10 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* User Modal */}
+        {/* User Modal — closes ONLY via × / Cancel (overlay click disabled) */}
         {showUserModal && (
-          <div className="modal-overlay-usermanagement" onClick={() => setShowUserModal(false)}>
-            <div className={`modal-content-usermanagement user-modal-usermanagement ${modalMode}`} onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-usermanagement">
+            <div className={`modal-content-usermanagement user-modal-usermanagement ${modalMode}`}>
               <div className="modal-header-usermanagement">
                 <h3>{modalMode === 'view' ? 'User Details' : modalMode === 'edit' ? 'Edit User' : 'Create New User'}</h3>
                 <button className="modal-close-usermanagement" onClick={() => setShowUserModal(false)}>×</button>
@@ -1379,10 +1479,10 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Password Reset Modal */}
+        {/* Password Reset Modal — closes ONLY via × / Cancel (overlay click disabled) */}
         {showPasswordModal && selectedUser && (
-          <div className="modal-overlay-usermanagement" onClick={() => setShowPasswordModal(false)}>
-            <div className="modal-content-usermanagement password-modal-usermanagement" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-usermanagement">
+            <div className="modal-content-usermanagement password-modal-usermanagement">
               <div className="modal-header-usermanagement">
                 <h3>Reset Password</h3>
                 <button className="modal-close-usermanagement" onClick={() => setShowPasswordModal(false)}>×</button>
@@ -1450,10 +1550,10 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
+        {/* Delete Confirmation Modal — closes ONLY via Cancel (overlay click disabled) */}
         {showDeleteConfirm && selectedUser && (
-          <div className="modal-overlay-usermanagement" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="modal-content-usermanagement confirm-modal-usermanagement" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-usermanagement">
+            <div className="modal-content-usermanagement confirm-modal-usermanagement">
               <div className="confirm-icon-usermanagement"><FaExclamationTriangle /></div>
               <h3>Delete User</h3>
               <p>Are you sure you want to delete <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
@@ -1468,10 +1568,10 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Status Toggle Modal */}
+        {/* Status Toggle Modal — closes ONLY via Cancel (overlay click disabled) */}
         {showStatusConfirm && selectedUser && (
-          <div className="modal-overlay-usermanagement" onClick={() => setShowStatusConfirm(false)}>
-            <div className="modal-content-usermanagement confirm-modal-usermanagement" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-usermanagement">
+            <div className="modal-content-usermanagement confirm-modal-usermanagement">
               <div className="confirm-icon-usermanagement">{statusAction === 'deactivate' ? <FaBan /> : <FaCheck />}</div>
               <h3>{statusAction === 'deactivate' ? 'Deactivate User' : 'Activate User'}</h3>
               <p>Are you sure you want to <strong>{statusAction}</strong> <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>

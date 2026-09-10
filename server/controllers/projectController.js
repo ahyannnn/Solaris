@@ -1456,6 +1456,14 @@ exports.updateProjectStatus = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    // Only the assigned engineer marks completion (via progress update with
+    // photo proof) — admins approve/assign/record/cancel, never complete.
+    if (status === 'completed') {
+      return res.status(403).json({
+        message: 'Only the assigned engineer can mark a project as completed'
+      });
+    }
+
     const validTransitions = {
       'quoted': ['approved', 'cancelled'],
       'approved': ['initial_paid', 'full_paid', 'cancelled'],

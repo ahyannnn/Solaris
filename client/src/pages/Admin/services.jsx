@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -7,11 +7,19 @@ import {
   FaEye,
   FaTimes,
   FaSpinner,
-  FaPhone,
-  FaEnvelope,
   FaMapMarkerAlt,
   FaCalendarAlt
 } from 'react-icons/fa';
+import {
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
 import '../../styles/Admin/services.css';
@@ -26,18 +34,28 @@ const SERVICE_OPTIONS = [
   'Maintenance'
 ];
 
+// Chart constants (module scope so chart memos stay dependency-clean)
+const CHART_STATUSES = ['pending', 'contacted', 'scheduled', 'completed'];
+const STATUS_COLORS = {
+  pending: '#F39C12',
+  contacted: '#3B82F6',
+  scheduled: '#8B5CF6',
+  completed: '#10B981'
+};
+
 const Services = () => {
   const { toast, showToast, hideToast } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [serviceFilter, setServiceFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [adminRemarks, setAdminRemarks] = useState('');
   const [updating, setUpdating] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
+  // Unfiltered list for charts (table fetch is status/service-filtered)
+  const [chartRequests, setChartRequests] = useState([]);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -48,7 +66,6 @@ const Services = () => {
     try {
       const params = {};
       if (statusFilter !== 'all') params.status = statusFilter;
-      if (serviceFilter !== 'all') params.serviceType = serviceFilter;
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/service-requests`, {
         headers: getAuthHeader(),
         params
@@ -60,20 +77,37 @@ const Services = () => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, serviceFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setLoading(true);
     fetchRequests();
+    fetchChartRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchRequests]);
 
+  // Unfiltered fetch for charts (limit 100 — service volumes are small)
+  const fetchChartRequests = useCallback(async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/service-requests`, {
+        headers: getAuthHeader(),
+        params: { limit: 100 }
+      });
+      setChartRequests(res.data?.requests || []);
+    } catch (err) {
+      console.error('Fetch chart requests failed:', err);
+    }
+  }, []);
+
   useRealtimeTable('service-requests', (payload) => {
-    // Live-merge creates/updates; refetch when filters active to stay correct
-    if (statusFilter !== 'all' || serviceFilter !== 'all') {
+    // Live-merge creates/updates; refetch when status filter active to stay correct
+    if (statusFilter !== 'all') {
       fetchRequests();
+      fetchChartRequests();
       return;
     }
     setRequests(prev => applyRealtimeRecord(prev, payload));
+    fetchChartRequests();
   });
 
   const openDetail = (req) => {
@@ -120,15 +154,52 @@ const Services = () => {
     );
   });
 
-  const stats = {
-    total: requests.length,
-    pending: requests.filter(r => r.status === 'pending').length,
-    contacted: requests.filter(r => r.status === 'contacted').length,
-    scheduled: requests.filter(r => r.status === 'scheduled').length,
-    completed: requests.filter(r => r.status === 'completed').length
-  };
+  // Chart groupings (cancelled excluded from status chart by design)
+  const statusChartData = useMemo(
+    () => CHART_STATUSES.map((s) => ({
+      name: s.charAt(0).toUpperCase() + s.slice(1),
+      value: chartRequests.filter((r) => r.status === s).length
+    })),
+    [chartRequests]
+  );
+  const serviceChartData = useMemo(
+    () => SERVICE_OPTIONS.map((s) => ({
+      name: s.length > 22 ? `${s.slice(0, 21)}…` : s,
+      fullName: s,
+      value: chartRequests.filter((r) => r.serviceType === s).length
+    })),
+    [chartRequests]
+  );
 
   const badgeClass = (s) => `admsvc-badge ${s || ''}`;
+
+  const StatusTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="chart-tooltip-admsvc">
+          <p className="tooltip-label-admsvc">{label}</p>
+          <p className="tooltip-item-admsvc">
+            Requests: {payload[0].value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const ServiceTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="chart-tooltip-admsvc">
+          <p className="tooltip-label-admsvc">{payload[0]?.payload?.fullName || payload[0].name}</p>
+          <p className="tooltip-item-admsvc">
+            Requests: {payload[0].value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <>
@@ -137,11 +208,86 @@ const Services = () => {
       </Helmet>
 
       <div className="admsvc-container">
-        <div className="admsvc-stats">
-          <div className="admsvc-stat"><span className="stat-num">{stats.pending}</span><span className="stat-label">Pending</span></div>
-          <div className="admsvc-stat"><span className="stat-num">{stats.contacted}</span><span className="stat-label">Contacted</span></div>
-          <div className="admsvc-stat"><span className="stat-num">{stats.scheduled}</span><span className="stat-label">Scheduled</span></div>
-          <div className="admsvc-stat"><span className="stat-num">{stats.completed}</span><span className="stat-label">Completed</span></div>
+        <div className="admsvc-charts-row">
+          {/* CHART 1: Status pipeline (cancelled excluded) */}
+          <div className="admsvc-chart-card">
+            <div className="admsvc-chart-header">
+              <h3>Request Status</h3>
+              <span className="admsvc-chart-period">Pipeline overview</span>
+            </div>
+            <div className="admsvc-chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={statusChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color, #EEF0ED)" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                    interval={0}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 12, fontWeight: 500 }}
+                    width={40}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<StatusTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={45}>
+                    {statusChartData.map((entry) => (
+                      <Cell key={entry.name} fill={STATUS_COLORS[entry.name.toLowerCase()] || '#F39C12'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* CHART 2: Requests by service type */}
+          <div className="admsvc-chart-card">
+            <div className="admsvc-chart-header">
+              <h3>Requests by Service</h3>
+              <span className="admsvc-chart-period">Most availed services</span>
+            </div>
+            <div className="admsvc-chart-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={serviceChartData} layout="vertical" margin={{ top: 10, right: 10, left: 20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="var(--border-color, #EEF0ED)" />
+                  <XAxis
+                    type="number"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--text-secondary, #17212B)', fontSize: 11, fontWeight: 500 }}
+                    width={110}
+                  />
+                  <Tooltip content={<ServiceTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Bar
+                    dataKey="value"
+                    fill="#F39C12"
+                    radius={[0, 4, 4, 0]}
+                    barSize={22}
+                    label={{
+                      position: 'right',
+                      fill: 'var(--text-primary, #17212B)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      formatter: (value) => value > 0 ? value : ''
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         <div className="admsvc-toolbar">
@@ -157,10 +303,6 @@ const Services = () => {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">All statuses</option>
             {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
-            <option value="all">All services</option>
-            {SERVICE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
 
@@ -179,7 +321,6 @@ const Services = () => {
                 <tr>
                   <th>Customer</th>
                   <th>Reference</th>
-                  <th>Contact</th>
                   <th>Service</th>
                   <th>Preferred</th>
                   <th>Status</th>
@@ -211,12 +352,6 @@ const Services = () => {
                       </div>
                     </td>
                     <td className="mono" data-label="Reference">{r.referenceNo}</td>
-                    <td data-label="Contact">
-                      <div className="contact-cell">
-                        <span><FaPhone /> {r.phone}</span>
-                        <span className="muted"><FaEnvelope /> {r.email}</span>
-                      </div>
-                    </td>
                     <td data-label="Service">{r.serviceType}</td>
                     <td data-label="Preferred">{r.preferredDate ? new Date(r.preferredDate).toLocaleDateString() : '—'}</td>
                     <td data-label="Status"><span className={badgeClass(r.status)}>{r.status}</span></td>
@@ -272,7 +407,7 @@ const Services = () => {
                 <div className="form-group">
                   <label>Remarks to customer (shown in their request list)</label>
                   <textarea
-                    rows="3"
+                    rows="2"
                     value={adminRemarks}
                     onChange={(e) => setAdminRemarks(e.target.value)}
                     placeholder="e.g. Called customer, scheduled site visit on..."

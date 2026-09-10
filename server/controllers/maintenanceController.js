@@ -462,14 +462,12 @@ exports.getActionCounts = async (req, res) => {
     const [
       preAssessments,
       freeQuotesPending,
-      billingVerifyPre,
       invoicesToSend,
       invoicesToVerify,
       bankWaiting,
       projApprove,
       projAssign,
-      projRecordProgress,
-      projComplete
+      projRecordProgress
     ] = await Promise.all([
       PreAssessment.countDocuments({
         $or: [
@@ -498,22 +496,15 @@ exports.getActionCounts = async (req, res) => {
       }),
       // 6. Free quotes waiting for engineer assignment (no owner yet)
       FreeQuote.countDocuments({ status: 'pending' }),
-      // 7. Billing: pre-assessments with payment to verify (either page can act;
-      //    counted in both badges, both clear on verify). Cancelled/refund-flow
-      //    bookings are never payable again, so they are excluded.
-      PreAssessment.countDocuments({
-        assessmentStatus: { $ne: 'cancelled' },
-        paymentStatus: { $nin: ['cancelled', 'refund_pending', 'refunded', 'no_refund'] },
-        $or: [
-          { paymentMethod: 'gcash', paymentStatus: 'for_verification' },
-          { paymentMethod: 'cash', paymentStatus: 'for_verification' }
-        ]
-      }),
+      // NOTE: pre-assessment payment verifications are NOT counted here —
+      // they already count in the Site Assessments badge. Counting them in
+      // both badges double-counted the same work.
       // 8. Billing: draft invoices waiting to be sent to customer
       SolarInvoice.countDocuments({ status: 'draft' }),
       // 9. Billing: invoices with payment to verify/reject
       SolarInvoice.countDocuments({ paymentStatus: 'for_verification' }),
-      // 10. Billing: bank transfers waiting for approve/reject
+      // 10. Billing: bank transfers waiting for approve/reject (all of them —
+      // even unlinked ones need admin review: approve if linkable, reject if not).
       BankTransferPayment.countDocuments({ status: 'waiting_verification' }),
       // 11. Projects: quoted waiting for approval (cancelled excluded)
       Project.countDocuments({ status: 'quoted' }),
@@ -523,13 +514,13 @@ exports.getActionCounts = async (req, res) => {
         assignedEngineerId: null
       }),
       // 13. Projects: initial_paid waiting for progress payment recording
-      Project.countDocuments({ status: 'initial_paid' }),
-      // 14. Projects: in_progress waiting to be marked completed
-      Project.countDocuments({ status: 'in_progress' })
+      Project.countDocuments({ status: 'initial_paid' })
+      // NOTE: no toComplete bucket — Mark as Completed is the engineer's
+      // job, not the admin's, so in_progress is excluded from admin counts.
     ]);
 
-    const billingTotal = billingVerifyPre + invoicesToSend + invoicesToVerify + bankWaiting;
-    const projectsTotal = projApprove + projAssign + projRecordProgress + projComplete;
+    const billingTotal = invoicesToSend + invoicesToVerify + bankWaiting;
+    const projectsTotal = projApprove + projAssign + projRecordProgress;
 
     res.json({
       success: true,
@@ -537,7 +528,6 @@ exports.getActionCounts = async (req, res) => {
       freeQuotesPending,
       total: preAssessments + freeQuotesPending,
       billing: {
-        verifyPreAssessments: billingVerifyPre,
         invoicesToSend,
         invoicesToVerify,
         bankTransfers: bankWaiting,
@@ -547,7 +537,6 @@ exports.getActionCounts = async (req, res) => {
         approve: projApprove,
         assignEngineer: projAssign,
         recordProgress: projRecordProgress,
-        toComplete: projComplete,
         total: projectsTotal
       }
     });

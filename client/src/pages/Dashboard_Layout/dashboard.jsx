@@ -255,9 +255,32 @@ const Dashboard = () => {
         return !['paid', 'for_verification', 'cancelled', 'failed', 'refund_pending', 'refunded', 'no_refund'].includes(a?.paymentStatus);
       };
 
+      // Sequential gating (mirrors billing Pay Now rules): future installments
+      // are NOT due until the prior stage is paid — otherwise not-yet-due
+      // invoices would wrongly light the dot (e.g. progress+final counted
+      // while initial is still unverified).
+      const getInvoicePid = (inv) => {
+        const pid = inv?.projectId?._id || inv?.projectId || null;
+        return pid ? String(pid) : null;
+      };
+      const isStagePaid = (pid, type) => invoices.some((o) =>
+        getInvoicePid(o) === pid && o?.invoiceType === type && o?.paymentStatus === 'paid'
+      );
+      const isInvoiceDueNow = (inv) => {
+        if (!inv || inv.paymentStatus !== 'pending' || (inv.balance ?? 1) <= 0) return false;
+        const pid = getInvoicePid(inv);
+        if (!pid) return true; // standalone invoice (no project schedule)
+        switch (inv.invoiceType) {
+          case 'progress': return isStagePaid(pid, 'initial');
+          case 'final': return isStagePaid(pid, 'progress');
+          case 'retention': return isStagePaid(pid, 'final');
+          default: return true; // initial, full, additional, unknown
+        }
+      };
+
       const pendingPayable =
         billableAssessments.some((a) => isPayableAssessment(a)) ||
-        invoices.some((inv) => inv?.paymentStatus === 'pending' && (inv?.balance ?? 1) > 0);
+        invoices.some((inv) => isInvoiceDueNow(inv));
 
       setBookNeedsAction(needsAction);
       setBillingPending(pendingPayable);

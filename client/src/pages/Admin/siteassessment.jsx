@@ -559,12 +559,45 @@ const SiteAssessment = () => {
     return item.status;
   };
 
+  // Row priority: needs-action rows first (mirrors the sidebar badge counts).
+  // Pre-assessments: approve/reject (1) → process refund (2) →
+  // verify payments (3) → assign engineer (4) → everything else (5).
+  // Free quotes follow pipeline order: pending → assigned → processing →
+  // completed → cancelled. Newest first within the same priority.
+  const getPreAssessmentPriority = (item) => {
+    if (item.assessmentStatus === 'pending_review') return 1;
+    if (item.assessmentStatus === 'cancelled' && item.cancellation && ['pending', 'processing'].includes(item.cancellation.refundStatus)) return 2;
+    if (item.paymentMethod === 'cash' && item.paymentStatus === 'pending') return 3;
+    if (item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway) return 3;
+    if (item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId) return 4;
+    return 5;
+  };
+
+  const FREE_QUOTE_PRIORITY = { pending: 1, assigned: 2, processing: 3, accepted: 4, completed: 5, cancelled: 6 };
+
+  const getItemTime = (item) => {
+    const raw = activeTab === 'free-quotes'
+      ? (item.requestedAt || item.createdAt)
+      : (item.bookedAt || item.createdAt);
+    const t = new Date(raw).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  };
+
+  const getItemPriority = (item) => activeTab === 'free-quotes'
+    ? (FREE_QUOTE_PRIORITY[item.status] ?? 9)
+    : getPreAssessmentPriority(item);
+
   const filteredItems = (activeTab === 'free-quotes' ? freeQuotes : preAssessments).filter(item => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
       item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
       (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
+    // Stable sort: priority groups first, newest kept within each group.
+  }).sort((a, b) => {
+    const priorityDiff = getItemPriority(a) - getItemPriority(b);
+    if (priorityDiff !== 0) return priorityDiff;
+    return getItemTime(b) - getItemTime(a);
   });
 
   // Client-side pagination over the full filtered list

@@ -86,7 +86,6 @@ const ProjectManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
   const [engineers, setEngineers] = useState([]);
   const [projectInvoices, setProjectInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
@@ -231,18 +230,22 @@ const ProjectManagement = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [filter, currentPage]);
+    // Fetch-all once (filter/sort/paginate client-side so needs-action
+    // rows stay on top across ALL pages)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Fetch the full list (project volumes are small); filtering, priority
+  // sorting and pagination all happen client-side below.
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: itemsPerPage }
+        params: { limit: 999 }
       });
       setProjects(response.data.projects || []);
-      setTotalItems(response.data.total || 0);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -459,14 +462,48 @@ const ProjectManagement = () => {
     return badges[statusLower] || <span className="status-badge-projectmanagement">{status}</span>;
   };
 
-  const filteredProjects = projects.filter(project => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return project.projectName?.toLowerCase().includes(searchLower) ||
-      project.projectReference?.toLowerCase().includes(searchLower) ||
-      project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-      project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
-  });
+  // Row priority: needs-action rows first (mirrors page actions and the
+  // sidebar badge counts). 1 quoted (approve) → 2 approved/initial_paid
+  // without engineer (assign) → 3 initial_paid (record progress) → 4 rest
+  // (in_progress etc. are completed by the engineer, not the admin;
+  // completed, cancelled, view-only). Newest kept within each group.
+  const getAdminProjectPriority = (project) => {
+    const s = project.status?.toLowerCase() || '';
+    const hasEng = !!project.assignedEngineerId;
+    if (s === 'quoted') return 1;
+    if ((s === 'approved' || s === 'initial_paid') && !hasEng) return 2;
+    if (s === 'initial_paid') return 3;
+    return 4;
+  };
+
+  const getProjectTime = (project) => {
+    const t = new Date(project.createdAt).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  };
+
+  const filteredProjects = projects
+    .filter(project => filter === 'all' || project.status === filter)
+    .filter(project => {
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      return project.projectName?.toLowerCase().includes(searchLower) ||
+        project.projectReference?.toLowerCase().includes(searchLower) ||
+        project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
+        project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
+      // Stable sort: priority groups first, newest kept within each group.
+    })
+    .sort((a, b) =>
+      getAdminProjectPriority(a) - getAdminProjectPriority(b) ||
+      getProjectTime(b) - getProjectTime(a)
+    );
+
+  const totalItems = filteredProjects.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const pagedProjects = filteredProjects.slice(
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
+  );
 
   const getAvailableActions = (project) => {
     const actions = [
@@ -536,21 +573,8 @@ const ProjectManagement = () => {
       );
     }
 
-    if (statusLower === 'in_progress') {
-      actions.push(
-        {
-          label: 'Mark as Completed',
-          icon: <FaCheckCircle />,
-          action: () => {
-            setSelectedProject(project);
-            setFormData({ ...formData, newStatus: 'completed' });
-            setShowStatusModal(true);
-            setOpenDropdownId(null);
-          },
-          color: 'success'
-        }
-      );
-    }
+    // NOTE: No "Mark as Completed" here by design — only the assigned
+    // engineer marks completion (via their Update flow with photo proof).
 
     // FIX: Only show Cancel Project if status is NOT completed or cancelled
     if (statusLower !== 'cancelled' && statusLower !== 'completed') {
@@ -572,14 +596,13 @@ const ProjectManagement = () => {
     return actions;
   };
 
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const startItem = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalItems);
 
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let startPage = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     if (endPage - startPage + 1 < maxVisible) {
@@ -789,7 +812,7 @@ const ProjectManagement = () => {
               type="text"
               placeholder="Search projects..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
           <div className="filter-group-projectmanagement">
@@ -831,7 +854,7 @@ const ProjectManagement = () => {
                 {filteredProjects.length === 0 ? (
                   <tr><td colSpan="7" data-label="" className="empty-state-projectmanagement">No projects found</td></tr>
                 ) : (
-                  filteredProjects.map((project, idx) => {
+                  pagedProjects.map((project, idx) => {
                     const actions = getAvailableActions(project);
                     const isOpen = openDropdownId === project._id;
 
@@ -871,7 +894,7 @@ const ProjectManagement = () => {
                               className="action-dropdown-toggle-projectmanagement"
                               data-action-toggle
                               ref={el => buttonRefs.current[project._id] = el}
-                              onClick={(e) => handleDropdownClick(e, project._id, idx >= filteredProjects.length - 2)}
+                              onClick={(e) => handleDropdownClick(e, project._id, idx >= pagedProjects.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
                             </button>
@@ -923,7 +946,7 @@ const ProjectManagement = () => {
               <button
                 className="page-btn-projectmanagement"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
+                disabled={safeCurrentPage === 1}
               >
                 <FaChevronLeft /> Previous
               </button>
@@ -931,7 +954,7 @@ const ProjectManagement = () => {
               {getPageNumbers().map(page => (
                 <button
                   key={page}
-                  className={`page-number-projectmanagement ${currentPage === page ? 'active-projectmanagement' : ''}`}
+                  className={`page-number-projectmanagement ${safeCurrentPage === page ? 'active-projectmanagement' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -941,7 +964,7 @@ const ProjectManagement = () => {
               <button
                 className="page-btn-projectmanagement"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
+                disabled={safeCurrentPage === totalPages}
               >
                 Next <FaChevronRight />
               </button>
@@ -1215,9 +1238,8 @@ const ProjectManagement = () => {
                       <option value="approved">Approve</option>
                     )}
 
-                    {selectedProject.status?.toLowerCase() === 'in_progress' && (
-                      <option value="completed">Complete</option>
-                    )}
+                    {/* NOTE: No 'Complete' option by design — only the assigned
+                        engineer marks completion (with photo proof). */}
 
                     {/* FIX: Only show Cancel if not completed or cancelled */}
                     {selectedProject.status?.toLowerCase() !== 'cancelled' &&

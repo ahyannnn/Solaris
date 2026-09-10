@@ -8,6 +8,16 @@
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
   <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none" />
   <title>Salfer Engineering</title>
+  <!-- Apply saved dashboard theme before paint (default: light/white; never dark on public auth pages) -->
+  <script>
+    try {
+      var _p = window.location.pathname;
+      var _isPublicAuth = _p === '/' || _p === '/login' || _p === '/register' || _p === '/forgotpassword';
+      if (!_isPublicAuth && localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+      }
+    } catch (e) { /* storage unavailable — stay light */ }
+  </script>
   <!-- Poppins Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +26,15 @@
 </head>
 
 <body>
+  <script>
+    try {
+      var _p2 = window.location.pathname;
+      var _isPublicAuth2 = _p2 === '/' || _p2 === '/login' || _p2 === '/register' || _p2 === '/forgotpassword';
+      if (!_isPublicAuth2 && localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+      }
+    } catch (e) { /* storage unavailable — stay light */ }
+  </script>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>

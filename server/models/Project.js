@@ -73,6 +73,14 @@ const projectSchema = new mongoose.Schema({
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignedTeam: [{ type: String }],
 
+  // Progress-gated payments: next invoices unlock only after engineer action.
+  // - workStartedAt: set when engineer Starts Installation (unlocks progress / fifty_fifty final).
+  // - postProgressUpdateAt: set when engineer posts a photo update AFTER progress was paid
+  //   (unlocks final 10%). Legacy projects without these fields fall back to
+  //   startDate / status / projectUpdates derivation in utils/paymentGates.js.
+  workStartedAt: { type: Date, default: null },
+  postProgressUpdateAt: { type: Date, default: null },
+
   // Documents
   quotationFile: { type: String },
   contractFile: { type: String },

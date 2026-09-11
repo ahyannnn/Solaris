@@ -1365,11 +1365,6 @@ const MaintenancePanel = () => {
               </aside>
             </div>
 
-            <p className="health-tip-admain">
-              Tip: point a free uptime monitor (e.g. UptimeRobot) at{' '}
-              <code>{import.meta.env.VITE_API_URL}/api/health</code> every 5 minutes
-              to get an alert when the server goes down.
-            </p>
           </div>
         )}
 

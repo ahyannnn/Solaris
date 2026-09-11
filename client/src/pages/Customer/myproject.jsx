@@ -166,6 +166,18 @@ const MyProject = () => {
     }).format(amount || 0);
   };
 
+  // 🔒 Progress-gated: locked stages are hidden until the engineer unlocks
+  // them (Start → progress/fifty_fifty final; photo-update → final 10%).
+  // Backend supplies paymentLocks via /api/projects/my-projects; when absent
+  // (stale cache) default to visible — the server still blocks payment.
+  const isStageLocked = (project, paymentType) => {
+    const locks = project?.paymentLocks;
+    if (!locks) return false;
+    if (paymentType === 'progress') return !!locks.progressLocked;
+    if (paymentType === 'final') return !!locks.finalLocked;
+    return false;
+  };
+
   const formatDate = (date) => {
     if (!date) return 'TBD';
     return new Date(date).toLocaleDateString('en-PH', {
@@ -592,13 +604,13 @@ const MyProject = () => {
                     {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference === 'full' && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Full Payment</button>
                     )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'progress') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
                     )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'fifty_fifty') && (
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'fifty_fifty') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
                     )}
-                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
+                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
                       <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
                     )}
                     {selectedProject.status === 'in_progress' && selectedProject.paymentPreference === 'full' && (
@@ -697,7 +709,7 @@ const MyProject = () => {
                     <div className="cuspro-overview-card">
                       <h4>Payment Summary</h4>
                       <div className="cuspro-payment-mini">
-                        {selectedProject.paymentSchedule?.map((payment) => {
+                        {selectedProject.paymentSchedule?.filter((payment) => !isStageLocked(selectedProject, payment.type)).map((payment) => {
                           const status = getPaymentStatus(selectedProject, payment.type);
                           const paymentLabels = {
                             'full': 'Full (100%)',
@@ -736,7 +748,7 @@ const MyProject = () => {
               {activeTab === 'payments' && (
                 <div className="cuspro-payments-full">
                   {selectedProject.paymentSchedule?.length > 0 ? (
-                    selectedProject.paymentSchedule.map((payment) => {
+                    selectedProject.paymentSchedule.filter((payment) => !isStageLocked(selectedProject, payment.type)).map((payment) => {
                       const status = getPaymentStatus(selectedProject, payment.type);
                       const paymentLabels = {
                         'full': 'Full Payment (100%)',
@@ -757,7 +769,7 @@ const MyProject = () => {
                             <strong>{formatCurrency(payment.amount)}</strong>
                             {status.status === 'paid' && payment.paidAt && <span>Paid on {formatDate(payment.paidAt)}</span>}
                           </div>
-                          {status.status !== 'paid' && status.status !== 'for_verification' && selectedProject.status !== 'quoted' && (
+                          {status.status !== 'paid' && status.status !== 'for_verification' && selectedProject.status !== 'quoted' && !isStageLocked(selectedProject, payment.type) && (
                             <button className="cuspro-btn-pay" onClick={() => navigate('/app/customer/billing')}>
                               Pay Now <FaArrowRight />
                             </button>

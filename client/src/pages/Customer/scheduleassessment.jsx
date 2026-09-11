@@ -982,7 +982,9 @@ const ScheduleAssessment = () => {
       });
       setCurrentStep('service-selection');
       setSubmitted(true);
-      showToast('Quote request submitted successfully!', 'success');
+      // NOTE: no local success toast here — the server's real-time
+      // notification toast (via socket) already confirms the booking,
+      // and a local one would double-toast.
       fetchMyRequests();
       setIsSubmitting(false);
     } catch (err) {
@@ -1133,7 +1135,9 @@ const ScheduleAssessment = () => {
         assessmentFee: response.data.booking.assessmentFee ?? assessmentFee
       });
       setShowPreAssessmentSuccess(true);
-      showToast('Pre-assessment booked successfully!', 'success');
+      // NOTE: no local success toast here — the server's real-time
+      // notification toast (via socket) already confirms the booking,
+      // and a local one would double-toast.
       fetchMyRequests();
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.', 'error');
@@ -1961,7 +1965,7 @@ const ScheduleAssessment = () => {
   );
 
   if (submitted) return (
-    <div className="schedule-container-cusset">
+    <div className="schedule-success-overlay-cusset" role="dialog" aria-modal="true" aria-label="Request submitted">
       <div className="schedule-confirmation-card-cusset">
         <div className="confirmation-icon">✓</div>
         <h1>Request Submitted!</h1>
@@ -2004,7 +2008,7 @@ const ScheduleAssessment = () => {
   );
 
   if (showPreAssessmentSuccess) return (
-    <div className="schedule-container-cusset">
+    <div className="schedule-success-overlay-cusset" role="dialog" aria-modal="true" aria-label="Pre-assessment booked">
       <div className="schedule-confirmation-card-cusset">
         <div className="confirmation-icon">✓</div>
         <h1>Pre-Assessment Booked!</h1>

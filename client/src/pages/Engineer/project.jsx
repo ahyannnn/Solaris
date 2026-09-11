@@ -181,12 +181,13 @@ const EngineerProject = () => {
   };
 
   // Combined flow: upload selected photos first (if any), then update progress.
-  // Photos are REQUIRED for every Update/Complete across all payment types.
-  // Start Installation keeps photos optional (work hasn't begun).
+  // Photos are REQUIRED for Start, every Update, and Complete across all
+  // payment types — next-stage payments unlock off engineer photo-updates,
+  // so Start must also carry site photos.
   const handleUploadAndUpdate = async (actionType, isFinalAction) => {
-    const needsPhotos = actionType === 'update' || actionType === 'complete' || isFinalAction;
+    const needsPhotos = actionType === 'start' || actionType === 'update' || actionType === 'complete' || isFinalAction;
     if (needsPhotos && newPhotoFiles.length === 0) {
-      showToast('Please select at least one photo — photos are required to update progress', 'warning');
+      showToast('Please select at least one photo — photos are required to start installation and update progress', 'warning');
       return;
     }
     if (newPhotoFiles.length > 0) {
@@ -476,7 +477,13 @@ const EngineerProject = () => {
         `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/progress`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
-      );
+      ).then((res) => {
+        const unlocked = res.data?.unlocked || [];
+        if (unlocked.length > 0) {
+          const labels = unlocked.map((t) => (t === 'progress' ? 'Progress payment' : t === 'final' ? 'Final payment' : t));
+          showToast(`${labels.join(' and ')} is now visible to the customer for payment`, 'success');
+        }
+      });
 
       let statusMessage = 'Project progress updated successfully!';
       if (actionType === 'start') statusMessage = 'Installation started successfully!';
@@ -1158,7 +1165,7 @@ const EngineerProject = () => {
                         ? `${newPhotoFiles.length} new photo(s) selected`
                         : isWaitingForPayment(selectedProject)
                           ? 'Upload disabled - payment required'
-                          : 'Select new photos (required when updating progress)'}
+                          : 'Select new photos (required to start and update progress)'}
                     </p>
                   </div>
 
@@ -1202,7 +1209,7 @@ const EngineerProject = () => {
                     const busy = isSubmitting || uploadingPhotos;
 
                     let buttonText = 'Upload & Update Progress';
-                    if (action.type === 'start') buttonText = 'Start Installation';
+                    if (action.type === 'start') buttonText = 'Upload & Start Installation';
                     else if (isFinal) buttonText = 'Upload & Complete Project';
 
                     return (

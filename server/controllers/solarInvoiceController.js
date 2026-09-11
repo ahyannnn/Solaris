@@ -9,6 +9,21 @@ const { processUpload, getFileUrl, deleteFile } = require('../middleware/uploadM
 const receiptService = require('../services/receiptService');
 const AuditLog = require('../models/AuditLog');
 const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
+const { assertStagePayable, isInvoiceVisibleToCustomer } = require('../utils/paymentGates');
+
+// Progress-gate enforcement for customer pay/submit endpoints.
+// Returns true if it already sent a 400 response (caller must return).
+const blockLockedStage = async (res, invoice) => {
+  if (!invoice?.projectId) return false;
+  const project = await Project.findById(invoice.projectId);
+  if (!project) return false;
+  const check = assertStagePayable(project, invoice.invoiceType);
+  if (!check.ok) {
+    res.status(400).json({ success: false, message: check.message });
+    return true;
+  }
+  return false;
+};
 
 // Helper function to format currency (for project updates)
 const formatCurrencyHelper = (amount) => {
@@ -46,6 +61,9 @@ exports.paySolarInvoice = async (req, res) => {
     if (invoice.paymentStatus === 'paid') {
       return res.status(400).json({ message: 'Invoice already paid' });
     }
+
+    // 🔒 Progress-gated: locked stages cannot even be submitted for verification.
+    if (await blockLockedStage(res, invoice)) return;
 
     const processedFile = await processUpload(
       req,
@@ -179,6 +197,9 @@ exports.paySolarInvoiceCash = async (req, res) => {
       return res.status(400).json({ message: 'Invoice already paid' });
     }
 
+    // 🔒 Progress-gated: locked stages cannot be selected for cash payment.
+    if (await blockLockedStage(res, invoice)) return;
+
     const paymentAmount = amount || invoice.balance || invoice.totalAmount;
 
     invoice.payments.push({
@@ -260,6 +281,9 @@ exports.getPayMongoPaymentIntent = async (req, res) => {
     if (invoice.paymentStatus === 'paid') {
       return res.status(400).json({ message: 'Invoice already paid' });
     }
+
+    // 🔒 Progress-gated: no payment intent for locked stages.
+    if (await blockLockedStage(res, invoice)) return;
 
     const amount = invoice.balance || invoice.totalAmount;
 
@@ -807,12 +831,23 @@ exports.getMySolarInvoices = async (req, res) => {
     }
 
     const invoices = await SolarInvoice.find({ clientId: client._id })
-      .populate('projectId', 'projectName projectReference systemSize status')
+      .populate('projectId', 'projectName projectReference systemSize status paymentPreference paymentSchedule workStartedAt postProgressUpdateAt startDate projectUpdates assignedEngineerId')
       .sort({ createdAt: -1 });
+
+    // 🔒 Progress-gated: locked stages are hidden entirely (not just disabled).
+    // Legacy already-issued invoices stay hidden until the engineer update unlocks them.
+    const visible = invoices.filter((inv) => {
+      if (!inv.projectId || typeof inv.projectId !== 'object') return true;
+      try {
+        return isInvoiceVisibleToCustomer(inv.projectId, inv);
+      } catch {
+        return true;
+      }
+    });
 
     res.json({
       success: true,
-      invoices
+      invoices: visible
     });
 
   } catch (error) {

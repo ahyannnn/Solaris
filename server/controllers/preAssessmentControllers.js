@@ -3305,12 +3305,12 @@ exports.cancelPreAssessment = async (req, res) => {
         'Pre-Assessment Cancelled',
         `Your pre-assessment ${assessment.bookingReference} has been cancelled. ${refundMsg}`,
         refundAmount > 0 ? 'warning' : 'info',
-        `/app/customer/scheduleassessment`,
+        `/app/customer/book-assessment`,
         { bookingReference: assessment.bookingReference, refundPercentage, refundAmount, refundStatus, policyTier }
       );
       const clientName = `${client.contactFirstName || ''} ${client.contactLastName || ''}`.trim() || 'Customer';
       const adminMsg = `Customer ${clientName} cancelled ${assessment.bookingReference} (${assessment.paymentMethod || 'unpaid'}). Refund ${refundPercentage}% ₱${refundAmount} status:${refundStatus} tier:${policyTier}`;
-      await sendAdminBroadcast('Pre-Assessment Cancelled', adminMsg, refundStatus === 'pending' ? 'warning' : 'info', `/app/admin/pre-assessments`, { bookingReference: assessment.bookingReference, clientId: client._id, refundAmount, refundStatus, paymentMethod: assessment.paymentMethod, policyTier });
+      await sendAdminBroadcast('Pre-Assessment Cancelled', adminMsg, refundStatus === 'pending' ? 'warning' : 'info', `/app/admin/siteassessment`, { bookingReference: assessment.bookingReference, clientId: client._id, refundAmount, refundStatus, paymentMethod: assessment.paymentMethod, policyTier });
     } catch (notifErr) {
       console.error('Cancel notification failed:', notifErr.message);
     }
@@ -3446,7 +3446,7 @@ exports.processRefund = async (req, res) => {
         const msg = action === 'refunded'
           ? `Your refund of ₱${assessment.cancellation.refundAmount} (${assessment.cancellation.refundPercentage}%) for ${assessment.bookingReference} has been processed via ${assessment.cancellation.refundMethod || assessment.paymentMethod}. Reference: ${reference || 'N/A'}`
           : `Your refund request for ${assessment.bookingReference} was rejected. ${remarks || ''}`;
-        await sendNotification(notifyUserId, title, msg, action === 'refunded' ? 'success' : 'error', `/app/customer/scheduleassessment`, { bookingReference: assessment.bookingReference, refundAmount: assessment.cancellation.refundAmount, refundStatus: assessment.cancellation.refundStatus });
+        await sendNotification(notifyUserId, title, msg, action === 'refunded' ? 'success' : 'error', `/app/customer/book-assessment`, { bookingReference: assessment.bookingReference, refundAmount: assessment.cancellation.refundAmount, refundStatus: assessment.cancellation.refundStatus });
       }
     } catch (nErr) {
       console.error('Process refund notify failed:', nErr.message);

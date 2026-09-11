@@ -6,6 +6,7 @@ const Client = require('../models/Clients');
 const SolarInvoice = require('../models/SolarInvoice');
 const receiptService = require('../services/receiptService');
 const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
+const { assertStagePayable } = require('../utils/paymentGates');
 
 // =============================================
 // PRE-ASSESSMENT PAYMENT INTENT
@@ -203,6 +204,14 @@ exports.createBankTransferPaymentIntent = async (req, res) => {
     const project = await Project.findById(invoice.projectId);
     const projectName = project?.projectName || 'Solar Installation';
 
+    // 🔒 Progress-gated: no payment intent for locked stages.
+    if (project && invoice.invoiceType !== 'preassessment') {
+      const gate = assertStagePayable(project, invoice.invoiceType);
+      if (!gate.ok) {
+        return res.status(400).json({ success: false, message: gate.message });
+      }
+    }
+
     // =============================================
     // STEP 1: Create Payment Intent with DOB
     // =============================================
@@ -330,6 +339,14 @@ exports.createInvoicePaymentIntent = async (req, res) => {
     // Get project info
     const project = await Project.findById(invoice.projectId);
     const projectName = project?.projectName || 'Solar Installation';
+
+    // 🔒 Progress-gated: no payment intent for locked stages.
+    if (project) {
+      const gate = assertStagePayable(project, invoice.invoiceType);
+      if (!gate.ok) {
+        return res.status(400).json({ success: false, message: gate.message });
+      }
+    }
 
     // =============================================
     // 1. HANDLE GCASH

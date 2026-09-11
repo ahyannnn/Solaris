@@ -10,6 +10,60 @@ const SolarInvoice = require('../models/SolarInvoice');
 const cloudinary = require('cloudinary').v2;
 const { sendNotification, sendAdminBroadcast } = require('../utils/notificationHelper');
 const AuditLog = require('../models/AuditLog');
+const { getUnlockState } = require('../utils/paymentGates');
+
+// ============================================================
+// PROGRESS-GATED INVOICE ISSUANCE
+// Later stages are NOT created at approval. They are issued lazily
+// by ensureNextInvoice() when the engineer acts first:
+// - fifty_fifty: final issued on engineer START.
+// - thirty_sixty_ten / installment: progress issued on START,
+//   final issued on an engineer photo-update AFTER progress was paid.
+// ============================================================
+const hasIssuedInvoice = (project, type) =>
+  (project.paymentSchedule || []).some((p) => p.type === type && p.invoiceNumber);
+
+const ensureNextInvoice = async (project, actorId) => {
+  const unlocked = [];
+  try {
+    const pref = project.paymentPreference || 'installment';
+    const locks = getUnlockState(project);
+
+    const issueIfMissing = async (type) => {
+      const item = (project.paymentSchedule || []).find((p) => p.type === type);
+      if (!item || item.status === 'paid' || hasIssuedInvoice(project, type)) return;
+      const invoice = await createSolarInvoice(project, type, item.amount, actorId, item.dueDate);
+      item.invoiceNumber = invoice.invoiceNumber;
+      unlocked.push(type);
+      console.log(`🔓 ${type} invoice unlocked by engineer progress: ${invoice.invoiceNumber}`);
+    };
+
+    if ((pref === 'thirty_sixty_ten' || pref === 'installment') && !locks.progressLocked) {
+      await issueIfMissing('progress');
+    }
+    if (!locks.finalLocked) {
+      await issueIfMissing('final');
+    }
+
+    if (unlocked.length > 0) {
+      await project.save();
+      const userId = project.clientId?.userId?._id || project.clientId?.userId || project.userId;
+      if (userId) {
+        await sendNotification(
+          userId,
+          'New Payment Available',
+          `Your ${unlocked.join(' and ')} payment for project ${project.projectReference} is now available for payment.`,
+          'info',
+          '/projects/' + project._id,
+          { metadata: { projectReference: project.projectReference, unlocked } }
+        ).catch((e) => console.error('Unlock invoice notify error:', e.message));
+      }
+    }
+  } catch (e) {
+    console.error('ensureNextInvoice error:', e.message);
+  }
+  return unlocked;
+};
 
 // Configure Cloudinary (should already be configured in your app)
 cloudinary.config({
@@ -178,6 +232,15 @@ exports.uploadProjectPhotos = async (req, res) => {
     }
 
     project.sitePhotos = [...(project.sitePhotos || []), ...photoUrls];
+    // Timestamped engineer-authored proof: the final-10% gate unlocks on a
+    // photo-update AFTER the progress payment was verified as paid.
+    project.projectUpdates = project.projectUpdates || [];
+    project.projectUpdates.push({
+      title: 'Site photos uploaded',
+      description: `${photoUrls.length} site photo(s) uploaded`,
+      status: project.status,
+      updatedBy: engineerId
+    });
     await project.save();
 
     console.log(`✅ Successfully uploaded ${photoUrls.length} photos to Cloudinary`);
@@ -243,6 +306,14 @@ exports.createProjectPayMongoPaymentIntent = async (req, res) => {
       }
       if (payment.status === 'paid') {
         return res.status(400).json({ message: 'Payment already completed' });
+      }
+      // 🔒 Progress-gated: no payment intent for locked stages.
+      {
+        const { assertStagePayable } = require('../utils/paymentGates');
+        const gate = assertStagePayable(project, payment.type);
+        if (!gate.ok) {
+          return res.status(400).json({ success: false, message: gate.message });
+        }
       }
       paymentAmount = payment.amount;
       paymentTypeName = payment.type;
@@ -436,6 +507,13 @@ exports.getMyProjects = async (req, res) => {
         projectObj.engineerFullName = engineerFullName;
       } else {
         projectObj.engineerFullName = null;
+      }
+
+      // Progress-gate flags for customer billing (hide/disable locked stages).
+      try {
+        projectObj.paymentLocks = getUnlockState(project);
+      } catch {
+        projectObj.paymentLocks = null;
       }
 
       return projectObj;
@@ -874,6 +952,15 @@ exports.recordPayment = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
+    // 🔒 Progress-gated: locked stages cannot be recorded.
+    {
+      const { assertStagePayable } = require('../utils/paymentGates');
+      const gate = assertStagePayable(project, paymentType);
+      if (!gate.ok) {
+        return res.status(400).json({ success: false, message: gate.message });
+      }
+    }
+
     await project.recordPayment(amount, paymentType, null, paymentProof, paymentReference);
 
     res.json({
@@ -1090,6 +1177,9 @@ exports.updateProjectProgress = async (req, res) => {
     if (installationNotes) project.installationNotes = installationNotes;
     if (sitePhotos) project.sitePhotos = [...(project.sitePhotos || []), ...sitePhotos];
 
+    // Unlocked invoices to report back (engineer toast: "now visible to customer").
+    let unlockedInvoices = [];
+
     if (status) {
       const oldStatus = project.status;
       project.status = status;
@@ -1109,6 +1199,37 @@ exports.updateProjectProgress = async (req, res) => {
 
       if (status === 'completed') {
         project.actualCompletionDate = new Date();
+      }
+
+      // ---- Progress-gated payments: engineer action unlocks next invoices ----
+      unlockedInvoices = [];
+      try {
+        // START (initial_paid → in_progress): opens progress / fifty_fifty final.
+        if (status === 'in_progress' && oldStatus === 'initial_paid' && !project.workStartedAt) {
+          project.workStartedAt = new Date();
+        }
+        // PHOTO-UPDATE after progress paid: opens final 10% (percentage
+        // unchanged — the 60% is already paid). New photos = in this update,
+        // or a photo-upload log after the progress paidAt (frontend uploads
+        // photos via /upload-photos right before pressing Update).
+        const { schedPaidAt } = require('../utils/paymentGates');
+        const progressPaidAt = schedPaidAt(project, 'progress');
+        if (progressPaidAt && !project.postProgressUpdateAt) {
+          const bodyHasPhotos = Array.isArray(sitePhotos) && sitePhotos.length > 0;
+          const engId = String(project.assignedEngineerId?._id || project.assignedEngineerId || '');
+          const photoLogAfterPaid = (project.projectUpdates || []).some((u) => {
+            if (u.title !== 'Site photos uploaded' || !u.createdAt) return false;
+            if (new Date(u.createdAt) <= new Date(progressPaidAt)) return false;
+            const by = u.updatedBy;
+            return engId && String(by?._id || by || '') === engId;
+          });
+          if (bodyHasPhotos || photoLogAfterPaid) {
+            project.postProgressUpdateAt = new Date();
+          }
+        }
+        unlockedInvoices = await ensureNextInvoice(project, engineerId);
+      } catch (gateError) {
+        console.error('Payment gate unlock error:', gateError.message);
       }
 
       // FIX: Check if userId exists before sending notifications
@@ -1152,6 +1273,7 @@ exports.updateProjectProgress = async (req, res) => {
     res.json({
       success: true,
       message: 'Project progress updated successfully',
+      unlocked: unlockedInvoices,
       project
     });
 
@@ -1343,11 +1465,10 @@ const generateProjectInvoices = async (project, adminId) => {
       }
     }
     // =============================================
-    // 50% - 50%: Initial + Final
+    // 50% - 50%: Initial now, Final LATER (on engineer START)
     // =============================================
     else if (paymentPreference === 'fifty_fifty') {
       const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
-      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
 
       if (initialPayment && initialPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
@@ -1356,20 +1477,17 @@ const generateProjectInvoices = async (project, adminId) => {
         console.log(`✅ 50% initial invoice created: ${invoice.invoiceNumber}`);
       }
 
-      if (finalPayment && finalPayment.status !== 'paid') {
-        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
-        invoicesCreated.push(invoice);
-        finalPayment.invoiceNumber = invoice.invoiceNumber;
-        console.log(`✅ 50% final invoice created: ${invoice.invoiceNumber}`);
-      }
+      // Final 50% is NOT created here — issued when the engineer starts
+      // installation (see ensureNextInvoice). Hidden + unpayable until then.
+      console.log(`🔒 50% final invoice deferred until engineer starts project ${project.projectReference}`);
     }
     // =============================================
-    // 30% - 60% - 10%: Initial + Progress + Final (Retention)
+    // 30% - 60% - 10%: Initial now, Progress + Final LATER
+    // (progress on engineer START, final on engineer photo-update
+    //  after progress is paid — see ensureNextInvoice)
     // =============================================
     else if (paymentPreference === 'thirty_sixty_ten') {
       const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
-      const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
-      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
 
       if (initialPayment && initialPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
@@ -1378,27 +1496,14 @@ const generateProjectInvoices = async (project, adminId) => {
         console.log(`✅ 30% initial invoice created: ${invoice.invoiceNumber}`);
       }
 
-      if (progressPayment && progressPayment.status !== 'paid') {
-        const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
-        invoicesCreated.push(invoice);
-        progressPayment.invoiceNumber = invoice.invoiceNumber;
-        console.log(`✅ 60% progress invoice created: ${invoice.invoiceNumber}`);
-      }
-
-      if (finalPayment && finalPayment.status !== 'paid') {
-        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
-        invoicesCreated.push(invoice);
-        finalPayment.invoiceNumber = invoice.invoiceNumber;
-        console.log(`✅ 10% final (retention) invoice created: ${invoice.invoiceNumber}`);
-      }
+      console.log(`🔒 60% progress + 10% final invoices deferred until engineer progress for project ${project.projectReference}`);
     }
     // =============================================
     // DEFAULT: 30% - 40% - 30% (Installment)
+    // Initial now, Progress + Final LATER (same gating as 30/60/10)
     // =============================================
     else {
       const initialPayment = project.paymentSchedule.find(p => p.type === 'initial');
-      const progressPayment = project.paymentSchedule.find(p => p.type === 'progress');
-      const finalPayment = project.paymentSchedule.find(p => p.type === 'final');
 
       if (initialPayment && initialPayment.status !== 'paid') {
         const invoice = await createSolarInvoice(project, 'initial', initialPayment.amount, adminId);
@@ -1407,19 +1512,7 @@ const generateProjectInvoices = async (project, adminId) => {
         console.log(`✅ 30% initial invoice created: ${invoice.invoiceNumber}`);
       }
 
-      if (progressPayment && progressPayment.status !== 'paid') {
-        const invoice = await createSolarInvoice(project, 'progress', progressPayment.amount, adminId, progressPayment.dueDate);
-        invoicesCreated.push(invoice);
-        progressPayment.invoiceNumber = invoice.invoiceNumber;
-        console.log(`✅ 40% progress invoice created: ${invoice.invoiceNumber}`);
-      }
-
-      if (finalPayment && finalPayment.status !== 'paid') {
-        const invoice = await createSolarInvoice(project, 'final', finalPayment.amount, adminId, finalPayment.dueDate);
-        invoicesCreated.push(invoice);
-        finalPayment.invoiceNumber = invoice.invoiceNumber;
-        console.log(`✅ 30% final invoice created: ${invoice.invoiceNumber}`);
-      }
+      console.log(`🔒 40% progress + 30% final invoices deferred until engineer progress for project ${project.projectReference}`);
     }
 
     await project.save();

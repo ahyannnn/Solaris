@@ -2065,6 +2065,37 @@ body.dark-mode {
 }
 
 /* ============================================
+   SUCCESS FULL-VIEWPORT OVERLAY
+   Booking confirmations cover sidebar + header
+   (desktop and mobile) with their own scroller.
+   z-index sits above dashboard chrome but below
+   the global toast stack so toasts stay visible.
+   ============================================ */
+.schedule-success-overlay-cusset {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  background: var(--bg-primary);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.schedule-success-overlay-cusset .schedule-confirmation-card-cusset {
+  margin: 0;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .schedule-success-overlay-cusset {
+    padding: 24px 12px;
+  }
+}
+
+/* ============================================
    ACCEPT QUOTATION PAGE
    ============================================ */
 .accept-quotation-page-cusset {

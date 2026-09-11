@@ -85,6 +85,154 @@ const getToastIcon = (type, isBroadcast = false) => {
 };
 
 // ============================================================
+// SAFE LINK RESOLUTION
+// Server historically sent legacy links (/pre-assessment/:id,
+// /payment, /admin/..., /invoices/...) that have no route in
+// App.jsx, so blind navigate(link) landed on a dead blank page.
+// Resolve every link to a real /app/... route before navigating.
+// ============================================================
+const VALID_APP_PATHS = new Set([
+  '/app/admin',
+  '/app/admin/freequotes',
+  '/app/admin/preassessments',
+  '/app/admin/siteassessment',
+  '/app/admin/project',
+  '/app/admin/billing',
+  '/app/admin/solarinvoices',
+  '/app/admin/iotdevice',
+  '/app/admin/reports',
+  '/app/admin/schedule',
+  '/app/admin/usermanagement',
+  '/app/admin/settings',
+  '/app/admin/maintenance',
+  '/app/admin/system-config',
+  '/app/admin/services',
+  '/app/admin/notifications',
+  '/app/engineer',
+  '/app/engineer/assessment',
+  '/app/engineer/project',
+  '/app/engineer/device',
+  '/app/engineer/reports',
+  '/app/engineer/quotation',
+  '/app/engineer/schedule',
+  '/app/engineer/profile',
+  '/app/engineer/notifications',
+  '/app/customer',
+  '/app/customer/project',
+  '/app/customer/book-assessment',
+  '/app/customer/billing',
+  '/app/customer/support',
+  '/app/customer/my-requests',
+  '/app/customer/profile',
+  '/app/customer/settings',
+  '/app/customer/payment-success',
+  '/app/customer/payment-cancel',
+  '/app/customer/notifications',
+]);
+
+const getStoredRole = () => {
+  try {
+    return (
+      localStorage.getItem('userRole') ||
+      sessionStorage.getItem('userRole') ||
+      'user'
+    );
+  } catch {
+    return 'user';
+  }
+};
+
+const getNotificationsPathForRole = (role) => {
+  if (role === 'admin') return '/app/admin/notifications';
+  if (role === 'engineer') return '/app/engineer/notifications';
+  return '/app/customer/notifications';
+};
+
+// Map legacy/dead content to a valid page for the current role.
+// Mirrors the smart routing in pages/Auth/notification.jsx.
+const mapContentToValidPath = (combinedText, role) => {
+  const t = (combinedText || '').toLowerCase();
+  if (role === 'admin') {
+    if (t.includes('billing') || t.includes('invoice') || t.includes('payment') || t.includes('receipt') || t.includes('solarinvoice')) return '/app/admin/billing';
+    if (t.includes('project')) return '/app/admin/project';
+    if (t.includes('pre-assessment') || t.includes('preassessment') || t.includes('booking') || t.includes('free quote') || t.includes('freequote') || t.includes('quote') || t.includes('assessment')) return '/app/admin/siteassessment';
+    if (t.includes('user') || t.includes('client') || t.includes('customer')) return '/app/admin/usermanagement';
+    if (t.includes('device') || t.includes('iot') || t.includes('hardware')) return '/app/admin/iotdevice';
+    if (t.includes('report') || t.includes('analytic')) return '/app/admin/reports';
+    if (t.includes('schedule') || t.includes('appointment')) return '/app/admin/schedule';
+    if (t.includes('maintenance')) return '/app/admin/maintenance';
+    if (t.includes('service')) return '/app/admin/services';
+    return '/app/admin/notifications';
+  }
+  if (role === 'engineer') {
+    if (t.includes('quotation') || t.includes('billing') || t.includes('invoice') || t.includes('payment')) return '/app/engineer/quotation';
+    if (t.includes('project')) return '/app/engineer/project';
+    if (t.includes('schedule') || t.includes('appointment')) return '/app/engineer/schedule';
+    if (t.includes('assessment')) return '/app/engineer/assessment';
+    if (t.includes('device') || t.includes('iot')) return '/app/engineer/device';
+    if (t.includes('report') || t.includes('analytic')) return '/app/engineer/reports';
+    return '/app/engineer/notifications';
+  }
+  // customer (default)
+  if (t.includes('quotation') || t.includes('billing') || t.includes('invoice') || t.includes('payment') || t.includes('bill') || t.includes('receipt') || t.includes('fee')) return '/app/customer/billing';
+  if (t.includes('project') || t.includes('installation')) return '/app/customer/project';
+  if (t.includes('schedule') || t.includes('assessment') || t.includes('booking') || t.includes('appointment')) return '/app/customer/book-assessment';
+  if (t.includes('support') || t.includes('service') || t.includes('ticket') || t.includes('help')) return '/app/customer/support';
+  if (t.includes('profile')) return '/app/customer/profile';
+  if (t.includes('setting')) return '/app/customer/settings';
+  return '/app/customer/notifications';
+};
+
+export const resolveToastLink = (rawLink, toast = {}) => {
+  if (!rawLink || typeof rawLink !== 'string') return null;
+  const trimmed = rawLink.trim();
+  if (!trimmed) return null;
+
+  // External URLs are not app routes — don't feed them to react-router.
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const role = getStoredRole();
+  const [pathPart] = trimmed.split(/[?#]/);
+  const pathOnly = pathPart || '/';
+  const lowerPath = pathOnly.toLowerCase();
+
+  // Exact valid route (query string preserved) — allow through.
+  if (VALID_APP_PATHS.has(pathOnly) || VALID_APP_PATHS.has(lowerPath)) {
+    // Guard against cross-role links (e.g. customer toast carrying
+    // an /app/admin/... link): remap to the same content for my role
+    // instead of hitting the RoleRouteGuard / dead page.
+    const isAdminLink = lowerPath.startsWith('/app/admin');
+    const isEngineerLink = lowerPath.startsWith('/app/engineer');
+    const isCustomerLink = lowerPath.startsWith('/app/customer');
+    if (
+      (isAdminLink && role !== 'admin') ||
+      (isEngineerLink && role !== 'engineer') ||
+      (isCustomerLink && role !== 'user')
+    ) {
+      const hint = `${trimmed} ${toast.title || ''} ${toast.message || ''} ${toast.type || ''}`;
+      return mapContentToValidPath(hint, role);
+    }
+    return trimmed;
+  }
+
+  // Known dead spellings from older server code.
+  if (lowerPath.includes('scheduleassessment')) {
+    if (role === 'admin') return '/app/admin/siteassessment';
+    if (role === 'engineer') return '/app/engineer/assessment';
+    return '/app/customer/book-assessment';
+  }
+  if (lowerPath === '/app/admin/pre-assessments' || lowerPath.startsWith('/app/admin/pre-assessments')) {
+    return '/app/admin/siteassessment';
+  }
+
+  // Any other legacy link (/pre-assessment*, /payment*, /free-quotes*,
+  // /projects*, /invoices*, /admin/* without /app prefix, ...):
+  // resolve by content so old DB notifications still land somewhere real.
+  const hint = `${trimmed} ${toast.title || ''} ${toast.message || ''} ${toast.type || ''} ${toast?.notification?.title || ''} ${toast?.notification?.message || ''}`;
+  return mapContentToValidPath(hint, role);
+};
+
+// ============================================================
 // INDIVIDUAL TOAST ITEM (WITH RAF TIMER & HOVER PAUSE)
 // ============================================================
 const ToastItem = ({ toast, onDismiss, onNavigate }) => {
@@ -95,7 +243,6 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
   const startTimeRef = useRef(null);
   const duration = toast.duration || DEFAULT_DURATION;
   const remainingRef = useRef(duration);
-  const isPausedRef = useRef(false);
   const isClosingRef = useRef(false);
 
   const color = getToastColor(toast.type);
@@ -119,7 +266,6 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
   const triggerClose = useCallback(() => {
     if (isClosingRef.current) return;
     isClosingRef.current = true;
-    isPausedRef.current = false;
     cleanupAll();
 
     if (fuseRef.current) {
@@ -137,7 +283,7 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
     stopAnimation();
 
     const animate = (now) => {
-      if (isClosingRef.current || isPausedRef.current) return;
+      if (isClosingRef.current) return;
 
       if (startTimeRef.current === null) {
         startTimeRef.current = now;
@@ -166,7 +312,6 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
 
   useEffect(() => {
     cleanupAll();
-    isPausedRef.current = false;
     isClosingRef.current = false;
     startTimeRef.current = null;
     remainingRef.current = duration;
@@ -183,45 +328,21 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
     };
   }, [duration, cleanupAll, startAnimation]);
 
-  const handleMouseEnter = () => {
-    if (isClosingRef.current || isPausedRef.current) return;
+  // NOTE: hover-pause intentionally removed — the auto-dismiss timer
+  // keeps running even while hovering so the toast never gets stuck
+  // on screen.
 
-    if (startTimeRef.current !== null) {
-      const now = performance.now();
-      const elapsed = now - startTimeRef.current;
-      remainingRef.current = Math.max(0, remainingRef.current - elapsed);
-    }
-
-    startTimeRef.current = null;
-    isPausedRef.current = true;
-    stopAnimation();
-
-    const frozenPercent = Math.max(0, Math.min(100, (remainingRef.current / duration) * 100));
-    if (fuseRef.current) {
-      fuseRef.current.style.width = `${frozenPercent}%`;
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isClosingRef.current || !isPausedRef.current) return;
-
-    if (remainingRef.current <= 0) {
-      isPausedRef.current = false;
-      triggerClose();
-      return;
-    }
-
-    isPausedRef.current = false;
-    startTimeRef.current = null;
-    startAnimation();
-  };
+  // Resolve once per toast so old DB entries with legacy links still
+  // show as clickable, but always land on a real route.
+  const resolvedLink = resolveToastLink(toast.link, toast);
+  const isClickable = Boolean(resolvedLink || toast.onClick);
 
   const handleClick = (e) => {
     // If user clicked close button, do not navigate
     if (e.target.closest('.solaris-toast-close')) return;
 
-    if (toast.link && onNavigate) {
-      onNavigate(toast.link);
+    if (resolvedLink && onNavigate) {
+      onNavigate(resolvedLink, toast);
       triggerClose();
     } else if (toast.onClick) {
       toast.onClick();
@@ -232,13 +353,11 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
   return (
     <div
       className={`solaris-toast-item ${isExiting ? 'solaris-toast-exit' : 'solaris-toast-enter'} ${
-        toast.link ? 'solaris-toast-clickable' : ''
+        isClickable ? 'solaris-toast-clickable' : ''
       }`}
       style={{
         borderLeftColor: color,
       }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onClick={handleClick}
       role="alert"
       aria-live="assertive"
@@ -259,13 +378,13 @@ const ToastItem = ({ toast, onDismiss, onNavigate }) => {
         {toast.title && (
           <div className="solaris-toast-title">
             <span>{toast.title}</span>
-            {toast.link && <FaExternalLinkAlt className="solaris-toast-link-icon" />}
+            {isClickable && <FaExternalLinkAlt className="solaris-toast-link-icon" />}
           </div>
         )}
         <div className="solaris-toast-message">{toast.message}</div>
         <div className="solaris-toast-meta">
           <span className="solaris-toast-time">Just now</span>
-          {toast.link && <span className="solaris-toast-action-hint">• Click to open</span>}
+          {isClickable && <span className="solaris-toast-action-hint">• Click to open</span>}
         </div>
       </div>
 
@@ -309,9 +428,21 @@ export const ToastContainer = () => {
 
   if (!toasts || toasts.length === 0) return null;
 
-  const handleNavigate = (link) => {
-    if (link) {
-      navigate(link);
+  const handleNavigate = (link, toast) => {
+    if (!link) return;
+    // External URL — leave the SPA safely.
+    if (/^https?:\/\//i.test(link)) {
+      window.open(link, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    // Re-resolve defensively (covers toasts created before this fix
+    // that are still sitting in old DB rows) and never push a dead
+    // route — fall back to my role's notifications page.
+    const safeLink = resolveToastLink(link, toast) || getNotificationsPathForRole(getStoredRole());
+    try {
+      navigate(safeLink);
+    } catch {
+      navigate(getNotificationsPathForRole(getStoredRole()));
     }
   };
 

@@ -8,7 +8,6 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaSpinner,
-  FaMoneyBillWave,
   FaChevronLeft,
   FaChevronRight,
   FaUserCog,
@@ -81,7 +80,6 @@ const ProjectManagement = () => {
   const [photoViewer, setPhotoViewer] = useState(null); // { photos: [], index: 0 } | null
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,7 +98,7 @@ const ProjectManagement = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    engineerId: '', assignNotes: '', paymentAmount: '', paymentMethod: 'cash', paymentReference: '', newStatus: '', statusNotes: ''
+    engineerId: '', assignNotes: '', newStatus: '', statusNotes: ''
   });
 
   // CHART DATA STATES
@@ -396,31 +394,6 @@ const ProjectManagement = () => {
     }
   };
 
-  const recordPayment = async () => {
-    if (!selectedProject || !formData.paymentAmount) return;
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/projects/${selectedProject._id}/payments`,
-        { amount: parseFloat(formData.paymentAmount), paymentType: formData.paymentMethod, paymentReference: formData.paymentReference },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      showToast('Payment recorded successfully', 'success');
-      setShowPaymentModal(false);
-      setSelectedProject(null);
-      setFormData({ ...formData, paymentAmount: '', paymentMethod: 'cash', paymentReference: '' });
-      setOpenDropdownId(null);
-      fetchProjects();
-      fetchStats();
-    } catch (error) {
-      console.error('Error recording payment:', error);
-      showToast('Failed to record payment', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDropdownClick = (event, projectId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -554,21 +527,6 @@ const ProjectManagement = () => {
             setOpenDropdownId(null);
           },
           color: 'primary'
-        }
-      );
-    }
-
-    if (statusLower === 'initial_paid') {
-      actions.push(
-        {
-          label: 'Record Progress Payment',
-          icon: <FaMoneyBillWave />,
-          action: () => {
-            setSelectedProject(project);
-            setShowPaymentModal(true);
-            setOpenDropdownId(null);
-          },
-          color: 'warning'
         }
       );
     }
@@ -1266,60 +1224,6 @@ const ProjectManagement = () => {
                   disabled={!formData.newStatus || isSubmitting}
                 >
                   {isSubmitting ? 'Updating...' : 'Update Status'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Payment Modal */}
-        {showPaymentModal && selectedProject && (
-          <div className="modal-overlay-projectmanagement" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-projectmanagement">
-                <h3>Record Payment</h3>
-              </div>
-              <div className="modal-body-projectmanagement">
-                <p><strong>Project:</strong> {selectedProject.projectName}</p>
-                <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-                <div className="form-group-projectmanagement">
-                  <label>Amount</label>
-                  <input
-                    type="number"
-                    value={formData.paymentAmount}
-                    onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })}
-                    placeholder="Enter payment amount"
-                  />
-                </div>
-                <div className="form-group-projectmanagement">
-                  <label>Type</label>
-                  <select
-                    value={formData.paymentMethod}
-                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                  >
-                    <option value="initial">Initial (30%)</option>
-                    <option value="progress">Progress (40%)</option>
-                    <option value="final">Final (30%)</option>
-                  </select>
-                </div>
-                <div className="form-group-projectmanagement">
-                  <label>Reference</label>
-                  <input
-                    type="text"
-                    value={formData.paymentReference}
-                    onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })}
-                    placeholder="Payment reference number"
-                  />
-                </div>
-              </div>
-              <div className="modal-actions-projectmanagement">
-                <button className="cancel-btn-projectmanagement" onClick={() => setShowPaymentModal(false)}>Cancel</button>
-                <button
-                  className="approve-btn-projectmanagement"
-                  onClick={recordPayment}
-                  disabled={!formData.paymentAmount || isSubmitting}
-                >
-                  {isSubmitting ? 'Recording...' : 'Record Payment'}
                 </button>
               </div>
             </div>

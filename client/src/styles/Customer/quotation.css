@@ -444,6 +444,20 @@ body {
   transition: color 0.3s ease;
 }
 
+.billing-customer-results-count p {
+  display: inline-flex;
+  align-items: center;
+}
+
+.billing-customer-results-count .spinning {
+  animation: billing-customer-spin 1s linear infinite;
+}
+
+@keyframes billing-customer-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ============================================
    TABLE - CARD STYLE - GLASS
    ============================================ */
@@ -1522,16 +1536,19 @@ body {
    SUCCESS PAGE - GLASS
    ============================================ */
 .billing-customer-success-page-content {
-  padding: 40px 20px;
-  max-width: 600px;
-  margin: 0 auto;
-  min-height: 80vh;
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  overflow-y: auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg-primary);
 }
 
 .billing-customer-success-page-card {
+  max-width: 600px;
   background: var(--bg-success-page);
   border-radius: 24px;
   padding: 48px 40px;

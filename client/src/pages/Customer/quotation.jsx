@@ -7,7 +7,8 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 import InfoTip from '../../components/InfoTip';
 import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/quotation.css';
-import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, FaChevronDown, FaSearch } from 'react-icons/fa';
+import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, 
+FaChevronDown, FaSearch, FaSpinner } from 'react-icons/fa';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 
 // =========================================
@@ -41,6 +42,11 @@ const Quotation = () => {
   const { toast, showToast, hideToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Background refetch flag: refetches after payment submits + realtime events
+  // must NOT unmount the page (full skeleton flash + modal remount). Only the
+  // very first load uses the full-page skeleton.
+  const hasLoadedRef = useRef(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -168,8 +174,16 @@ const Quotation = () => {
   };
 
   const fetchData = async () => {
+    // First load → full-page skeleton. Every later refetch (payment submits,
+    // realtime events) → silent background refresh so open modals and page
+    // content never unmount (no flicker / white-screen flash).
+    const isFirstLoad = !hasLoadedRef.current;
     try {
-      setLoading(true);
+      if (isFirstLoad) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
       const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/my-quotes`, {
@@ -256,11 +270,14 @@ const Quotation = () => {
       setPreAssessments(transformedPreAssessments);
       const combinedItems = [...transformedPreAssessments, ...transformedProjectBills];
       setAllItems(combinedItems);
+      hasLoadedRef.current = true;
       setLoading(false);
+      setIsRefreshing(false);
     } catch (err) {
       console.error('Error fetching data:', err);
       showToast('Failed to load data', 'error');
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -274,6 +291,23 @@ const Quotation = () => {
   const getProjectPaymentPlan = (projectId) => {
     const project = projects.find(p => p._id?.toString() === projectId?.toString());
     return project?.paymentPreference || 'installment';
+  };
+
+  // 🔒 Progress-gated locks from the server (/api/projects/my-projects).
+  // Locked stages are already filtered out of the invoice list — this is the
+  // fallback so Pay Now can never open for them. Missing locks (stale cache)
+  // default to unlocked; the backend still rejects locked payments.
+  const getProjectLocks = (projectId) => {
+    const project = projects.find(p => p._id?.toString() === projectId?.toString());
+    return project?.paymentLocks || null;
+  };
+
+  const isStageLockedByEngineer = (projectId, invoiceType) => {
+    const locks = getProjectLocks(projectId);
+    if (!locks) return false;
+    if (invoiceType === 'progress') return !!locks.progressLocked;
+    if (invoiceType === 'final') return !!locks.finalLocked;
+    return false;
   };
 
   const isInitialPaymentCompleted = (projectId) => {
@@ -337,6 +371,10 @@ const Quotation = () => {
       return false;
     }
 
+    // 🔒 Engineer progress gate first: locked stages stay unpayable even if
+    // prior-stage rules below would otherwise allow them.
+    if (isStageLockedByEngineer(projectId, invoiceType)) return true;
+
     if (paymentPlan === 'fifty_fifty') {
       if (invoiceType === 'final') {
         return !isInitialPaymentCompleted(projectId);
@@ -380,6 +418,14 @@ const Quotation = () => {
     const invoiceType = item.invoiceType;
     const projectId = item.projectId;
     const paymentPlan = getProjectPaymentPlan(projectId);
+
+    // 🔒 Engineer progress gate reason takes precedence.
+    if (isStageLockedByEngineer(projectId, invoiceType)) {
+      if (invoiceType === 'final' && (paymentPlan === 'thirty_sixty_ten' || paymentPlan === 'installment')) {
+        return 'Final payment unlocks after the engineer uploads 60%-completion photos and posts a progress update';
+      }
+      return 'Waiting for the engineer to start the installation before this payment opens';
+    }
 
     if (paymentPlan === 'fifty_fifty') {
       if (invoiceType === 'final') {
@@ -1731,9 +1777,9 @@ const Quotation = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeDropdown]);
 
-  // Success Page Component
+  // Success Page Component (full-viewport overlay: covers sidebar + header)
   const SuccessPageContent = () => (
-    <div className="billing-customer-success-page-content">
+    <div className="billing-customer-success-page-content" role="dialog" aria-modal="true" aria-label={successMessage || 'Payment successful'}>
       <Helmet>
         <title>Payment Successful | Salfer Engineering</title>
       </Helmet>
@@ -1930,7 +1976,10 @@ const Quotation = () => {
         </div>
 
         <div className="billing-customer-results-count">
-          <p>Showing {tabItems.length} of {filteredItems.length} transaction(s)</p>
+          <p>
+            Showing {tabItems.length} of {filteredItems.length} transaction(s)
+            {isRefreshing && <FaSpinner className="spinning" style={{ marginLeft: 8 }} />}
+          </p>
         </div>
 
         {/* TABLE CONTAINER - Desktop */}
@@ -2388,7 +2437,6 @@ const Quotation = () => {
         {showFullPaymentModal && selectedItem && (
           <div className="billing-customer-modal-overlay" onClick={closeFullPaymentModal}>
             <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="billing-customer-modal-close" onClick={closeFullPaymentModal}>×</button>
               <h3>Pay Invoice</h3>
               <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
                 <div className="billing-customer-payment-summary">
@@ -2569,7 +2617,6 @@ const Quotation = () => {
         {showPaymentModal && selectedItem && (
           <div className="billing-customer-modal-overlay" onClick={closeModal}>
             <div className="billing-customer-modal billing-customer-payment-modal" onClick={e => e.stopPropagation()}>
-              <button className="billing-customer-modal-close" onClick={closeModal}>×</button>
               <h3>Make Payment</h3>
               <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
                 <div className="billing-customer-payment-summary">

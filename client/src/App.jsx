@@ -360,6 +360,12 @@ function App() {
               />
             }
           />
+
+          {/* Fallback for legacy/dead notification links (e.g. /payment,
+              /pre-assessment/:id): never render a blank dead page.
+              "/" re-routes logged-in users to their dashboard via
+              PublicRouteGuard, guests to the landing page. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ToastProvider>
     </Router>

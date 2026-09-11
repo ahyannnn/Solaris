@@ -290,6 +290,79 @@ exports.deleteNotification = async (req, res) => {
 };
 
 // ============================================================
+// LINK NORMALIZATION
+// Older call sites send legacy links (/pre-assessment/:id, /payment,
+// /free-quotes/:id, /projects/:id, /invoices/:id, /admin/...) that have
+// no route in client/src/App.jsx, so toasts navigating to them landed
+// on a dead blank page. Normalize every link to a real /app/... route
+// before persisting, so old and new notifications always navigate.
+// ============================================================
+
+const normalizeNotificationLink = (rawLink, isAdminBroadcast = false) => {
+  if (!rawLink || typeof rawLink !== 'string') return '';
+  const trimmed = rawLink.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const queryIndex = trimmed.search(/[?#]/);
+  const pathOnly = (queryIndex === -1 ? trimmed : trimmed.slice(0, queryIndex)) || '/';
+  const suffix = queryIndex === -1 ? '' : trimmed.slice(queryIndex);
+  const lowerPath = pathOnly.toLowerCase();
+
+  // Fix known misspelled /app/... routes from older server code.
+  if (lowerPath.includes('scheduleassessment')) {
+    return isAdminBroadcast ? '/app/admin/siteassessment' : '/app/customer/book-assessment';
+  }
+  if (lowerPath.startsWith('/app/admin/pre-assessments')) {
+    return '/app/admin/siteassessment' + suffix;
+  }
+
+  const VALID_PREFIXES = ['/app/admin/', '/app/engineer/', '/app/customer/', '/app/'];
+  const isAppLink =
+    lowerPath === '/app/admin' ||
+    lowerPath === '/app/engineer' ||
+    lowerPath === '/app/customer' ||
+    VALID_PREFIXES.some((p) => lowerPath.startsWith(p));
+  if (isAppLink) {
+    // Already a real app route (e.g. /app/customer/support?tab=services).
+    return trimmed;
+  }
+
+  const t = lowerPath;
+  const isEngineerTarget = t.startsWith('/engineer/');
+
+  if (isAdminBroadcast || t.startsWith('/admin/')) {
+    if (t.includes('invoice') || t.includes('payment') || t.includes('billing') || t.includes('receipt')) return '/app/admin/billing';
+    if (t.includes('project')) return '/app/admin/project';
+    if (t.includes('pre-assessment') || t.includes('preassessment') || t.includes('booking') || t.includes('free-quote') || t.includes('freequote') || t.includes('quote') || t.includes('assessment')) return '/app/admin/siteassessment';
+    if (t.includes('device') || t.includes('iot') || t.includes('hardware')) return '/app/admin/iotdevice';
+    if (t.includes('schedule') || t.includes('appointment')) return '/app/admin/schedule';
+    if (t.includes('service')) return '/app/admin/services';
+    if (t.includes('user') || t.includes('client') || t.includes('customer')) return '/app/admin/usermanagement';
+    if (t.includes('report') || t.includes('analytic')) return '/app/admin/reports';
+    return '/app/admin/notifications';
+  }
+
+  if (isEngineerTarget) {
+    if (t.includes('quotation') || t.includes('quote') || t.includes('billing') || t.includes('invoice') || t.includes('payment')) return '/app/engineer/quotation';
+    if (t.includes('project')) return '/app/engineer/project';
+    if (t.includes('schedule') || t.includes('appointment')) return '/app/engineer/schedule';
+    if (t.includes('assessment')) return '/app/engineer/assessment';
+    if (t.includes('device') || t.includes('iot')) return '/app/engineer/device';
+    return '/app/engineer/notifications';
+  }
+
+  // Customer-targeted legacy links (default).
+  if (t.includes('payment') || t.includes('invoice') || t.includes('billing') || t.includes('quote') || t.includes('receipt') || t.includes('fee')) return '/app/customer/billing';
+  if (t.includes('project')) return '/app/customer/project';
+  if (t.includes('assessment') || t.includes('booking') || t.includes('schedule') || t.includes('appointment')) return '/app/customer/book-assessment';
+  if (t.includes('support') || t.includes('service') || t.includes('ticket')) return '/app/customer/support';
+  if (t.includes('profile')) return '/app/customer/profile';
+  if (t.includes('setting')) return '/app/customer/settings';
+  return '/app/customer/notifications';
+};
+
+// ============================================================
 // CREATE NOTIFICATION
 // ============================================================
 //
@@ -314,13 +387,15 @@ exports.createNotification = async (
     // SAVE TO DATABASE
     // ========================================================
 
+    const safeLink = normalizeNotificationLink(link, isAdminBroadcast);
+
     const notification =
       await Notification.create({
         userId,
         title,
         message,
         type,
-        link,
+        link: safeLink,
         metadata,
         isAdminBroadcast,
       });
@@ -428,13 +503,15 @@ exports.createAdminBroadcast = async (
     // CREATE NOTIFICATIONS
     // ========================================================
 
+    const safeLink = normalizeNotificationLink(link, true);
+
     const notifications =
       admins.map((adminId) => ({
         userId: adminId,
         title,
         message,
         type,
-        link,
+        link: safeLink,
         metadata,
         isAdminBroadcast: true,
       }));

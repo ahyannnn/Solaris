@@ -145,6 +145,15 @@ const submitManualBankTransfer = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Project not found' });
       }
 
+      // 🔒 Progress-gated: locked stages cannot be submitted for verification.
+      {
+        const { assertStagePayable } = require('../utils/paymentGates');
+        const gate = assertStagePayable(project, invoice.invoiceType);
+        if (!gate.ok) {
+          return res.status(400).json({ success: false, message: gate.message });
+        }
+      }
+
       // Check if there's already a pending verification for this invoice
       const existingPending = await BankTransferPayment.findOne({
         invoiceId: invoice._id,

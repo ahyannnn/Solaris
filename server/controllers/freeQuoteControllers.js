@@ -1077,7 +1077,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
       }
     };
 
-    const calculatedEquipmentTotal =
+    const recomputedEquipmentTotal =
       costBreakdown.equipment.panels.total +
       costBreakdown.equipment.inverter.total +
       costBreakdown.equipment.battery.total +
@@ -1089,8 +1089,20 @@ exports.generateFreeQuotePDF = async (req, res) => {
       costBreakdown.equipment.meters.total +
       costBreakdown.equipment.additional.reduce((sum, item) => sum + (item.total || 0), 0);
 
-    const calculatedInstallationTotal = costBreakdown.installation.total;
-    const calculatedTotalCost = calculatedEquipmentTotal + calculatedInstallationTotal;
+    const recomputedInstallationTotal = costBreakdown.installation.total;
+    // Trust the system's numbers: the frontend TOTAL SYSTEM COST already
+    // includes labor %, overhead & contingency, and contractor profit, while
+    // the recompute above is a raw equipment + per-kW labor sum. Fall back
+    // to the recompute only when the caller sent no usable totals.
+    const calculatedEquipmentTotal = Number(equipmentCost) > 0
+      ? Number(equipmentCost)
+      : recomputedEquipmentTotal;
+    const calculatedInstallationTotal = Number(installationCost) > 0
+      ? Number(installationCost)
+      : recomputedInstallationTotal;
+    const calculatedTotalCost = Number(totalCost) > 0
+      ? Number(totalCost)
+      : (recomputedEquipmentTotal + recomputedInstallationTotal);
 
     // Prepare data for PDF - ✅ FIXED: Include roiYears
     const pdfData = {
@@ -1116,6 +1128,7 @@ exports.generateFreeQuotePDF = async (req, res) => {
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
       calculatedTotalCost,
+      totalCost: calculatedTotalCost,
       annualProduction: parseFloat(annualProduction) || 0,
       co2Offset: parseFloat(co2Offset) || 0,
       roiYears: parseFloat(roiYears) || 0,  // ✅ ROI years passed here

@@ -377,8 +377,12 @@ class QuotationGenerator {
       y += 20;
       let rowY = y;
 
-      // Track if logos have been displayed
+      // Track if logos have been displayed — shown ONLY ONCE for the whole
+      // document so overflow pages never re-draw them over pricing totals.
       let logosDisplayed = false;
+      // Bottom of the stacked logo block. Pricing starts below this so the
+      // 8-logo column can never overlap rows or the totals block.
+      let logoBlockEndY = rowY;
 
       for (const category of categories) {
          const estimatedHeight = 20 + (category.items.length * 25);
@@ -388,7 +392,11 @@ class QuotationGenerator {
             rowY = this.margins.top + 60;
             this._drawFlexibleTableHeader(doc, leftX, tableWidth, colWidths, headers, rowY);
             rowY += 20;
-            logosDisplayed = false;
+            // NOTE: do NOT reset logosDisplayed here — logos stay on first page only.
+            // Reset the logo-block tracker to the new page so a tall logo stack
+            // from page 1 can never push pricing down and leave a huge gap
+            // on the final overflow page (logo Y coords are page-local).
+            logoBlockEndY = rowY;
          }
 
          doc.font('Roboto-Bold')
@@ -397,14 +405,17 @@ class QuotationGenerator {
 
          rowY += 15;
 
-         for (const item of category.items) {
+           for (const item of category.items) {
             if (rowY + 25 > doc.page.height - this.margins.bottom - 80) {
                doc.addPage();
                this._drawPageLogo(doc);
                rowY = this.margins.top + 60;
                this._drawFlexibleTableHeader(doc, leftX, tableWidth, colWidths, headers, rowY);
                rowY += 20;
-               logosDisplayed = false;
+               // NOTE: do NOT reset logosDisplayed here — logos stay on first page only.
+               // Same page-local reset as above: prevents page-1 logo height
+               // from creating a blank gap before totals on the last page.
+               logoBlockEndY = rowY;
             }
 
             doc.font('Roboto')
@@ -425,9 +436,14 @@ class QuotationGenerator {
             const logoX = leftX + colWidths.item + colWidths.description + colWidths.qty + colWidths.unit + 2;
             const logoWidth = colWidths.logo - 4;
 
-            // Display partner logos only once
+            // Display partner logos only once (first equipment page only).
+            // Overflow pages leave the PARTNER LOGO column blank so totals
+            // can never be overprinted by repeated logos.
             if (!logosDisplayed && !data.hidePartnerLogos) {
-               this._drawPartnerLogos(doc, logoX, rowY, logoWidth);
+               const logosEndY = this._drawPartnerLogos(doc, logoX, rowY, logoWidth);
+               if (Number.isFinite(logosEndY)) {
+                  logoBlockEndY = Math.max(logoBlockEndY, logosEndY);
+               }
                logosDisplayed = true;
             } else {
                doc.text('', logoX, rowY + 8, { width: logoWidth, align: 'center' });
@@ -446,7 +462,9 @@ class QuotationGenerator {
          }
       }
 
-      return rowY + 10;
+      // Start pricing below BOTH the last row and the stacked logo block so
+      // the tall logo column can never overlap the totals.
+      return Math.max(rowY, logoBlockEndY) + 10;
    }
 
    // ==========================================================
@@ -464,6 +482,67 @@ class QuotationGenerator {
       // Currency from data or default
       const currency = data.currency || '₱';
 
+      // ---- Normalize totals from the passed payment parameters ----
+      // Display order is always: Total Cost -> Less Discount -> TOTAL PACKAGE
+      // PRICE, using the payment params the caller sent. totalCost is the
+      // system's TOTAL SYSTEM COST (labor % + overhead + profit included) and
+      // wins over calculatedTotalCost, which in some payloads is only a raw
+      // equipment + labor recompute. Derive only to fill a gap so the three
+      // printed lines always agree with each other.
+      const totalCost = Number(data.totalCost ?? data.calculatedTotalCost ?? 0) || 0;
+      const rawDiscount = data.discountAmount ?? data.discount ?? data.lessDiscount;
+      const rawFinal = data.finalAmount ?? data.totalPackagePrice;
+
+      let discount = Number(rawDiscount);
+      if (!Number.isFinite(discount)) discount = 0;
+
+      const parsedFinal = Number(rawFinal);
+      const hasFinal = Number.isFinite(parsedFinal);
+
+      // If discount is missing/0 but Total Cost and final differ (e.g.
+      // 385,000 vs 258,375), derive it instead of showing ₱0.00.
+      // Guard: a 0 final means "missing" (controllers send || 0), so only
+      // derive when final is a real positive amount different from total.
+      const rawDiscountMissing =
+         rawDiscount === null || rawDiscount === undefined || rawDiscount === '' ||
+         Number(rawDiscount) === 0;
+      if (rawDiscountMissing && hasFinal && parsedFinal > 0 && parsedFinal !== totalCost) {
+         const derived = totalCost - parsedFinal;
+         if (derived > 0) discount = derived;
+      }
+      // Fallback: discount percentage param (e.g. 10 for 10%) when no amount
+      // was passed but a percentage was.
+      if ((!Number.isFinite(discount) || discount === 0) && totalCost > 0) {
+         const pct = Number(data.discountPercentage ?? data.discountPercent ?? data.discountRate ?? NaN);
+         if (Number.isFinite(pct) && pct > 0 && pct <= 100) {
+            discount = totalCost * (pct / 100);
+         }
+      }
+      if (discount < 0) discount = 0;
+
+      // Enforce consistency so the three lines can never contradict
+      // each other (Total Cost - Discount must equal TOTAL PACKAGE PRICE).
+      let finalVal = totalCost - discount;
+      if (!Number.isFinite(finalVal) || finalVal < 0) {
+         finalVal = Math.max(0, totalCost - discount);
+      }
+
+      // ---- Keep the ENTIRE totals block atomic ----
+      // If the full block (header + 3 lines + optional notes) does not fit
+      // below the equipment table, move ALL of it to a fresh page so the
+      // header can never strand at the bottom of page 1 while
+      // Less Discount / TOTAL PACKAGE PRICE spill to page 2.
+      const headerH = 15;
+      const linesH = 18 + 18 + 20; // Total Cost + Less Discount + TOTAL PACKAGE PRICE
+      const notesH = data.pricingNotes ? 30 : 0;
+      const paddingH = 20;
+      const requiredHeight = headerH + linesH + notesH + paddingH;
+      if (y + requiredHeight > doc.page.height - this.margins.bottom - 30) {
+         doc.addPage();
+         this._drawPageLogo(doc);
+         y = this.margins.top + 60;
+      }
+
       // Header
       doc.font('Roboto-Bold')
          .fontSize(10)
@@ -477,24 +556,22 @@ class QuotationGenerator {
       // Total Cost (Equipment + Installation)
       pricingItems.push({
          label: 'Total Cost',
-         value: data.calculatedTotalCost,
+         value: totalCost,
          isTotal: false
       });
 
-      // Less Discount - Always show with ₱0.00 if null/undefined
+      // Less Discount - derived above, never a stale ₱0.00
       pricingItems.push({
          label: 'Less Discount',
-         value: data.discountAmount || 0, // Will be 0 if null/undefined
+         value: discount,
          isTotal: false,
          isDiscount: true
       });
 
-      // TOTAL PACKAGE PRICE - fall back to computed total so the ₱ value never renders as missing/₱0.00 when finalAmount is omitted
-      const discountForTotal = data.discountAmount ?? data.discount ?? data.lessDiscount ?? 0;
-      const fallbackTotal = (data.calculatedTotalCost ?? data.totalCost ?? 0) - (Number(discountForTotal) || 0);
+      // TOTAL PACKAGE PRICE - always Total Cost minus Discount
       pricingItems.push({
          label: 'TOTAL PACKAGE PRICE',
-         value: data.finalAmount ?? data.totalPackagePrice ?? (fallbackTotal || 0),
+         value: finalVal,
          isTotal: true
       });
 
@@ -587,6 +664,53 @@ class QuotationGenerator {
       doc.fillColor(this.colors.black).fontSize(fontSize);
       doc.font('Roboto').text(currency, startX, y);
       doc.font('Roboto-Bold').text(amountStr, startX + symbolWidth, y);
+   }
+
+   // Battery is only valid when the user actually assigned one. The
+   // calculation hook auto-picks a default (usually Pylontech 2.4kWh
+   // Lithium, qty 1) whenever batteryCapacityKwh > 0, which then leaks into
+   // grid-tie payloads. Hide the BATTERY SYSTEM row unless ALL hold:
+   //  - quantity is a positive number
+   //  - name is a real selection (not empty / 'No Battery')
+   //  - system is hybrid/off-grid OR battery has a real cost behind it
+   _shouldShowBattery(data, equipment) {
+      const batt = equipment?.battery;
+      if (!batt) return false;
+
+      const qty = Number(batt.quantity ?? batt.qty ?? 0);
+      if (!Number.isFinite(qty) || qty <= 0) return false;
+
+      const name = String(batt.name || data?.batteryType || '').trim();
+      if (!name || /^no\s*battery/i.test(name)) return false;
+
+      const sysLabel = String(
+         data?.systemTypeLabel ?? data?.systemType ?? data?.propertyType ?? ''
+      ).toLowerCase();
+      const isBatterySystem =
+         sysLabel.includes('hybrid') || sysLabel.includes('off-grid') ||
+         sysLabel.includes('offgrid') || sysLabel.includes('off grid');
+      if (isBatterySystem) return true;
+
+      // Explicit grid-tie / on-grid: batteries are never valid here, even if
+      // the payload carries an auto-selected battery with a real price.
+      // This is the phantom-Pylontech case.
+      if (
+         sysLabel.includes('grid-tie') || sysLabel.includes('gridtie') ||
+         sysLabel.includes('grid tie') || sysLabel.includes('on-grid') ||
+         sysLabel.includes('ongrid') || sysLabel.includes('on grid')
+      ) {
+         return false;
+      }
+
+      // System type unknown/unstated: fall back to cost evidence. A phantom
+      // auto-select with qty but ₱0 cost stays hidden; a real paid battery
+      // still shows.
+      const total = Number(batt.total ?? batt.totalPrice ?? NaN);
+      const unitPrice = Number(batt.unitPrice ?? batt.price ?? NaN);
+      if (Number.isFinite(total) && total > 0) return true;
+      if (Number.isFinite(unitPrice) && unitPrice > 0) return true;
+
+      return false;
    }
 
    _buildFlexibleEquipmentItems(data) {
@@ -691,7 +815,12 @@ class QuotationGenerator {
          counter++;
       }
 
-      pushSingle('battery', 'BATTERY SYSTEM', 'pcs');
+      // Battery: only render when genuinely assigned. Guards against the
+      // auto-calc default (e.g. Pylontech 2.4kWh Lithium qty 1) leaking into
+      // grid-tie quotes where the user never picked a battery.
+      if (this._shouldShowBattery(data, equipment)) {
+         pushSingle('battery', 'BATTERY SYSTEM', 'pcs');
+      }
 
       // Cables
       if (equipment.cables?.items?.length > 0) {
@@ -818,35 +947,31 @@ class QuotationGenerator {
       // If no logos exist, display a dash
       if (existingLogos.length === 0) {
          doc.text('-', x, y + 8, { width: logoWidth, align: 'center' });
-         return;
+         return y + 25;
       }
 
       try {
-         // Calculate appropriate logo size - make them bigger since they're only shown once
-         const maxHeight = 200; // Allow more height for all logos
-         const maxWidth = 200; // Maximum width for each logo
-         const baseSize = 30; // Bigger size since they're only shown once
+         // 8 logos stacked once. Caller reserves this height via the
+         // returned end-Y so rows/pricing never overlap the images.
+         const logoDrawWidth = 60;
+         const logoDrawHeight = 30;
          const spacing = 5;
 
-         let logoSize = baseSize;
-         const totalHeight = existingLogos.length * (logoSize + spacing);
-
-         // Ensure logo doesn't exceed max width
-         logoSize = Math.min(logoSize, maxWidth);
-
-         // Draw all logos vertically stacked
+         // Draw all logos vertically stacked, horizontally centered
          let currentY = y;
          for (const logoPath of existingLogos) {
-            doc.image(logoPath, x + (logoWidth / 2) - (logoSize / 2), currentY, {
-               width: 60,
-               height: 30, // Maintain aspect ratio by setting both width and height
+            doc.image(logoPath, x + (logoWidth / 2) - (logoDrawWidth / 2), currentY, {
+               width: logoDrawWidth,
+               height: logoDrawHeight, // Maintain aspect ratio by setting both width and height
                align: 'center'
             });
-            currentY += logoSize + spacing;
+            currentY += logoDrawHeight + spacing;
          }
+         return currentY;
       } catch (e) {
          // If there's an error loading logos, display a dash
          doc.text('-', x, y + 8, { width: logoWidth, align: 'center' });
+         return y + 25;
       }
    }
 
@@ -946,7 +1071,7 @@ class QuotationGenerator {
          counter++;
       }
 
-      if (equipment.battery && equipment.battery.quantity > 0) {
+      if (this._shouldShowBattery(data, equipment)) {
          items.push({
             category: 'BATTERY SYSTEM',
             itemNumber: `${counter}.1`,

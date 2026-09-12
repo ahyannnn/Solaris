@@ -2482,6 +2482,27 @@ body.dark-mode {
   background: var(--btn-delete-appliance-hover);
 }
 
+.add-appliance-btn-enad:disabled,
+.edit-appliance-btn-enad:disabled,
+.delete-appliance-btn-enad:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.add-appliance-btn-enad:disabled:hover,
+.edit-appliance-btn-enad:disabled:hover,
+.delete-appliance-btn-enad:disabled:hover {
+  background: var(--btn-add-appliance-bg);
+}
+
+.edit-appliance-btn-enad:disabled:hover {
+  background: var(--btn-edit-appliance-bg);
+}
+
+.delete-appliance-btn-enad:disabled:hover {
+  background: var(--btn-delete-appliance-bg);
+}
+
 /* ============================================
    ENERGY PROFILE RESULTS
    ============================================ */

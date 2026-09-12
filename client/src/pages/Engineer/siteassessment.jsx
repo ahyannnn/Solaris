@@ -53,6 +53,7 @@ const MyAssessments = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showMoreTabs, setShowMoreTabs] = useState(false);
+  const [showCalcAfterQuotation, setShowCalcAfterQuotation] = useState(false);
   const tabsMoreRef = useRef(null);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -1534,6 +1535,19 @@ const MyAssessments = () => {
     return !!(item.iotDeviceId || item.assignedDevice || item.assignedDeviceId);
   };
 
+  // Assessment is closed (done) once completed or cancelled — editing controls lock.
+  const isAssessmentClosed = (item) => {
+    return ['completed', 'cancelled'].includes(item?.assessmentStatus);
+  };
+
+  // Quotation already generated → hide the system size calculation cards.
+  const freeQuoteHasQuotation = (item) => {
+    return !!((item && item.quotationDetails) || (item && (item.quotationFile || item.quotationUrl)));
+  };
+  const preAssessmentHasQuotation = (item) => {
+    return !!((item && item.quotation && (item.quotation.systemDetails || item.quotation.quotationUrl || item.quotation.quotationFileId)) || (item && item.finalQuotation));
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -1603,6 +1617,7 @@ const MyAssessments = () => {
     calculation.setHasCalculated(false);
     calculation.setSelectedCalculationMethod(null);
     calculation.resetCalculationCards();
+    setShowCalcAfterQuotation(false);
   };
   // Update handleSelectItem
   const handleSelectItem = (item) => {
@@ -2320,7 +2335,183 @@ const MyAssessments = () => {
                   </div>
                 </div>
 
-                {calculation.showCalculationCards && (
+                {/* Request Details (from the customer's free quote request) */}
+                <div className="quotation-section">
+                  <h4>Details</h4>
+                  <div className="info-grid-enad">
+                    <div className="info-item-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
+                    <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
+                    <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>
+                    {selectedItem.desiredCapacity && <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity}</span></div>}
+                    <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
+                    {(selectedItem.roofLength || selectedItem.roofWidth) && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Roof Dimensions</span>
+                        <span className="info-value-enad">
+                          {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
+                          {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
+                            <span className="roof-area-text">({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
+                    {selectedItem.monthlyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.monthlyConsumption} kWh</span></div>}
+                    {selectedItem.rate > 0 && <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>}
+                    {(selectedItem.dayConsumption > 0 || selectedItem.nightConsumption > 0) && (
+                      <>
+                        <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
+                        <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
+                      </>
+                    )}
+                    {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
+                    {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
+                    {selectedItem.targetSavings && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Target Savings</span>
+                        <span className="info-value-enad">{selectedItem.targetSavings}%</span>
+                      </div>
+                    )}
+                    {selectedItem.recommendedSystemSize && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Recommended System Size</span>
+                        <span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span>
+                      </div>
+                    )}
+                    {selectedItem.inverterSize && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Inverter Size</span>
+                        <span className="info-value-enad">{selectedItem.inverterSize} kW</span>
+                      </div>
+                    )}
+                    {selectedItem.batteryCapacityKwh > 0 && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Battery Capacity</span>
+                        <span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span>
+                      </div>
+                    )}
+                    {selectedItem.panelsNeeded && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Panels Needed</span>
+                        <span className="info-value-enad">{selectedItem.panelsNeeded} panels</span>
+                      </div>
+                    )}
+                    {selectedItem.estimatedAnnualProduction > 0 && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Est. Annual Production</span>
+                        <span className="info-value-enad">{selectedItem.estimatedAnnualProduction} kWh/year</span>
+                      </div>
+                    )}
+                    {selectedItem.co2Offset > 0 && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">CO₂ Offset</span>
+                        <span className="info-value-enad">{selectedItem.co2Offset} kg/year</span>
+                      </div>
+                    )}
+                    {selectedItem.roiYears > 0 && (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">ROI / Payback Period</span>
+                        <span className="info-value-enad">{selectedItem.roiYears} years</span>
+                      </div>
+                    )}
+                    <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt || selectedItem.createdAt)}</span></div>
+
+                    {selectedItem.processedAt && <div className="info-item-enad"><span className="info-label-enad">Processed Date</span><span className="info-value-enad">{formatDateTime(selectedItem.processedAt)}</span></div>}
+                    {selectedItem.adminRemarks && <div className="info-item-enad"><span className="info-label-enad">Admin Remarks</span><span className="info-value-enad">{selectedItem.adminRemarks}</span></div>}
+                  </div>
+                </div>
+
+                {selectedItem.quotationDetails ? (
+                  <div className="device-card-enad">
+                    <div className="device-card-title-enad">Quotation Summary</div>
+                    <div className="device-info-enad">
+                      {selectedItem.quotationDetails.systemSize > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">System Size</span>
+                          <span className="device-info-value-enad">{selectedItem.quotationDetails.systemSize} kWp</span>
+                        </div>
+                      )}
+                      {selectedItem.quotationDetails.equipmentCost > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Equipment Cost</span>
+                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.equipmentCost)}</span>
+                        </div>
+                      )}
+                      {selectedItem.quotationDetails.installationCost > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Installation Cost</span>
+                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.installationCost)}</span>
+                        </div>
+                      )}
+                      {selectedItem.quotationDetails.totalCost > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Total Cost</span>
+                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.totalCost)}</span>
+                        </div>
+                      )}
+                      {selectedItem.discountAmount > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Discount{selectedItem.discountPercentage > 0 ? ` (${selectedItem.discountPercentage}%)` : ''}</span>
+                          <span className="device-info-value-enad">-{formatCurrency(selectedItem.discountAmount)}</span>
+                        </div>
+                      )}
+                      {selectedItem.finalAmount > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Final Amount</span>
+                          <span className="device-info-value-enad">{formatCurrency(selectedItem.finalAmount)}</span>
+                        </div>
+                      )}
+                      {selectedItem.quotationDetails.warrantyYears > 0 && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Warranty</span>
+                          <span className="device-info-value-enad">{selectedItem.quotationDetails.warrantyYears} years</span>
+                        </div>
+                      )}
+                      {selectedItem.quotationSentAt && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Quotation Sent</span>
+                          <span className="device-info-value-enad">{formatDateTime(selectedItem.quotationSentAt)}</span>
+                        </div>
+                      )}
+                      {(selectedItem.quotationFile || selectedItem.quotationUrl) && (
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Quotation File</span>
+                          <a className="device-info-value-enad" href={selectedItem.quotationFile || selectedItem.quotationUrl} target="_blank" rel="noreferrer">View PDF</a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  (selectedItem.quotationFile || selectedItem.quotationUrl) && (
+                    <div className="device-card-enad">
+                      <div className="device-card-title-enad">Quotation</div>
+                      <div className="device-info-enad">
+                        {selectedItem.quotationSentAt && (
+                          <div className="device-info-item-enad">
+                            <span className="device-info-label-enad">Quotation Sent</span>
+                            <span className="device-info-value-enad">{formatDateTime(selectedItem.quotationSentAt)}</span>
+                          </div>
+                        )}
+                        <div className="device-info-item-enad">
+                          <span className="device-info-label-enad">Quotation File</span>
+                          <a className="device-info-value-enad" href={selectedItem.quotationFile || selectedItem.quotationUrl} target="_blank" rel="noreferrer">View PDF</a>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {calculation.showCalculationCards && freeQuoteHasQuotation(selectedItem) && !showCalcAfterQuotation && (
+                  <div className="no-device-card-enad">
+                    <div>Quotation already generated</div>
+                    <div style={{ marginTop: '12px' }}>
+                      <button type="button" className="btn-secondary-enad" onClick={() => setShowCalcAfterQuotation(true)}>Recalculate system size</button>
+                    </div>
+                  </div>
+                )}
+
+                {calculation.showCalculationCards && (!freeQuoteHasQuotation(selectedItem) || showCalcAfterQuotation) && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
                       <h3>System Size Calculation</h3>
@@ -2764,6 +2955,7 @@ const MyAssessments = () => {
                 // Device and status props
                 deviceAssigned={deviceAssigned}
                 assessmentStatus={selectedItem?.assessmentStatus}
+                appliancesLocked={isAssessmentClosed(selectedItem) || !!selectedItem?.engineerAssessment}
                 deployNotes={deployNotes}
                 onDeployNotesChange={setDeployNotes}
 
@@ -2877,7 +3069,16 @@ const MyAssessments = () => {
                   </div>
                 )}
 
-                {calculation.showCalculationCards && (
+                {calculation.showCalculationCards && preAssessmentHasQuotation(selectedItem) && !showCalcAfterQuotation && (
+                  <div className="no-device-card-enad">
+                    <div>Quotation already generated</div>
+                    <div style={{ marginTop: '12px' }}>
+                      <button type="button" className="btn-secondary-enad" onClick={() => setShowCalcAfterQuotation(true)}>Recalculate system size</button>
+                    </div>
+                  </div>
+                )}
+
+                {calculation.showCalculationCards && (!preAssessmentHasQuotation(selectedItem) || showCalcAfterQuotation) && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
                       <h3>System Size Calculation</h3>
@@ -3124,11 +3325,11 @@ const MyAssessments = () => {
             {activeTab === 'documents' && (
               <div>
                 <div className="action-buttons-enad">
-                  <button onClick={() => setShowImageUploader(!showImageUploader)} className="btn-primary-enad">Upload Photos</button>
+                  <button onClick={() => setShowImageUploader(!showImageUploader)} disabled title="Photo uploads are disabled" className="btn-primary-enad">Upload Photos</button>
                 </div>
                 {showImageUploader && (
                   <div className="file-upload-enad">
-                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={uploading} className="file-upload-input-enad" />
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled className="file-upload-input-enad" />
                     {uploading && (<div className="uploading-enad">Uploading images...</div>)}
                   </div>
                 )}
@@ -3152,8 +3353,8 @@ const MyAssessments = () => {
             {activeTab === 'comments' && (
               <div>
                 <div className="comment-input-wrapper-enad">
-                  <textarea className="assessment-form-textarea-enad" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} />
-                  <button onClick={addComment} disabled={submitting || !commentText.trim()} className="comment-send-btn-enad">Send</button>
+                  <textarea className="assessment-form-textarea-enad" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} disabled />
+                  <button onClick={addComment} disabled title="Comments are disabled" className="comment-send-btn-enad">Send</button>
                 </div>
                 <div className="comment-list-enad">
                   {selectedItem.engineerComments?.length === 0 && (

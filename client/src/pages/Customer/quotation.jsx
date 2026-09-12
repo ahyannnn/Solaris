@@ -763,7 +763,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Bank Transfer Submitted for Verification',
           message: 'Your payment has been submitted and is now pending verification by our finance team.',
-          reference: selectedItem.invoiceNumber || selectedItem.id
+          reference: selectedItem.invoiceNumber || selectedItem.id,
+          amount: parseFloat(manualTransferForm.amount) || null
         });
         setShowSuccessPage(true);
 
@@ -849,7 +850,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Payment Completed',
           message: 'Your payment has been successfully processed.',
-          reference: selectedItem.bookingReference
+          reference: selectedItem.bookingReference,
+          amount: Number(selectedItem.amount) || null
         });
         setShowProcessingModal(false);
         setShowSuccessPage(true);
@@ -936,7 +938,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Payment Completed',
           message: 'Your payment has been successfully processed.',
-          reference: selectedItem.invoiceNumber
+          reference: selectedItem.invoiceNumber,
+          amount: Number(selectedItem.balance || selectedItem.totalAmount) || null
         });
         setShowProcessingModal(false);
         setShowSuccessPage(true);
@@ -1076,7 +1079,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Payment Submitted for Verification',
           message: 'Your payment has been submitted and is now pending verification.',
-          reference: selectedItem.bookingReference
+          reference: selectedItem.bookingReference,
+          amount: Number(selectedItem.amount) || null
         });
         setShowSuccessPage(true);
         closeModal();
@@ -1090,7 +1094,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Cash Payment Option',
           message: 'Please visit our office to complete your payment.',
-          reference: selectedItem.bookingReference
+          reference: selectedItem.bookingReference,
+          amount: Number(selectedItem.amount) || null
         });
         setShowSuccessPage(true);
         closeModal();
@@ -1179,7 +1184,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Payment Submitted for Verification',
           message: 'Your payment has been submitted and is now pending verification.',
-          reference: selectedItem.invoiceNumber
+          reference: selectedItem.invoiceNumber,
+          amount: Number(fullAmount) || null
         });
         setShowSuccessPage(true);
         closeFullPaymentModal();
@@ -1193,7 +1199,8 @@ const Quotation = () => {
         setSuccessDetails({
           title: 'Cash Payment Option',
           message: 'Please visit our office to complete your payment.',
-          reference: selectedItem.invoiceNumber
+          reference: selectedItem.invoiceNumber,
+          amount: Number(fullAmount) || null
         });
         setShowSuccessPage(true);
         closeFullPaymentModal();
@@ -1777,48 +1784,87 @@ const Quotation = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeDropdown]);
 
-  // Success Page Component (full-viewport overlay: covers sidebar + header)
-  const SuccessPageContent = () => (
-    <div className="billing-customer-success-page-content" role="dialog" aria-modal="true" aria-label={successMessage || 'Payment successful'}>
-      <Helmet>
-        <title>Payment Successful | Salfer Engineering</title>
-      </Helmet>
+  // Success Page Component — receipt-style acknowledgement
+  // (full-viewport overlay: covers sidebar + header)
+  const SuccessPageContent = () => {
+    const receiptAmount = Number(successDetails?.amount);
+    const hasAmount = Number.isFinite(receiptAmount) && receiptAmount > 0;
+    const receiptDate = new Date().toLocaleString('en-PH', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
 
-      <div className="billing-customer-success-page-card">
-        <div className="billing-customer-success-page-icon">
-          <span className="billing-customer-success-page-checkmark">✓</span>
-        </div>
+    return (
+      <div className="billing-customer-success-page-content" role="dialog" aria-modal="true" aria-label={successMessage || 'Payment successful'}>
+        <Helmet>
+          <title>Payment Successful | Salfer Engineering</title>
+        </Helmet>
 
-        <h1 className="billing-customer-success-page-title">
-          {successMessage}
-        </h1>
+        <div className="billing-customer-receipt">
+          <div className="billing-customer-receipt-header">
+            <div className="billing-customer-receipt-logo">SALFER ENGINEERING</div>
+            <div className="billing-customer-receipt-sub">Solar Installation Services</div>
+          </div>
 
-        <div className="billing-customer-success-page-details">
-          <h2 className="billing-customer-success-page-subtitle">
-            {successDetails?.title}
-          </h2>
-          <p className="billing-customer-success-page-message">
-            {successDetails?.message}
-          </p>
+          <div className="billing-customer-receipt-stamp">
+            <span className="billing-customer-receipt-check">✓</span>
+            <span className="billing-customer-receipt-status">{successMessage}</span>
+          </div>
+
+          <div className="billing-customer-receipt-divider" aria-hidden="true" />
+
+          {successDetails?.title && (
+            <div className="billing-customer-receipt-title">{successDetails.title}</div>
+          )}
+
+          <dl className="billing-customer-receipt-rows">
+            {successDetails?.reference && (
+              <div className="billing-customer-receipt-row">
+                <dt>Reference No.</dt>
+                <dd>{successDetails.reference}</dd>
+              </div>
+            )}
+            <div className="billing-customer-receipt-row">
+              <dt>Date</dt>
+              <dd>{receiptDate}</dd>
+            </div>
+            {hasAmount && (
+              <div className="billing-customer-receipt-row billing-customer-receipt-total">
+                <dt>Total</dt>
+                <dd>{formatCurrency(receiptAmount)}</dd>
+              </div>
+            )}
+          </dl>
+
+          {successDetails?.message && (
+            <p className="billing-customer-receipt-note">{successDetails.message}</p>
+          )}
+
+          <div className="billing-customer-receipt-divider" aria-hidden="true" />
+
           {successDetails?.reference && (
-            <div className="billing-customer-success-page-reference">
-              <span className="billing-customer-success-page-ref-label">Reference Number:</span>
-              <span className="billing-customer-success-page-ref-value">{successDetails.reference}</span>
+            <div className="billing-customer-receipt-barcode" aria-hidden="true">
+              <div className="billing-customer-receipt-bars" />
+              <span>{successDetails.reference}</span>
             </div>
           )}
+
+          <div className="billing-customer-receipt-thanks">Thank you for choosing Salfer Engineering!</div>
         </div>
 
-        <div className="billing-customer-success-page-actions">
-          <button
-            className="billing-customer-success-page-btn"
-            onClick={closeSuccessPage}
-          >
-            Return to Billing
-          </button>
-        </div>
+        <button
+          className="billing-customer-success-page-btn"
+          onClick={closeSuccessPage}
+        >
+          Return to Billing
+        </button>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Processing Modal
   const ProcessingModal = () => (

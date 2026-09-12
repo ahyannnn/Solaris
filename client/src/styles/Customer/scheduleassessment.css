@@ -2077,7 +2077,7 @@ body.dark-mode {
   z-index: 1500;
   overflow-y: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 40px 16px;
   background: var(--bg-primary);
@@ -2085,7 +2085,9 @@ body.dark-mode {
 }
 
 .schedule-success-overlay-cusset .schedule-confirmation-card-cusset {
-  margin: 0;
+  /* margin:auto centers when content fits, yet stays scrollable
+     from the top when content is taller than the viewport */
+  margin: auto;
   width: 100%;
 }
 

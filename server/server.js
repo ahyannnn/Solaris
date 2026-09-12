@@ -13,6 +13,11 @@ require("dotenv").config();
 
 const app = express();
 
+// Render terminates TLS at its proxy, so trust the first hop —
+// otherwise every client appears as one IP and per-IP rate
+// limiting would throttle all users together.
+app.set('trust proxy', 1);
+
 // ======================================================
 // MIDDLEWARE
 // ======================================================
@@ -41,6 +46,20 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// ======================================================
+// RATE LIMITING
+// ======================================================
+// Global lenient cap so rapid-fire scripts can't exhaust the
+// server. Runs before auth/maintenance so floods are rejected
+// cheaply. Health checks and IoT ingest are skipped here —
+// they have their own rules (see rateLimitMiddleware).
+const {
+  apiLimiter,
+  sensorLimiter,
+} = require("./middleware/rateLimitMiddleware");
+
+app.use(apiLimiter);
 
 // ======================================================
 // DNS
@@ -246,13 +265,17 @@ app.use(
   jobPortalRoutes
 );
 
+// Generous device cap (mounted before handlers so it takes
+// precedence; apiLimiter skips these paths).
 app.use(
   "/api/sensor",
+  sensorLimiter,
   iotRoutes
 );
 
 app.use(
   "/api/iot-data",
+  sensorLimiter,
   iotDataRoutes
 );
 

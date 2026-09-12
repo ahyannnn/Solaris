@@ -1541,97 +1541,202 @@ body {
   z-index: 1500;
   overflow-y: auto;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  gap: 28px;
+  padding: 40px 20px 60px;
   background: var(--bg-primary);
 }
 
-.billing-customer-success-page-card {
-  max-width: 600px;
-  background: var(--bg-success-page);
-  border-radius: 24px;
-  padding: 48px 40px;
-  text-align: center;
-  border: 1px solid var(--border-card);
-  box-shadow: var(--shadow-success);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Receipt paper — fixed white in both themes, like real paper */
+.billing-customer-receipt {
+  position: relative;
+  /* auto top margin centers the group yet keeps it scrollable
+     from the top when taller than the viewport */
+  margin-top: auto;
   width: 100%;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  max-width: 380px;
+  background: #FFFFFF;
+  color: #1F2937;
+  border-radius: 4px 4px 0 0;
+  padding: 28px 24px 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.billing-customer-success-page-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--bg-success);
+/* Torn zigzag edge along the bottom of the receipt */
+.billing-customer-receipt::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background:
+    linear-gradient(-45deg, transparent 75%, #FFFFFF 0) 0 0 / 20px 20px repeat-x,
+    linear-gradient(45deg, transparent 75%, #FFFFFF 0) 10px 0 / 20px 20px repeat-x;
+}
+
+.billing-customer-receipt-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.billing-customer-receipt-logo {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #111827;
+}
+
+.billing-customer-receipt-sub {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+.billing-customer-receipt-stamp {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
-  border: 2px solid rgba(16, 185, 129, 0.20);
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
-.billing-customer-success-page-checkmark {
-  font-size: 36px;
-  color: #10B981;
-  font-weight: 700;
-}
-
-.billing-customer-success-page-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-  transition: color 0.3s ease;
-}
-
-.billing-customer-success-page-subtitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-  transition: color 0.3s ease;
-}
-
-.billing-customer-success-page-message {
+.billing-customer-receipt-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #10B981;
+  color: #FFFFFF;
   font-size: 15px;
-  color: var(--text-secondary);
-  margin: 0 0 16px 0;
-  line-height: 1.6;
-  transition: color 0.3s ease;
-}
-
-.billing-customer-success-page-reference {
-  background: var(--bg-reference);
-  border-radius: 10px;
-  padding: 12px 16px;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin: 8px 0 16px 0;
-  transition: background 0.3s ease;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.billing-customer-success-page-ref-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  transition: color 0.3s ease;
+.billing-customer-receipt-status {
+  font-size: 15px;
+  font-weight: 700;
+  color: #059669;
 }
 
-.billing-customer-success-page-ref-value {
-  font-size: 14px;
+.billing-customer-receipt-divider {
+  border-top: 2px dashed #D1D5DB;
+  margin: 16px 0;
+}
+
+.billing-customer-receipt-title {
+  text-align: center;
+  font-size: 12px;
   font-weight: 600;
-  color: #F39C12;
-  font-family: monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4B5563;
+  margin-bottom: 12px;
 }
 
-.billing-customer-success-page-actions {
-  margin-top: 24px;
+.billing-customer-receipt-rows {
+  margin: 0;
+  padding: 0;
+}
+
+.billing-customer-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+.billing-customer-receipt-row dt {
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.billing-customer-receipt-row dd {
+  margin: 0;
+  color: #111827;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+  font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.billing-customer-receipt-total {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 2px dashed #D1D5DB;
+}
+
+.billing-customer-receipt-total dt,
+.billing-customer-receipt-total dd {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  font-family: 'Poppins', sans-serif;
+}
+
+.billing-customer-receipt-note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6B7280;
+  text-align: center;
+  margin: 14px 0 0 0;
+}
+
+.billing-customer-receipt-barcode {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.billing-customer-receipt-bars {
+  height: 48px;
+  background: repeating-linear-gradient(
+    90deg,
+    #111827 0 2px,
+    transparent 2px 4px,
+    #111827 4px 5px,
+    transparent 5px 9px,
+    #111827 9px 12px,
+    transparent 12px 14px
+  );
+}
+
+.billing-customer-receipt-barcode span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #111827;
+  font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.billing-customer-receipt-thanks {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #111827;
+  margin-top: 14px;
+}
+
+@media (max-width: 480px) {
+  .billing-customer-receipt {
+    padding: 22px 18px 28px;
+  }
 }
 
 .billing-customer-success-page-btn {
+  /* auto bottom margin pairs with the receipt's auto top margin
+     to middle-center the group */
+  margin-bottom: auto;
   padding: 12px 32px;
   background: #F39C12;
   color: #FFFFFF;

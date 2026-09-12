@@ -675,6 +675,8 @@ const solarisToastStyles = `
    INDIVIDUAL STACKABLE TOAST ITEM
 ============================================================ */
 
+/* Toasts are always black theme by design — same look in
+   light mode and dark mode. */
 .solaris-toast-item {
   position: relative;
   pointer-events: auto;
@@ -682,12 +684,12 @@ const solarisToastStyles = `
   align-items: flex-start;
   gap: 0.875rem;
   padding: 1rem 1.25rem 1.125rem 1rem;
-  background: #FFFFFF;
-  color: #111827;
+  background: #1A2533;
+  color: #F9FAFB;
   border-radius: 12px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-left: 5px solid #F39C12;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -700,7 +702,7 @@ const solarisToastStyles = `
 
 .solaris-toast-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.12), 0 10px 12px -6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.6);
 }
 
 /* Enter Animation */
@@ -779,7 +781,7 @@ const solarisToastStyles = `
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #111827;
+  color: #F9FAFB;
   line-height: 1.25;
 }
 
@@ -796,7 +798,7 @@ const solarisToastStyles = `
 .solaris-toast-message {
   font-size: 0.8125rem;
   font-weight: 400;
-  color: #4B5563;
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1.45;
   word-break: break-word;
 }
@@ -837,8 +839,8 @@ const solarisToastStyles = `
 }
 
 .solaris-toast-close:hover {
-  color: #111827;
-  background: #F3F4F6;
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
 }
 
 /* ============================================================
@@ -851,7 +853,7 @@ const solarisToastStyles = `
   left: 0;
   right: 0;
   height: 3px;
-  background: #F3F4F6;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 0 0 12px 12px;
   overflow: hidden;
 }
@@ -863,33 +865,8 @@ const solarisToastStyles = `
   will-change: width;
 }
 
-/* ============================================================
-   DARK MODE ADAPTATION (IF ENABLED)
-============================================================ */
-
-body.dark-mode .solaris-toast-item {
-  background: #1A2533;
-  color: #F9FAFB;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-}
-
-body.dark-mode .solaris-toast-title {
-  color: #F9FAFB;
-}
-
-body.dark-mode .solaris-toast-message {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-body.dark-mode .solaris-toast-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
-}
-
-body.dark-mode .solaris-toast-progress-track {
-  background: rgba(255, 255, 255, 0.08);
-}
+/* NOTE: no dark-mode overrides — toasts are always black theme
+   (see base styles above), in both light and dark mode. */
 
 /* ============================================================
    RESPONSIVE DESIGN

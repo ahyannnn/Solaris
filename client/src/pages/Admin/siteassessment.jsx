@@ -561,16 +561,20 @@ const SiteAssessment = () => {
 
   // Row priority: needs-action rows first (mirrors the sidebar badge counts).
   // Pre-assessments: approve/reject (1) → process refund (2) →
-  // verify payments (3) → assign engineer (4) → everything else (5).
-  // Free quotes follow pipeline order: pending → assigned → processing →
-  // completed → cancelled. Newest first within the same priority.
+  // verify payments (3) → assign engineer (4) → assign IoT device (5) →
+  // everything else (6). Newest first within the same priority, so the
+  // most recent "scheduled" booking tops the device-assignment queue.
   const getPreAssessmentPriority = (item) => {
     if (item.assessmentStatus === 'pending_review') return 1;
     if (item.assessmentStatus === 'cancelled' && item.cancellation && ['pending', 'processing'].includes(item.cancellation.refundStatus)) return 2;
     if (item.paymentMethod === 'cash' && item.paymentStatus === 'pending') return 3;
     if (item.paymentMethod === 'gcash' && item.paymentStatus === 'for_verification' && !item.paymentGateway) return 3;
     if (item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId) return 4;
-    return 5;
+    // Awaiting IoT device: engineer assigned but no device yet
+    // (display label "scheduled" via getDisplayStatus).
+    const hasDeviceAssigned = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
+    if (item.assignedEngineerId && !hasDeviceAssigned) return 5;
+    return 6;
   };
 
   const FREE_QUOTE_PRIORITY = { pending: 1, assigned: 2, processing: 3, accepted: 4, completed: 5, cancelled: 6 };

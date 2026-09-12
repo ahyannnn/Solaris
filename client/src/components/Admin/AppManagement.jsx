@@ -38,6 +38,8 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [appToDelete, setAppToDelete] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('idle');
+  // Byte-level upload progress: { loaded, total } in bytes.
+  const [uploadProgress, setUploadProgress] = useState({ loaded: 0, total: 0 });
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const buttonRefs = useRef({});
@@ -132,6 +134,19 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
     setOpenDropdownId(null);
   };
 
+  // Human-readable byte size: 512 B, 48.2 KB, 12.4 MB, ...
+  const formatBytes = (bytes) => {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const uploadPercent =
+    uploadProgress.total > 0
+      ? Math.min(100, Math.round((uploadProgress.loaded / uploadProgress.total) * 100))
+      : 0;
+
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingApp(null);
@@ -143,6 +158,7 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
     setSelectedFile(null);
     setUploading(false);
     setUploadStatus('idle');
+    setUploadProgress({ loaded: 0, total: 0 });
   };
 
   const handleFileChange = (e) => {
@@ -179,6 +195,15 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
     const currentCount = applications.length;
     setUploading(true);
     setUploadStatus('uploading');
+    // Seed total from the picked file so the bar shows 0% immediately.
+    setUploadProgress({ loaded: 0, total: selectedFile ? selectedFile.size : 0 });
+
+    // Browser upload progress events -> byte-level progress bar.
+    const handleUploadProgress = (progressEvent) => {
+      const total = progressEvent.total || (selectedFile ? selectedFile.size : 0);
+      if (!total) return;
+      setUploadProgress({ loaded: progressEvent.loaded, total });
+    };
 
     try {
       const token = sessionStorage.getItem('token');
@@ -200,7 +225,8 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'multipart/form-data'
-            }
+            },
+            onUploadProgress: handleUploadProgress
           }
         );
       } else {
@@ -211,10 +237,17 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'multipart/form-data'
-            }
+            },
+            onUploadProgress: handleUploadProgress
           }
         );
       }
+
+      // Bytes fully sent — pin the bar at 100% while verifying.
+      setUploadProgress((prev) => ({
+        loaded: prev.total > 0 ? prev.total : prev.loaded,
+        total: prev.total
+      }));
 
       setUploadStatus('waiting');
 
@@ -606,15 +639,44 @@ const AppManagement = ({ config, onConfigUpdate, savingConfig }) => {
                   <div className="status-container-app-admin">
                     {uploadStatus === 'uploading' && (
                       <div className="status-content-app-admin">
-                        <FaSpinner className="spinner-large-app-admin" />
                         <p className="status-text-app-admin">Uploading your APK...</p>
+                        <div
+                          className="upload-progress-track-app-admin"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={uploadPercent}
+                          aria-label="APK upload progress"
+                        >
+                          <div
+                            className="upload-progress-fill-app-admin"
+                            style={{ width: `${uploadPercent}%` }}
+                          />
+                        </div>
+                        <p className="upload-progress-bytes-app-admin">
+                          {uploadProgress.total > 0
+                            ? `${formatBytes(uploadProgress.loaded)} of ${formatBytes(uploadProgress.total)} (${uploadPercent}%)`
+                            : 'Preparing upload...'}
+                        </p>
                       </div>
                     )}
 
                     {uploadStatus === 'waiting' && (
                       <div className="status-content-app-admin">
-                        <FaSpinner className="spinner-large-app-admin" />
-                        <p className="status-text-app-admin">Please wait for a moment...</p>
+                        <p className="status-text-app-admin">Upload complete!</p>
+                        <div
+                          className="upload-progress-track-app-admin"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={100}
+                          aria-label="APK upload complete, verifying"
+                        >
+                          <div
+                            className="upload-progress-fill-app-admin"
+                            style={{ width: '100%' }}
+                          />
+                        </div>
                         <p className="status-subtext-app-admin">Verifying upload completion...</p>
                       </div>
                     )}

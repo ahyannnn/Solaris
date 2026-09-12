@@ -916,6 +916,33 @@ body.dark-mode {
   transition: color 0.3s ease;
 }
 
+/* Byte-level upload progress (replaces the loading ring) */
+.upload-progress-track-app-admin {
+  width: 100%;
+  max-width: 360px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border-color);
+  overflow: hidden;
+}
+
+.upload-progress-fill-app-admin {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #F39C12, #E67E22);
+  transition: width 0.15s ease;
+}
+
+.upload-progress-bytes-app-admin {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
 .success-state-app-admin .success-icon-app-admin {
   font-size: 40px;
   color: var(--success-icon-color);

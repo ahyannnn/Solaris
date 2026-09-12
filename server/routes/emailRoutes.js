@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const User = require("../models/Users");
 
 const router = express.Router();
 
@@ -125,60 +126,98 @@ const baseStyles = `
       display: inline-block;
       font-family: 'SF Mono', 'Menlo', monospace;
     }
-    /* Info, Success, Warning boxes */
-    .info-box {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin: 24px 0;
-      border-left: 3px solid #ff7a00;
+    /* Minimal detail list (no boxes, no accent borders) —
+       label left, value right, hairline separators only */
+    .detail-heading {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f1115;
+      margin: 24px 0 0;
     }
-    .success-box {
-      background: #fef9f0;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin: 24px 0;
-      border-left: 3px solid #ff9a3c;
+    .detail-list {
+      margin: 8px 0 8px;
+      border-top: 1px solid #eee;
     }
-    .warning-box {
-      background: #fff8f0;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin: 24px 0;
-      border-left: 3px solid #ff7a00;
-    }
-    .pending-box {
-      background: #fef7e8;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin: 24px 0;
-      border-left: 3px solid #ff9a3c;
-    }
-    .info-box p, .success-box p, .warning-box p, .pending-box p {
-      margin: 6px 0;
+    .detail-list p {
+      margin: 0;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
       font-size: 14px;
       color: #1a1a1a;
+      overflow: hidden;
     }
-    .info-box strong, .success-box strong, .warning-box strong, .pending-box strong {
+    .detail-label {
+      color: #888888;
+      font-size: 13px;
+    }
+    .detail-value {
+      float: right;
       font-weight: 600;
       color: #0f1115;
+      text-align: right;
+      max-width: 62%;
+    }
+    .steps {
+      margin: 8px 0 8px 20px;
+      padding: 0;
+      color: #1a1a1a;
+      font-size: 14px;
+    }
+    .steps li {
+      margin: 6px 0;
     }
     .divider-light {
       height: 1px;
       background: #eaeaea;
       margin: 28px 0 20px;
     }
+    /* Dark footer inside the card, matching the header */
     .footer {
-      background: #ffffff;
+      background: #0f1115;
       padding: 24px 32px 32px;
       text-align: center;
-      border-top: 1px solid #eaeaea;
+      border-top: none;
     }
     .footer p {
-      color: #888888;
+      color: #9aa0a6;
       font-size: 12px;
       line-height: 1.4;
       margin: 6px 0;
+    }
+    .footer-links {
+      margin: 2px 0 10px;
+    }
+    .footer-links a {
+      color: #ff7a00;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    /* CSS-only brand dots (no external images, email-safe) */
+    .fb-logo, .app-icon {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      border-radius: 50%;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      font-family: Helvetica, Arial, sans-serif;
+      vertical-align: -4px;
+      margin-right: 6px;
+    }
+    .fb-logo {
+      background: #1877F2;
+    }
+    .app-icon {
+      background: #ff7a00;
+    }
+    .footer-mail {
+      color: #9aa0a6;
+      text-decoration: none;
     }
     /* Responsive */
     @media only screen and (max-width: 500px) {
@@ -226,6 +265,27 @@ const getHeaderHtml = () => `
   </div>
 `;
 
+// ==================== PUBLIC CONTACT DETAILS ====================
+const FACEBOOK_URL = "https://www.facebook.com/lightupsolartech";
+const APP_DOWNLOAD_URL = "https://www.solarisiot.com/";
+const OFFICE_ADDRESS = "San Nicolas St. Bunsuran 3rd, Pandi, Bulacan";
+const CONTACT_EMAIL = "salfer.engineering@gmail.com";
+const CONTACT_PHONE = "0951-907-9171";
+
+// Shared minimal footer: contact links + address, then brand lines.
+const getFooterHtml = () => `
+  <div class="footer">
+    <p class="footer-links">
+      <a href="${FACEBOOK_URL}"><span class="fb-logo">f</span>Facebook</a> ·
+      <a href="${APP_DOWNLOAD_URL}"><span class="app-icon">↓</span>Download the App</a>
+    </p>
+    <p>📍 ${OFFICE_ADDRESS}</p>
+    <p>✉️ <a class="footer-mail" href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a> · 📞 ${CONTACT_PHONE}</p>
+    <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
+    <p>Professional Solar Site Pre-Assessment System</p>
+  </div>
+`;
+
 // =============== VERIFICATION EMAIL ===============
 const verificationTemplate = (email, code) => `
 <!DOCTYPE html>
@@ -252,10 +312,7 @@ const verificationTemplate = (email, code) => `
         <div class="divider-light"></div>
         <p class="text-small">If you didn't request this, please ignore this email.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -279,21 +336,18 @@ const welcomeTemplate = (name, email) => `
       <div class="content">
         <h2 class="title">Welcome, ${name}</h2>
         <p class="text">Your account has been successfully created with <strong>${email}</strong>. You are now part of Salfare Engineering's solar energy transformation.</p>
-        <div class="info-box">
-          <p><strong>Get started with Salfare Engineering</strong></p>
-          <p>• Request free quotations — instant estimates</p>
-          <p>• Book professional site pre-assessments</p>
-          <p>• Track project progress in real time</p>
-          <p>• Download detailed assessment reports</p>
-        </div>
+        <p class="detail-heading">Get started with Salfare Engineering</p>
+        <ul class="steps">
+          <li>Request free quotations — instant estimates</li>
+          <li>Book professional site pre-assessments</li>
+          <li>Track project progress in real time</li>
+          <li>Download detailed assessment reports</li>
+        </ul>
         <p class="text-secondary">Log in to your dashboard and take the first step toward energy independence.</p>
         <div class="divider-light"></div>
         <p class="text-small">Need help? Our support team is ready to assist you.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -301,7 +355,7 @@ const welcomeTemplate = (name, email) => `
 `;
 
 // =============== FORGOT PASSWORD ===============
-const forgotPasswordTemplate = (email, code) => `
+const forgotPasswordTemplate = (email, code, name = '') => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -316,7 +370,7 @@ const forgotPasswordTemplate = (email, code) => `
       ${getHeaderHtml()}
       <div class="content">
         <h2 class="title">Reset your password</h2>
-        <p class="text">Hello,</p>
+        <p class="text">Hello${name ? ` ${name}` : ''},</p>
         <p class="text-secondary">We received a request to reset your password. Use the secure code below to create a new password.</p>
         <div class="code-box">
           <span class="code">${code}</span>
@@ -325,10 +379,7 @@ const forgotPasswordTemplate = (email, code) => `
         <div class="divider-light"></div>
         <p class="text-small">If you didn't request a reset, you can safely ignore this message.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -351,19 +402,13 @@ const resetSuccessTemplate = (email) => `
       ${getHeaderHtml()}
       <div class="content">
         <h2 class="title">Password reset successful</h2>
-        <div class="success-box">
-          <p><strong>Your password has been changed</strong></p>
-        </div>
         <p class="text">Hello,</p>
         <p class="text-secondary">Your password has been successfully reset for <strong>${email}</strong>.</p>
         <p class="text-secondary">You can now log in with your new password and continue managing your solar projects.</p>
         <div class="divider-light"></div>
         <p class="text-small">If you didn't make this change, please contact our support team immediately.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -388,25 +433,21 @@ const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, addr
         <h2 class="title">Quotation request received</h2>
         <p class="text">Hello ${name},</p>
         <p class="text-secondary">Thank you for trusting Salfare Engineering. Your quotation request has been submitted and is being processed.</p>
-        <div class="info-box">
-          <p><strong>Reference ID:</strong> ${quoteReference}</p>
-          <p><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
-          <p><strong>Property Type:</strong> ${propertyType}</p>
-         
-          <p><strong>Address:</strong> ${address}</p>
+        <div class="detail-list">
+          <p><span class="detail-label">Reference ID</span><span class="detail-value">${quoteReference}</span></p>
+          <p><span class="detail-label">Monthly Bill</span><span class="detail-value">₱${parseInt(monthlyBill).toLocaleString()}</span></p>
+          <p><span class="detail-label">Property Type</span><span class="detail-value">${propertyType}</span></p>
+          <p><span class="detail-label">Address</span><span class="detail-value">${address}</span></p>
         </div>
-        <div class="success-box">
-          <p><strong>What's next?</strong></p>
-          <p>• Our energy experts will review within 2-3 business days</p>
-          <p>• You will receive a detailed quotation via email</p>
-          <p>• An engineer may reach out for site clarification</p>
-        </div>
+        <p class="detail-heading">What's next?</p>
+        <ul class="steps">
+          <li>Our energy experts will review within 2-3 business days</li>
+          <li>You will receive a detailed quotation via email</li>
+          <li>An engineer may reach out for site clarification</li>
+        </ul>
         <p class="text-small">We are committed to bringing you the best solar solution.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -431,25 +472,22 @@ const preAssessmentTemplate = (name, bookingReference, amount, propertyType, roo
         <h2 class="title">Booking Confirmation</h2>
         <p class="text">Hello ${name},</p>
         <p class="text-secondary">Your pre-assessment booking has been created. Please complete the payment to secure your schedule.</p>
-        <div class="info-box">
-          <p><strong>Booking Reference:</strong> ${bookingReference}</p>
-          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-          <p><strong>Property Type:</strong> ${propertyType}</p>
-          ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
-          <p><strong>Address:</strong> ${address}</p>
+        <div class="detail-list">
+          <p><span class="detail-label">Booking Reference</span><span class="detail-value">${bookingReference}</span></p>
+          <p><span class="detail-label">Amount</span><span class="detail-value">₱${parseInt(amount).toLocaleString()}</span></p>
+          <p><span class="detail-label">Property Type</span><span class="detail-value">${propertyType}</span></p>
+          ${roofType ? `<p><span class="detail-label">Roof Type</span><span class="detail-value">${roofType}</span></p>` : ''}
+          <p><span class="detail-label">Address</span><span class="detail-value">${address}</span></p>
         </div>
-        <div class="warning-box">
-          <p><strong>Payment Instructions</strong></p>
-          <p>1. Log in to your Salfer Engineering dashboard</p>
-          <p>2. Navigate to Billing section</p>
-          <p>3. Pay for booking reference <strong>${bookingReference}</strong> using available methods</p>
-        </div>
+        <p class="detail-heading">Payment instructions</p>
+        <ol class="steps">
+          <li>Log in to your Salfer Engineering dashboard</li>
+          <li>Navigate to Billing section</li>
+          <li>Pay for booking reference <strong>${bookingReference}</strong> using available methods</li>
+        </ol>
         <p class="text-small">Booking will be confirmed after payment verification.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfer Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -473,25 +511,21 @@ const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber,
         <h2 class="title">Payment received</h2>
         <p class="text">Hello ${name},</p>
         <p class="text-secondary">We have received your payment. Our finance team will verify the transaction shortly.</p>
-        <div class="pending-box">
-          <p><strong>Payment details</strong></p>
-          <p><strong>Invoice:</strong> ${invoiceNumber}</p>
-          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-          <p><strong>Reference Number:</strong> ${referenceNumber}</p>
-          <p><strong>Property Type:</strong> ${propertyType}</p>
-         
+        <p class="detail-heading">Payment details</p>
+        <div class="detail-list">
+          <p><span class="detail-label">Invoice</span><span class="detail-value">${invoiceNumber}</span></p>
+          <p><span class="detail-label">Amount</span><span class="detail-value">₱${parseInt(amount).toLocaleString()}</span></p>
+          <p><span class="detail-label">Reference Number</span><span class="detail-value">${referenceNumber}</span></p>
+          <p><span class="detail-label">Property Type</span><span class="detail-value">${propertyType}</span></p>
         </div>
-        <div class="warning-box">
-          <p><strong>Verification in progress</strong></p>
-          <p>• Usually takes 24-48 hours</p>
-          <p>• You will receive a confirmation email once verified</p>
-          <p>• Track status in your dashboard</p>
-        </div>
+        <p class="detail-heading">Verification in progress</p>
+        <ul class="steps">
+          <li>Usually takes 24-48 hours</li>
+          <li>You will receive a confirmation email once verified</li>
+          <li>Track status in your dashboard</li>
+        </ul>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -516,28 +550,21 @@ const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType) => `
         <h2 class="title">Payment verified</h2>
         <p class="text">Hello ${name},</p>
         <p class="text-secondary">Great news. Your payment has been officially verified. Your site pre-assessment is now confirmed.</p>
-        <div class="success-box">
-          <p><strong>Payment verified</strong></p>
-          <p><strong>Invoice:</strong> ${invoiceNumber}</p>
-          <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+        <p class="detail-heading">Payment verified</p>
+        <div class="detail-list">
+          <p><span class="detail-label">Invoice</span><span class="detail-value">${invoiceNumber}</span></p>
+          <p><span class="detail-label">Amount</span><span class="detail-value">₱${parseInt(amount).toLocaleString()}</span></p>
+          <p><span class="detail-label">Property Type</span><span class="detail-value">${propertyType}</span></p>
         </div>
-        <div class="info-box">
-          <p><strong>Assessment details</strong></p>
-          <p><strong>Property Type:</strong> ${propertyType}</p>
-          
-        </div>
-        <div class="success-box">
-          <p><strong>What's next?</strong></p>
-          <p>• Our team will confirm the exact schedule</p>
-          <p>• A certified engineer will be assigned</p>
-          <p>• You will receive reminders prior to the assessment</p>
-        </div>
+        <p class="detail-heading">What's next?</p>
+        <ul class="steps">
+          <li>Our team will confirm the exact schedule</li>
+          <li>A certified engineer will be assigned</li>
+          <li>You will receive reminders prior to the assessment</li>
+        </ul>
         <p class="text-small">Thank you for moving forward with Salfare Engineering.</p>
       </div>
-      <div class="footer">
-        <p>© ${new Date().getFullYear()} Salfare Engineering — Solar Technology Enterprise</p>
-        <p>Professional Solar Site Pre-Assessment System</p>
-      </div>
+      ${getFooterHtml()}
     </div>
   </div>
 </body>
@@ -596,11 +623,23 @@ router.post("/send-reset-code", async (req, res) => {
     
     console.log('Reset code stored for:', normalizedEmail, 'Code:', code);
 
+    // Look up the account name for a personalized greeting.
+    // Non-blocking: the email still sends as "Hello," if lookup fails.
+    let recipientName = '';
+    try {
+      const account = await User.findOne({ email: normalizedEmail })
+        .select('fullName')
+        .lean();
+      if (account && account.fullName) recipientName = account.fullName;
+    } catch (lookupError) {
+      console.error('Reset-code name lookup error:', lookupError.message);
+    }
+
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "Salfare Engineering" },
       to: [{ email }],
       subject: "Password reset code",
-      htmlContent: forgotPasswordTemplate(email, code)
+      htmlContent: forgotPasswordTemplate(email, code, recipientName)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
     });

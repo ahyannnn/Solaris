@@ -404,7 +404,7 @@ const ForgotPasswordPage = () => {
       if (!response.ok) {
         setErrors({ code: data.message || 'Failed to resend code' });
       } else {
-        alert('✓ New verification code sent to your email!');
+        // No popup alert — the resend button cooldown signals success.
         setCode(['', '', '', '', '', '']);
         setCooldown(60);
         setIsCooldownActive(true);

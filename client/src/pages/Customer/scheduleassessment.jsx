@@ -954,20 +954,10 @@ const ScheduleAssessment = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      await sendQuoteConfirmationEmail(
-        response.data.quote.quotationReference,  // quoteReference
-        freeQuoteData.monthlyBill,               // monthlyBill
-        freeQuoteData.propertyType,              // propertyType
-        freeQuoteData.systemType,                // systemType
-        freeQuoteData.roofType,                  // roofType
-        freeQuoteData.roofLength,                // roofLength
-        freeQuoteData.roofWidth,                 // roofWidth
-        freeQuoteData.targetSavings,             // targetSavings
-        calculationResults.monthlyConsumption,   // monthlyConsumption
-        appliances,                              // appliancesList
-        getFullAddress()                         // address
-      );
-
+      // Show the success page FIRST so it lands together with the
+      // real-time notification toast. The confirmation email is
+      // fire-and-forget in the background — it must never delay
+      // the success screen (email failures stay silent, as before).
       setShowFreeQuoteConfirm(false);
       setFreeQuoteTermsAccepted(false);
       setSubmittedData({
@@ -982,6 +972,20 @@ const ScheduleAssessment = () => {
       });
       setCurrentStep('service-selection');
       setSubmitted(true);
+
+      sendQuoteConfirmationEmail(
+        response.data.quote.quotationReference,  // quoteReference
+        freeQuoteData.monthlyBill,               // monthlyBill
+        freeQuoteData.propertyType,              // propertyType
+        freeQuoteData.systemType,                // systemType
+        freeQuoteData.roofType,                  // roofType
+        freeQuoteData.roofLength,                // roofLength
+        freeQuoteData.roofWidth,                 // roofWidth
+        freeQuoteData.targetSavings,             // targetSavings
+        calculationResults.monthlyConsumption,   // monthlyConsumption
+        appliances,                              // appliancesList
+        getFullAddress()                         // address
+      );
       // NOTE: no local success toast here — the server's real-time
       // notification toast (via socket) already confirms the booking,
       // and a local one would double-toast.
@@ -1119,14 +1123,10 @@ const ScheduleAssessment = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      await sendPreAssessmentConfirmationEmail(
-        response.data.booking.bookingReference,
-        response.data.booking.assessmentFee,
-        formData.propertyType,
-        formData.roofType,
-        getFullAddress()
-      );
-
+      // Show the success page FIRST so it lands together with the
+      // real-time notification toast. The confirmation email is
+      // fire-and-forget in the background — it must never delay
+      // the success screen (email failures stay silent, as before).
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       setPreAssessmentData({
@@ -1135,6 +1135,14 @@ const ScheduleAssessment = () => {
         assessmentFee: response.data.booking.assessmentFee ?? assessmentFee
       });
       setShowPreAssessmentSuccess(true);
+
+      sendPreAssessmentConfirmationEmail(
+        response.data.booking.bookingReference,
+        response.data.booking.assessmentFee,
+        formData.propertyType,
+        formData.roofType,
+        getFullAddress()
+      );
       // NOTE: no local success toast here — the server's real-time
       // notification toast (via socket) already confirms the booking,
       // and a local one would double-toast.

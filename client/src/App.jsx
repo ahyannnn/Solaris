@@ -158,7 +158,7 @@ const MaintenanceGuard = ({ children }) => {
 
 // Public auth pages (landing/login/register/forgot) always stay light —
 // dashboard dark-mode must never paint their fields dark via global CSS.
-const PUBLIC_AUTH_PATHS = ['/', '/login', '/register', '/forgotpassword'];
+const PUBLIC_AUTH_PATHS = ['/', '/login', '/register', '/forgotpassword', '/setup', '/terms'];
 
 // Route-aware theme guard: strips dark-mode on public auth routes (e.g. after
 // logout while dark is saved), re-applies the saved theme everywhere else.

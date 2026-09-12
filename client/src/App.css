@@ -5,6 +5,18 @@
   box-sizing: border-box;
 }
 
+/* Auth pages (login / register / forgot / setup) always render light,
+   even when a dark theme is saved. Their stylesheets are hardcoded
+   light with no dark-mode rules; this pins native controls (inputs,
+   scrollbars) to light too, as a safety net alongside the
+   route-aware theme guard in App.jsx. */
+body.dark-mode .new-login-page,
+body.dark-mode .new-register-page,
+body.dark-mode .new-forgot-page,
+body.dark-mode .new-setup-page {
+  color-scheme: light;
+}
+
 :root {
   --primary: #2c5282;
   --primary-dark: #1a365d;

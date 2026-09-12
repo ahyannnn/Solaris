@@ -3,6 +3,24 @@ const multer = require('multer');
 const path = require('path');
 const Application = require('../models/Application');
 const githubService = require('../services/githubService');
+const { sendCustomerBroadcast } = require('../utils/notificationHelper');
+
+// Notify all customers (in-app notification only, never email)
+// whenever a new app version goes live.
+const notifyCustomersOfRelease = async (version) => {
+  try {
+    await sendCustomerBroadcast(
+      'New App Update Available',
+      `Solaris app version ${version} is now available. Update your app to get the latest features and fixes.`,
+      'info',
+      '',
+      { version }
+    );
+  } catch (notifyError) {
+    // Notifications must never break the upload/publish response.
+    console.error('App-release customer broadcast error:', notifyError.message);
+  }
+};
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -182,6 +200,12 @@ const createApplication = async (req, res) => {
 
     await app.save();
 
+    // New APK uploaded and published straight away → tell customers.
+    // Draft uploads stay silent until published.
+    if (app.status === 'published') {
+      await notifyCustomersOfRelease(app.version);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Application uploaded successfully',
@@ -292,12 +316,22 @@ const updateApplication = async (req, res) => {
       }
     }
 
+    // Remember publish state before saving so we only notify
+    // on the transition to published (not on every edit).
+    const wasPublished = app.status === 'published';
+
     // Update fields
     if (version) app.version = version;
     if (releaseNotes !== undefined) app.releaseNotes = releaseNotes;
     if (status) app.status = status;
 
     await app.save();
+
+    // New APK file swapped in, or freshly published → tell customers.
+    // Plain metadata edits on an already-published version stay silent.
+    if ((req.file || (app.status === 'published' && !wasPublished)) && app.status === 'published') {
+      await notifyCustomersOfRelease(app.version);
+    }
 
     res.status(200).json({
       success: true,
@@ -437,6 +471,9 @@ const publishApplication = async (req, res) => {
         await app.save();
 
         console.log("Application published successfully.");
+
+        // Update is now live → tell all customers (in-app only).
+        await notifyCustomersOfRelease(app.version);
 
         return res.status(200).json({
             success: true,

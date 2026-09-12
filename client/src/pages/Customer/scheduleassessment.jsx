@@ -1995,19 +1995,6 @@ const ScheduleAssessment = () => {
           </>
         )}
         <div className="quote-actions-cusset">
-          <button
-            onClick={() => {
-              setSubmitted(false);
-              setCurrentStep('service-selection');
-              setFreeQuoteData({ monthlyBill: '', propertyType: 'residential', systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' });
-              clearAppliances();
-              setSubmittedData(null);
-              setFreeQuoteTermsAccepted(false);
-            }}
-            className="schedule-btn-secondary-cusset"
-          >
-            Request Another
-          </button>
           <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
         </div>
       </div>
@@ -2038,7 +2025,6 @@ const ScheduleAssessment = () => {
           </ul>
         </div>
         <div className="quote-actions-cusset">
-          <button onClick={() => { setShowPreAssessmentSuccess(false); setCurrentStep('service-selection'); setFormData({ ...formData, systemType: '', roofType: '', roofLength: '', roofWidth: '', targetSavings: '' }); clearAppliances(); }} className="schedule-btn-secondary-cusset">Book Another</button>
           <button onClick={() => navigate('/app/customer')} className="schedule-btn-primary-cusset">Go to Dashboard</button>
         </div>
       </div>

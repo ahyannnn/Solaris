@@ -1691,33 +1691,6 @@ body {
   margin: 14px 0 0 0;
 }
 
-.billing-customer-receipt-barcode {
-  margin-top: 4px;
-  text-align: center;
-}
-
-.billing-customer-receipt-bars {
-  height: 48px;
-  background: repeating-linear-gradient(
-    90deg,
-    #111827 0 2px,
-    transparent 2px 4px,
-    #111827 4px 5px,
-    transparent 5px 9px,
-    #111827 9px 12px,
-    transparent 12px 14px
-  );
-}
-
-.billing-customer-receipt-barcode span {
-  display: block;
-  margin-top: 6px;
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  color: #111827;
-  font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
 .billing-customer-receipt-thanks {
   text-align: center;
   font-size: 12px;

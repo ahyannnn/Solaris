@@ -43,7 +43,27 @@ const sendAdminBroadcast = async (title, message, type = 'info', link = '', meta
   );
 };
 
+/**
+ * Send in-app broadcast notification to all customers (role 'user').
+ * In-app only — never sends email.
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {string} type - 'info' | 'warning' | 'success' | 'error'
+ * @param {string} link - URL to navigate when clicked
+ * @param {object} metadata - Additional data
+ */
+const sendCustomerBroadcast = async (title, message, type = 'info', link = '', metadata = {}) => {
+  return await notificationController.createCustomerBroadcast(
+    title,
+    message,
+    type,
+    link,
+    metadata
+  );
+};
+
 module.exports = { 
   sendNotification, 
-  sendAdminBroadcast 
+  sendAdminBroadcast,
+  sendCustomerBroadcast
 };

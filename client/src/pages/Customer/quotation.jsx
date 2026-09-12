@@ -1844,15 +1844,6 @@ const Quotation = () => {
             <p className="billing-customer-receipt-note">{successDetails.message}</p>
           )}
 
-          <div className="billing-customer-receipt-divider" aria-hidden="true" />
-
-          {successDetails?.reference && (
-            <div className="billing-customer-receipt-barcode" aria-hidden="true">
-              <div className="billing-customer-receipt-bars" />
-              <span>{successDetails.reference}</span>
-            </div>
-          )}
-
           <div className="billing-customer-receipt-thanks">Thank you for choosing Salfer Engineering!</div>
         </div>
 

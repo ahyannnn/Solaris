@@ -569,6 +569,115 @@ exports.createAdminBroadcast = async (
 };
 
 // ============================================================
+// CREATE CUSTOMER BROADCAST NOTIFICATION
+// ============================================================
+//
+// Creates one in-app notification for every customer (role 'user').
+// Used for app-wide announcements such as new APK releases.
+// In-app only — never sends email.
+//
+// Also sends the notification immediately through Socket.IO.
+//
+// ============================================================
+
+exports.createCustomerBroadcast = async (
+  title,
+  message,
+  type = 'info',
+  link = '',
+  metadata = {}
+) => {
+  try {
+    const customers =
+      await User.find({
+        role: 'user',
+      }).select('_id');
+
+    const customerIds = customers.map(
+      (customer) => customer._id
+    );
+
+    if (
+      !customerIds ||
+      customerIds.length === 0
+    ) {
+      console.log(
+        'No customer users found to send broadcast'
+      );
+
+      return [];
+    }
+
+    // ========================================================
+    // CREATE NOTIFICATIONS
+    // ========================================================
+
+    const safeLink = normalizeNotificationLink(link, false);
+
+    const notifications =
+      customerIds.map((customerId) => ({
+        userId: customerId,
+        title,
+        message,
+        type,
+        link: safeLink,
+        metadata,
+        isAdminBroadcast: false,
+      }));
+
+    const result =
+      await Notification.insertMany(
+        notifications
+      );
+
+    console.log(
+      `✅ Customer broadcast saved for ${result.length} customers`
+    );
+
+    // ========================================================
+    // REAL-TIME SOCKET BROADCAST
+    // ========================================================
+
+    try {
+      const io = getIO();
+
+      if (io) {
+        result.forEach((notification) => {
+          const room =
+            `user:${notification.userId}`;
+
+          io.to(room).emit(
+            'notification:new',
+            {
+              notification:
+                notification.toObject(),
+            }
+          );
+
+          console.log(
+            `🔔 Customer broadcast sent to ${room}`
+          );
+        });
+      }
+    } catch (socketError) {
+      console.error(
+        'Socket customer broadcast error:',
+        socketError
+      );
+    }
+
+    return result;
+  } catch (error) {
+    console.error(
+      'Error creating customer broadcast:',
+      error
+    );
+
+    return [];
+  }
+};
+
+// ============================================================
 // GET ADMIN BROADCAST NOTIFICATIONS
 // ============================================================
 

@@ -10,6 +10,7 @@ const SiteInspectionTab = ({
   onSiteInspectionDataChange,
   deviceAssigned,
   assessmentStatus,
+  appliancesLocked = false,
   deployNotes,
   onDeployNotesChange,
   onSave,
@@ -444,6 +445,8 @@ const SiteInspectionTab = ({
             type="button"
             className="add-appliance-btn-enad"
             onClick={addSiteAppliance}
+            disabled={!!appliancesLocked}
+            title={appliancesLocked ? 'Site inspection already done' : 'Add appliance'}
           >
             + Add Appliance
           </button>
@@ -481,10 +484,10 @@ const SiteInspectionTab = ({
                       </span>
                     </td>
                     <td data-label="Actions">
-                      <button className="edit-appliance-btn-enad" onClick={() => editSiteAppliance(appliance, index)}>
+                      <button className="edit-appliance-btn-enad" onClick={() => editSiteAppliance(appliance, index)} disabled={!!appliancesLocked} title={appliancesLocked ? 'Site inspection already done' : 'Edit appliance'}>
                         Edit
                       </button>
-                      <button className="delete-appliance-btn-enad" onClick={() => deleteSiteAppliance(index)}>
+                      <button className="delete-appliance-btn-enad" onClick={() => deleteSiteAppliance(index)} disabled={!!appliancesLocked} title={appliancesLocked ? 'Site inspection already done' : 'Delete appliance'}>
                         Delete
                       </button>
                     </td>

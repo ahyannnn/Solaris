@@ -1090,6 +1090,21 @@ html {
   text-align: left;
 }
 
+.download-audience-land {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 6px 16px;
+  background: rgba(61, 220, 132, 0.15);
+  color: #3DDC84;
+  border: 1px solid rgba(61, 220, 132, 0.4);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
 .download-features-land {
   display: flex;
   flex-direction: column;

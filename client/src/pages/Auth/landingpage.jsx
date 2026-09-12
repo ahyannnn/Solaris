@@ -801,6 +801,7 @@ const LandingPage = () => {
           <div className="download-content-land">
             <div className="download-text-land">
               <h2 className="section-title-land">Download Our Mobile App</h2>
+              <span className="download-audience-land">For Customers Only</span>
               <p className="section-subtitle-land">
                 Get the best solar experience on your Android device
               </p>

@@ -35,6 +35,7 @@ import {
 } from 'react-icons/fa';
 import InfoTip from '../../components/InfoTip';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
+import { COMMON_APPLIANCES, CUSTOM_APPLIANCE_VALUE, findAppliancePreset } from '../../data/commonAppliances';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -151,6 +152,11 @@ const ScheduleAssessment = () => {
     isMotor: false
   });
   const [applianceErrors, setApplianceErrors] = useState({});
+  const [applianceSearch, setApplianceSearch] = useState('');
+  const [showApplianceDropdown, setShowApplianceDropdown] = useState(false);
+  const [isCustomAppliance, setIsCustomAppliance] = useState(false);
+  const [showDeleteApplianceModal, setShowDeleteApplianceModal] = useState(false);
+  const [applianceToDelete, setApplianceToDelete] = useState(null);
 
   // Calculation Results
   const [calculationResults, setCalculationResults] = useState({
@@ -289,14 +295,14 @@ const ScheduleAssessment = () => {
   const handleApplianceFormChange = (e) => {
     const { name, value } = e.target;
 
-    // Real-time validation for appliance name
+    // Real-time validation for appliance name (allow letters, numbers, spaces and basic punctuation)
     if (name === 'name') {
-      // Only allow letters and spaces
-      const sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '');
+      // Only allow letters, numbers, spaces, hyphen, dot, parentheses, slash
+      const sanitizedValue = value.replace(/[^a-zA-Z0-9\s\-./()]/g, '');
       setApplianceForm(prev => ({ ...prev, [name]: sanitizedValue }));
 
-      if (sanitizedValue && !/^[a-zA-Z\s]+$/.test(sanitizedValue)) {
-        setApplianceErrors(prev => ({ ...prev, name: 'Appliance name can only contain letters and spaces' }));
+      if (sanitizedValue && !/^[a-zA-Z0-9\s\-./()]+$/.test(sanitizedValue)) {
+        setApplianceErrors(prev => ({ ...prev, name: 'Appliance name contains invalid characters' }));
       } else {
         setApplianceErrors(prev => ({ ...prev, name: '' }));
       }
@@ -314,9 +320,9 @@ const ScheduleAssessment = () => {
   const validateApplianceForm = () => {
     const errors = {};
     if (!applianceForm.name) {
-      errors.name = 'Appliance name is required';
-    } else if (!/^[a-zA-Z\s]+$/.test(applianceForm.name)) {
-      errors.name = 'Appliance name can only contain letters and spaces';
+      errors.name = 'Please select or enter an appliance';
+    } else if (!/^[a-zA-Z0-9\s\-./()]+$/.test(applianceForm.name)) {
+      errors.name = 'Appliance name contains invalid characters';
     }
     if (!applianceForm.powerWatts) {
       errors.powerWatts = 'Power rating is required';
@@ -367,6 +373,79 @@ const ScheduleAssessment = () => {
     setEditingAppliance(null);
     setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '', isMotor: false });
     setApplianceErrors({});
+    setApplianceSearch('');
+    setShowApplianceDropdown(false);
+    setIsCustomAppliance(false);
+  };
+
+  const getFilteredAppliances = () => {
+    const q = (applianceSearch || '').trim().toLowerCase();
+    if (!q) return COMMON_APPLIANCES;
+    return COMMON_APPLIANCES.filter((a) => a.name.toLowerCase().includes(q));
+  };
+
+  useEffect(() => {
+    if (!showApplianceModal) {
+      setShowApplianceDropdown(false);
+      return;
+    }
+    const handleClickOutside = (event) => {
+      if (!event.target.closest || !event.target.closest('.appliance-search-wrap-cusset')) {
+        setShowApplianceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showApplianceModal]);
+
+  const openAddApplianceModal = () => {
+    setEditingAppliance(null);
+    setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '', isMotor: false });
+    setApplianceErrors({});
+    setApplianceSearch('');
+    setShowApplianceDropdown(false);
+    setIsCustomAppliance(false);
+    setShowApplianceModal(true);
+  };
+
+  const handleApplianceSearchChange = (e) => {
+    const value = e.target.value;
+    setApplianceSearch(value);
+    setShowApplianceDropdown(true);
+    // Typing in search updates the name live (sanitized), watts stay until a preset is picked
+    const sanitized = value.replace(/[^a-zA-Z0-9\s\-./()]/g, '');
+    setApplianceForm(prev => ({ ...prev, name: sanitized }));
+    if (applianceErrors.name) {
+      setApplianceErrors(prev => ({ ...prev, name: '' }));
+    }
+  };
+
+  const handleSelectAppliancePreset = (preset) => {
+    if (preset === CUSTOM_APPLIANCE_VALUE) {
+      setIsCustomAppliance(true);
+      setApplianceForm(prev => ({ ...prev, name: '', powerWatts: '', isMotor: false }));
+      setApplianceSearch('');
+      setShowApplianceDropdown(false);
+      setApplianceErrors(prev => ({ ...prev, name: '' }));
+      return;
+    }
+    setIsCustomAppliance(false);
+    setApplianceForm(prev => ({
+      ...prev,
+      name: preset.name,
+      powerWatts: preset.defaultWatts,
+      isMotor: preset.isMotor
+    }));
+    setApplianceSearch(preset.name);
+    setShowApplianceDropdown(false);
+    setApplianceErrors(prev => ({ ...prev, name: '' }));
+  };
+
+  const handleBackToList = () => {
+    setIsCustomAppliance(false);
+    setApplianceForm(prev => ({ ...prev, name: '' }));
+    setApplianceSearch('');
+    setShowApplianceDropdown(true);
   };
 
   const editAppliance = (appliance) => {
@@ -380,6 +459,11 @@ const ScheduleAssessment = () => {
       isMotor: appliance.isMotor || false
     });
     setApplianceErrors({});
+    // If the saved name matches a preset, start in searchable mode; otherwise start in custom mode
+    const preset = findAppliancePreset(appliance.name);
+    setIsCustomAppliance(!preset);
+    setApplianceSearch(appliance.name || '');
+    setShowApplianceDropdown(false);
     setShowApplianceModal(true);
   };
 
@@ -400,10 +484,23 @@ const ScheduleAssessment = () => {
   };
 
   const deleteAppliance = (id) => {
-    if (window.confirm('Are you sure you want to remove this appliance?')) {
-      setAppliances(prev => prev.filter(a => a.id !== id));
-      showToast('Appliance removed', 'info');
+    const target = appliances.find(a => a.id === id);
+    setApplianceToDelete(target || { id });
+    setShowDeleteApplianceModal(true);
+  };
+
+  const confirmDeleteAppliance = () => {
+    if (applianceToDelete) {
+      setAppliances(prev => prev.filter(a => a.id !== applianceToDelete.id));
+      showToast(`"${applianceToDelete.name || 'Appliance'}" removed`, 'info');
     }
+    setShowDeleteApplianceModal(false);
+    setApplianceToDelete(null);
+  };
+
+  const cancelDeleteAppliance = () => {
+    setShowDeleteApplianceModal(false);
+    setApplianceToDelete(null);
   };
 
   const clearAppliances = () => {
@@ -2201,12 +2298,7 @@ const ScheduleAssessment = () => {
                     <button
                       type="button"
                       className="add-appliance-btn-cusset"
-                      onClick={() => {
-                        setEditingAppliance(null);
-                        setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
-                        setApplianceErrors({});
-                        setShowApplianceModal(true);
-                      }}
+                      onClick={openAddApplianceModal}
                     >
                       <FaPlus /> Add Appliance
                     </button>
@@ -2525,16 +2617,65 @@ const ScheduleAssessment = () => {
                 <div className="modal-body-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Appliance Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={applianceForm.name}
-                      onChange={handleApplianceFormChange}
-                      placeholder="e.g., Air Conditioner, Refrigerator, TV"
-                      className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
-                    />
+                    {!isCustomAppliance ? (
+                      <div className="appliance-search-wrap-cusset">
+                        <input
+                          type="text"
+                          value={applianceSearch}
+                          onChange={handleApplianceSearchChange}
+                          onFocus={() => setShowApplianceDropdown(true)}
+                          placeholder="Search appliance e.g., Refrigerator, TV, Fan"
+                          className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
+                          autoComplete="off"
+                        />
+                        {showApplianceDropdown && (
+                          <div className="appliance-dropdown-cusset">
+                            {getFilteredAppliances().length === 0 && (
+                              <div className="appliance-dropdown-empty-cusset">No match found</div>
+                            )}
+                            {getFilteredAppliances().map((preset) => (
+                              <button
+                                type="button"
+                                key={preset.name}
+                                className="appliance-option-cusset"
+                                onClick={() => handleSelectAppliancePreset(preset)}
+                              >
+                                <span className="appliance-option-name">{preset.name}</span>
+                                <span className="appliance-option-watts">~{preset.defaultWatts}W{preset.isMotor ? ' • Motor' : ''}</span>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="appliance-option-cusset appliance-option-custom"
+                              onClick={() => handleSelectAppliancePreset(CUSTOM_APPLIANCE_VALUE)}
+                            >
+                              <span className="appliance-option-name">Other / Custom...</span>
+                              <span className="appliance-option-watts">Type your own</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="appliance-search-wrap-cusset">
+                        <input
+                          type="text"
+                          name="name"
+                          value={applianceForm.name}
+                          onChange={handleApplianceFormChange}
+                          placeholder="e.g., Solar Water Purifier"
+                          className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
+                          autoComplete="off"
+                        />
+                        <button type="button" className="appliance-back-btn-cusset" onClick={handleBackToList}>
+                          Back to searchable list
+                        </button>
+                      </div>
+                    )}
                     {applianceErrors.name && (
                       <div className="error-message-cusset">{applianceErrors.name}</div>
+                    )}
+                    {!isCustomAppliance && applianceForm.name && (
+                      <small>Selected: {applianceForm.name} — watts auto-filled, editable below</small>
                     )}
                   </div>
                   <div className="schedule-form-group-cusset">
@@ -2626,6 +2767,30 @@ const ScheduleAssessment = () => {
                   <button className="cancel-btn-cusset" onClick={() => setShowApplianceModal(false)}>Cancel</button>
                   <button className="save-btn-cusset" onClick={saveAppliance}>
                     <FaSave /> {editingAppliance ? 'Update' : 'Add'} Appliance
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Appliance Confirm Modal */}
+          {showDeleteApplianceModal && (
+            <div className="schedule-modal-overlay-cusset" onClick={cancelDeleteAppliance}>
+              <div className="schedule-modal-cusset confirm-modal-cusset" onClick={e => e.stopPropagation()}>
+                <div className="modal-header-cusset">
+                  <h3>Remove Appliance</h3>
+                  <button className="modal-close-cusset" onClick={cancelDeleteAppliance}>×</button>
+                </div>
+                <div className="modal-body-cusset">
+                  <p>
+                    Are you sure you want to remove <strong>{applianceToDelete?.name || 'this appliance'}</strong>?
+                  </p>
+                  <small>This action cannot be undone.</small>
+                </div>
+                <div className="modal-actions-cusset">
+                  <button className="cancel-btn-cusset" onClick={cancelDeleteAppliance}>Cancel</button>
+                  <button className="delete-btn-cusset" onClick={confirmDeleteAppliance}>
+                    <FaTrash /> Delete
                   </button>
                 </div>
               </div>
@@ -2815,12 +2980,7 @@ const ScheduleAssessment = () => {
                     <button
                       type="button"
                       className="add-appliance-btn-cusset"
-                      onClick={() => {
-                        setEditingAppliance(null);
-                        setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '' });
-                        setApplianceErrors({});
-                        setShowApplianceModal(true);
-                      }}
+                      onClick={openAddApplianceModal}
                     >
                       <FaPlus /> Add Appliance
                     </button>
@@ -3139,16 +3299,65 @@ const ScheduleAssessment = () => {
                 <div className="modal-body-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Appliance Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={applianceForm.name}
-                      onChange={handleApplianceFormChange}
-                      placeholder="e.g., Air Conditioner, Refrigerator, TV"
-                      className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
-                    />
+                    {!isCustomAppliance ? (
+                      <div className="appliance-search-wrap-cusset">
+                        <input
+                          type="text"
+                          value={applianceSearch}
+                          onChange={handleApplianceSearchChange}
+                          onFocus={() => setShowApplianceDropdown(true)}
+                          placeholder="Search appliance e.g., Refrigerator, TV, Fan"
+                          className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
+                          autoComplete="off"
+                        />
+                        {showApplianceDropdown && (
+                          <div className="appliance-dropdown-cusset">
+                            {getFilteredAppliances().length === 0 && (
+                              <div className="appliance-dropdown-empty-cusset">No match found</div>
+                            )}
+                            {getFilteredAppliances().map((preset) => (
+                              <button
+                                type="button"
+                                key={preset.name}
+                                className="appliance-option-cusset"
+                                onClick={() => handleSelectAppliancePreset(preset)}
+                              >
+                                <span className="appliance-option-name">{preset.name}</span>
+                                <span className="appliance-option-watts">~{preset.defaultWatts}W{preset.isMotor ? ' • Motor' : ''}</span>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="appliance-option-cusset appliance-option-custom"
+                              onClick={() => handleSelectAppliancePreset(CUSTOM_APPLIANCE_VALUE)}
+                            >
+                              <span className="appliance-option-name">Other / Custom...</span>
+                              <span className="appliance-option-watts">Type your own</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="appliance-search-wrap-cusset">
+                        <input
+                          type="text"
+                          name="name"
+                          value={applianceForm.name}
+                          onChange={handleApplianceFormChange}
+                          placeholder="e.g., Solar Water Purifier"
+                          className={`schedule-form-input-cusset ${applianceErrors.name ? 'error' : ''}`}
+                          autoComplete="off"
+                        />
+                        <button type="button" className="appliance-back-btn-cusset" onClick={handleBackToList}>
+                          Back to searchable list
+                        </button>
+                      </div>
+                    )}
                     {applianceErrors.name && (
                       <div className="error-message-cusset">{applianceErrors.name}</div>
+                    )}
+                    {!isCustomAppliance && applianceForm.name && (
+                      <small>Selected: {applianceForm.name} — watts auto-filled, editable below</small>
                     )}
                   </div>
                   <div className="schedule-form-group-cusset">
@@ -3238,6 +3447,30 @@ const ScheduleAssessment = () => {
                   <button className="cancel-btn-cusset" onClick={() => setShowApplianceModal(false)}>Cancel</button>
                   <button className="save-btn-cusset" onClick={saveAppliance}>
                     <FaSave /> {editingAppliance ? 'Update' : 'Add'} Appliance
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Appliance Confirm Modal */}
+          {showDeleteApplianceModal && (
+            <div className="schedule-modal-overlay-cusset" onClick={cancelDeleteAppliance}>
+              <div className="schedule-modal-cusset confirm-modal-cusset" onClick={e => e.stopPropagation()}>
+                <div className="modal-header-cusset">
+                  <h3>Remove Appliance</h3>
+                  <button className="modal-close-cusset" onClick={cancelDeleteAppliance}>×</button>
+                </div>
+                <div className="modal-body-cusset">
+                  <p>
+                    Are you sure you want to remove <strong>{applianceToDelete?.name || 'this appliance'}</strong>?
+                  </p>
+                  <small>This action cannot be undone.</small>
+                </div>
+                <div className="modal-actions-cusset">
+                  <button className="cancel-btn-cusset" onClick={cancelDeleteAppliance}>Cancel</button>
+                  <button className="delete-btn-cusset" onClick={confirmDeleteAppliance}>
+                    <FaTrash /> Delete
                   </button>
                 </div>
               </div>

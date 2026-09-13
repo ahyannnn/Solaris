@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaSun, FaMoon, FaLightbulb, FaFileInvoice, FaPlug } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import { COMMON_APPLIANCES, CUSTOM_APPLIANCE_VALUE, findAppliancePreset } from '../../data/commonAppliances';
 
 const SiteInspectionTab = ({
   assessmentForm,
@@ -35,6 +36,9 @@ const SiteInspectionTab = ({
     isMotor: false
   });
   const [applianceErrors, setApplianceErrors] = useState({});
+  const [applianceSearch, setApplianceSearch] = useState('');
+  const [showApplianceDropdown, setShowApplianceDropdown] = useState(false);
+  const [isCustomAppliance, setIsCustomAppliance] = useState(false);
 
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -314,10 +318,71 @@ const SiteInspectionTab = ({
   };
 
   // ============ APPLIANCE MANAGEMENT FUNCTIONS ============
+  const getFilteredAppliances = () => {
+    const q = (applianceSearch || '').trim().toLowerCase();
+    if (!q) return COMMON_APPLIANCES;
+    return COMMON_APPLIANCES.filter((a) => a.name.toLowerCase().includes(q));
+  };
+
+  useEffect(() => {
+    if (!showApplianceModal) {
+      setShowApplianceDropdown(false);
+      return;
+    }
+    const handleClickOutside = (event) => {
+      if (!event.target.closest || !event.target.closest('.appliance-search-wrap-enad')) {
+        setShowApplianceDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showApplianceModal]);
+
+  const handleApplianceSearchChange = (value) => {
+    setApplianceSearch(value);
+    setShowApplianceDropdown(true);
+    const sanitized = String(value || '').replace(/[^a-zA-Z0-9\s\-./()]/g, '');
+    setApplianceForm(prev => ({ ...prev, name: sanitized }));
+    if (applianceErrors.name) {
+      setApplianceErrors(prev => ({ ...prev, name: '' }));
+    }
+  };
+
+  const handleSelectAppliancePreset = (preset) => {
+    if (preset === CUSTOM_APPLIANCE_VALUE) {
+      setIsCustomAppliance(true);
+      setApplianceForm(prev => ({ ...prev, name: '', powerWatts: '', isMotor: false }));
+      setApplianceSearch('');
+      setShowApplianceDropdown(false);
+      setApplianceErrors(prev => ({ ...prev, name: '' }));
+      return;
+    }
+    setIsCustomAppliance(false);
+    setApplianceForm(prev => ({
+      ...prev,
+      name: preset.name,
+      powerWatts: preset.defaultWatts,
+      isMotor: preset.isMotor
+    }));
+    setApplianceSearch(preset.name);
+    setShowApplianceDropdown(false);
+    setApplianceErrors(prev => ({ ...prev, name: '' }));
+  };
+
+  const handleBackToList = () => {
+    setIsCustomAppliance(false);
+    setApplianceForm(prev => ({ ...prev, name: '' }));
+    setApplianceSearch('');
+    setShowApplianceDropdown(true);
+  };
+
   const addSiteAppliance = () => {
     setEditingAppliance(null);
     setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '', isMotor: false });
     setApplianceErrors({});
+    setApplianceSearch('');
+    setShowApplianceDropdown(false);
+    setIsCustomAppliance(false);
     setShowApplianceModal(true);
   };
 
@@ -332,6 +397,10 @@ const SiteInspectionTab = ({
       isMotor: appliance.isMotor || false
     });
     setApplianceErrors({});
+    const preset = findAppliancePreset(appliance.name);
+    setIsCustomAppliance(!preset);
+    setApplianceSearch(appliance.name || '');
+    setShowApplianceDropdown(false);
     setShowApplianceModal(true);
   };
 
@@ -359,8 +428,8 @@ const SiteInspectionTab = ({
 
   const saveSiteAppliance = () => {
     const errors = {};
-    if (!applianceForm.name) errors.name = 'Appliance name is required';
-    else if (!/^[a-zA-Z\s]+$/.test(applianceForm.name)) errors.name = 'Appliance name can only contain letters and spaces';
+    if (!applianceForm.name) errors.name = 'Please select or enter an appliance';
+    else if (!/^[a-zA-Z0-9\s\-./()]+$/.test(applianceForm.name)) errors.name = 'Appliance name contains invalid characters';
     if (!applianceForm.powerWatts) errors.powerWatts = 'Power rating is required';
     else if (parseFloat(applianceForm.powerWatts) <= 0) errors.powerWatts = 'Power must be greater than 0';
     if (!applianceForm.quantity) errors.quantity = 'Quantity is required';
@@ -400,10 +469,18 @@ const SiteInspectionTab = ({
     setEditingAppliance(null);
     setApplianceForm({ name: '', powerWatts: '', quantity: '', dayHours: '', nightHours: '', isMotor: false });
     setApplianceErrors({});
+    setApplianceSearch('');
+    setShowApplianceDropdown(false);
+    setIsCustomAppliance(false);
   };
 
   const handleApplianceFormChange = (field, value) => {
-    setApplianceForm(prev => ({ ...prev, [field]: value }));
+    if (field === 'name') {
+      const sanitized = String(value || '').replace(/[^a-zA-Z0-9\s\-./()]/g, '');
+      setApplianceForm(prev => ({ ...prev, [field]: sanitized }));
+    } else {
+      setApplianceForm(prev => ({ ...prev, [field]: value }));
+    }
     if (applianceErrors[field]) {
       setApplianceErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -776,14 +853,63 @@ const SiteInspectionTab = ({
             <div className="modal-body-enad">
               <div className="form-group-enad">
                 <label className="form-label-enad">Appliance Name *</label>
-                <input
-                  type="text"
-                  className={`assessment-form-input-enad ${applianceErrors.name ? 'error' : ''}`}
-                  value={applianceForm.name}
-                  onChange={(e) => handleApplianceFormChange('name', e.target.value)}
-                  placeholder="e.g., Air Conditioner, Refrigerator"
-                />
+                {!isCustomAppliance ? (
+                  <div className="appliance-search-wrap-enad">
+                    <input
+                      type="text"
+                      className={`assessment-form-input-enad ${applianceErrors.name ? 'error' : ''}`}
+                      value={applianceSearch}
+                      onChange={(e) => handleApplianceSearchChange(e.target.value)}
+                      onFocus={() => setShowApplianceDropdown(true)}
+                      placeholder="Search appliance e.g., Refrigerator, TV, Fan"
+                      autoComplete="off"
+                    />
+                    {showApplianceDropdown && (
+                      <div className="appliance-dropdown-enad">
+                        {getFilteredAppliances().length === 0 && (
+                          <div className="appliance-dropdown-empty-enad">No match found</div>
+                        )}
+                        {getFilteredAppliances().map((preset) => (
+                          <button
+                            type="button"
+                            key={preset.name}
+                            className="appliance-option-enad"
+                            onClick={() => handleSelectAppliancePreset(preset)}
+                          >
+                            <span className="appliance-option-name-enad">{preset.name}</span>
+                            <span className="appliance-option-watts-enad">~{preset.defaultWatts}W{preset.isMotor ? ' • Motor' : ''}</span>
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          className="appliance-option-enad appliance-option-custom-enad"
+                          onClick={() => handleSelectAppliancePreset(CUSTOM_APPLIANCE_VALUE)}
+                        >
+                          <span className="appliance-option-name-enad">Other / Custom...</span>
+                          <span className="appliance-option-watts-enad">Type your own</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="appliance-search-wrap-enad">
+                    <input
+                      type="text"
+                      className={`assessment-form-input-enad ${applianceErrors.name ? 'error' : ''}`}
+                      value={applianceForm.name}
+                      onChange={(e) => handleApplianceFormChange('name', e.target.value)}
+                      placeholder="e.g., Solar Water Purifier"
+                      autoComplete="off"
+                    />
+                    <button type="button" className="appliance-back-btn-enad" onClick={handleBackToList}>
+                      Back to searchable list
+                    </button>
+                  </div>
+                )}
                 {applianceErrors.name && <div className="error-message-enad">{applianceErrors.name}</div>}
+                {!isCustomAppliance && applianceForm.name && (
+                  <small className="form-hint-enad">Selected: {applianceForm.name} — watts auto-filled, editable below</small>
+                )}
               </div>
 
               <div className="form-row-grid-enad">

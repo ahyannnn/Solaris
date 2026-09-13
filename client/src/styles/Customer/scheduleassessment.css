@@ -1109,6 +1109,89 @@ body.dark-mode {
   max-width: 520px;
 }
 
+/* Searchable appliance picker */
+.appliance-search-wrap-cusset {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appliance-dropdown-cusset {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: 4px;
+  padding: 6px;
+}
+
+.appliance-option-cusset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.appliance-option-cusset:hover {
+  background: rgba(243, 156, 18, 0.12);
+}
+
+.appliance-option-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.appliance-option-watts {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.appliance-option-custom {
+  border-top: 1px dashed var(--border-color);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.appliance-dropdown-empty-cusset {
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.appliance-back-btn-cusset {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: #D97706;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.appliance-back-btn-cusset:hover {
+  text-decoration: underline;
+}
+
 .modal-header-cusset {
   display: flex;
   justify-content: space-between;
@@ -1196,6 +1279,42 @@ body.dark-mode {
   background: #E67E22;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.delete-btn-cusset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-btn-cusset:hover {
+  background: #DC2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.confirm-modal-cusset {
+  max-width: 420px;
+}
+
+.confirm-modal-cusset .modal-body-cusset p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.confirm-modal-cusset .modal-body-cusset small {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* Modal Summary */

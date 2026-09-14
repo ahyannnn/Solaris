@@ -1583,6 +1583,28 @@ const MyAssessments = () => {
     return type ? type.label : 'Not specified';
   };
 
+  // Motor / Non-Motor appliance power totals (W) for an overview item.
+  // Prefers the stored flat totals; falls back to summing the per-appliance
+  // list by isMotor (same logic as SiteInspectionTab) for old records.
+  const getMotorNonMotorWatts = (item) => {
+    const storedMotor = parseFloat(item?.motorAppliancesWatts) || 0;
+    const storedNonMotor = parseFloat(item?.nonMotorAppliancesWatts) || 0;
+    if (storedMotor > 0 || storedNonMotor > 0) {
+      return { motorW: storedMotor, nonMotorW: storedNonMotor };
+    }
+    let motorW = 0;
+    let nonMotorW = 0;
+    (item?.appliances || []).forEach((app) => {
+      const watts = (parseFloat(app?.powerWatts) || 0) * (parseFloat(app?.quantity) || 1);
+      if (app?.isMotor) {
+        motorW += watts;
+      } else {
+        nonMotorW += watts;
+      }
+    });
+    return { motorW, nonMotorW };
+  };
+
   const getStatusConfig = (item) => {
     if (item.type === 'free_quote') {
       return FREE_QUOTE_STATUS[item.status] || FREE_QUOTE_STATUS.pending;
@@ -2367,6 +2389,12 @@ const MyAssessments = () => {
                     )}
                     {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
                     {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
+                    {(() => {
+                      const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
+                      return (motorW > 0 || nonMotorW > 0) && (
+                        <div className="info-item-enad"><span className="info-label-enad">Motor / Non-Motor Power</span><span className="info-value-enad">{motorW} W | {nonMotorW} W</span></div>
+                      );
+                    })()}
                     {selectedItem.targetSavings && (
                       <div className="info-item-enad">
                         <span className="info-label-enad">Target Savings</span>
@@ -2627,6 +2655,8 @@ const MyAssessments = () => {
                         resetCalculationCards={calculation.resetCalculationCards}
                         systemType={freeQuoteForm.systemType}
                         showToast={showToast}
+                        motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
+                        nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
                       />
                     )}
                   </div>
@@ -2867,6 +2897,12 @@ const MyAssessments = () => {
                   <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(selectedItem.monthlyBill / (selectedItem.rate * 30)).toFixed(2) || 0} kWh/day</span></div>
+                  {(() => {
+                    const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
+                    return (motorW > 0 || nonMotorW > 0) && (
+                      <div className="info-item-enad"><span className="info-label-enad">Motor / Non-Motor Power</span><span className="info-value-enad">{motorW} W | {nonMotorW} W</span></div>
+                    );
+                  })()}
                   {selectedItem.targetSavings && (
                     <div className="info-item-enad">
                       <span className="info-label-enad">Target Savings</span>
@@ -3194,6 +3230,8 @@ const MyAssessments = () => {
                         resetCalculationCards={calculation.resetCalculationCards}
                         systemType={selectedItem.systemType || 'grid-tie'}
                         showToast={showToast}
+                        motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
+                        nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
                       />
                     )}
                   </div>

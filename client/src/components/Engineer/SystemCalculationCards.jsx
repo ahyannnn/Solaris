@@ -1,5 +1,5 @@
 // components/Engineer/SystemCalculationCards.jsx
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 // Safe number formatting helper - now defaults to 2 decimal places
@@ -27,6 +27,27 @@ const getDepthOfDischarge = (battery) => {
   return battery.dob || 0.8;
 };
 
+// Reusable wrapper that gives every "Final Formula" a proper
+// mathematical typeset block (native MathML, no extra dependency).
+// Full variable names are used intentionally - do not shorten them.
+const FormulaShell = ({ title = 'Formula', children }) => (
+  <div className="formula-display math-block">
+    <span className="formula-title">{title}</span>
+    <div className="math-scroll">
+      {children}
+    </div>
+  </div>
+);
+
+// Shows the live card data substituted into the formula (worked solution).
+// Renders `children` (the substitution math) when `ready`, else a hint.
+const Substitution = ({ ready, hint, children }) => (
+  <div className="math-substitution">
+    <span className="math-substitution-label">With data:</span>
+    {ready ? children : <div className="math-hint">{hint}</div>}
+  </div>
+);
+
 // Area Calculation Card - Auto-populated from database
 export const AreaCalculationCard = ({
   roofLength,
@@ -42,6 +63,10 @@ export const AreaCalculationCard = ({
 
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   const panelArea = getPanelArea(selectedPanelForCalc);
+
+  // Raw input values substituted into the formula below (no pre-computation)
+  const targetNum = parseFloat(targetSavings) || 0;
+  const areaReady = isDataLoaded && roofArea > 0 && !!selectedPanelForCalc && panelArea > 0;
 
   const handleCalculate = () => {
     if (!isDataLoaded || roofArea === 0 || !selectedPanelForCalc) {
@@ -131,9 +156,79 @@ export const AreaCalculationCard = ({
 
 
 
-        <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> ((Roof Area × 70% × PV Power(W)) / Panel Area(m²)) * Target Savings</label>
-        </div>
+        <FormulaShell>
+          <math display="block" className="math-formula" aria-label="PV Capacity in watts equals Area of roof times 70 percent times PV power divided by Area of PV module">
+            <mrow>
+              <mtext>PV Capacity (W)</mtext>
+              <mo>=</mo>
+              <mfrac>
+                <mrow>
+                  <mtext>Area of roof</mtext>
+                  <mo>×</mo>
+                  <mtext>70%</mtext>
+                  <mo>×</mo>
+                  <mtext>PV power (W)</mtext>
+                </mrow>
+                <mrow>
+                  <mtext>Area of PV module</mtext>
+                </mrow>
+              </mfrac>
+            </mrow>
+          </math>
+          <math display="block" className="math-formula" aria-label="System Size equals PV Capacity divided by 1000 times Target Savings">
+            <mrow>
+              <mtext>System Size (kWp)</mtext>
+              <mo>=</mo>
+              <mfrac>
+                <mrow>
+                  <mtext>PV Capacity (W)</mtext>
+                </mrow>
+                <mrow>
+                  <mn>1000</mn>
+                </mrow>
+              </mfrac>
+              <mo>×</mo>
+              <mtext>Target Savings</mtext>
+            </mrow>
+          </math>
+          <Substitution ready={areaReady} hint="Select a solar panel to see your values substituted into the formula.">
+            <math display="block" className="math-formula" aria-label="PV Capacity with your data substituted">
+              <mrow>
+                <mtext>PV Capacity (W)</mtext>
+                <mo>=</mo>
+                <mfrac>
+                  <mrow>
+                    <mn>{safeToFixed(roofArea)}</mn>
+                    <mo>×</mo>
+                    <mtext>70%</mtext>
+                    <mo>×</mo>
+                    <mn>{panelWattage}</mn>
+                  </mrow>
+                  <mrow>
+                    <mn>{safeToFixed(panelArea)}</mn>
+                  </mrow>
+                </mfrac>
+              </mrow>
+            </math>
+            <math display="block" className="math-formula" aria-label="System Size with your data substituted">
+              <mrow>
+                <mtext>System Size (kWp)</mtext>
+                <mo>=</mo>
+                <mfrac>
+                  <mrow>
+                    <mtext>PV Capacity (W)</mtext>
+                  </mrow>
+                  <mrow>
+                    <mn>1000</mn>
+                  </mrow>
+                </mfrac>
+                <mo>×</mo>
+                <mn>{safeToFixed(targetNum)}</mn>
+                <mtext>%</mtext>
+              </mrow>
+            </math>
+          </Substitution>
+        </FormulaShell>
 
         <button
           className="btn-calculate"
@@ -177,6 +272,13 @@ export const ElectricityCalculationCard = ({
   const dod = getDepthOfDischarge(selectedBatteryForCalc);
 
   const showBatteryAutonomy = systemType === 'hybrid';
+
+  // Raw input values substituted into the formula below (no pre-computation)
+  const billNum = parseFloat(monthlyBill) || 0;
+  const rateNum = parseFloat(ratePerKwh) || 0;
+  const pshNum = parseFloat(pshValue) || 3.5;
+  const targetNum = parseFloat(targetSavings) || 0;
+  const elecReady = isDataLoaded && billNum > 0 && rateNum > 0 && pshNum > 0;
 
   const handleCalculate = () => {
     if (!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc) {
@@ -299,10 +401,50 @@ export const ElectricityCalculationCard = ({
 
 
 
-        <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> ((Total Daily Consumption (Electric Bill) × Safety Factor) / PSH) × Target Savings</label>
-          
-        </div>
+        <FormulaShell>
+          <math display="block" className="math-formula" aria-label="System Size equals Total Daily Consumption Electric Bill times 1.3 divided by PSH, times Target Savings">
+            <mrow>
+              <mtext>System Size (kWp)</mtext>
+              <mo>=</mo>
+              <mfrac>
+                <mrow>
+                  <mtext>Total Daily Consumption (Electric Bill)</mtext>
+                  <mo>×</mo>
+                  <mn>1.3</mn>
+                </mrow>
+                <mrow>
+                  <mtext>PSH</mtext>
+                </mrow>
+              </mfrac>
+              <mo>×</mo>
+              <mtext>Target Savings</mtext>
+            </mrow>
+          </math>
+          <Substitution ready={elecReady} hint="No consumption data yet — values will appear here once client data is loaded.">
+            <math display="block" className="math-formula" aria-label="Total Daily Consumption with your data substituted">
+              
+            </math>
+            <math display="block" className="math-formula" aria-label="System Size with your data substituted">
+              <mrow>
+                <mtext>System Size (kWp)</mtext>
+                <mo>=</mo>
+                <mfrac>
+                  <mrow>
+                    <mtext>{safeToFixed(totalDailyConsumption)}</mtext>
+                    <mo>×</mo>
+                    <mn>1.3</mn>
+                  </mrow>
+                  <mrow>
+                    <mn>{pshNum}</mn>
+                  </mrow>
+                </mfrac>
+                <mo>×</mo>
+                <mn>{safeToFixed(targetNum)}</mn>
+                <mtext>%</mtext>
+              </mrow>
+            </math>
+          </Substitution>
+        </FormulaShell>
 
         <button
           className="btn-calculate"
@@ -346,6 +488,13 @@ export const LoadProfileCalculationCard = ({
   const dod = getDepthOfDischarge(selectedBatteryForCalc);
 
   const showBatteryAutonomy = systemType === 'hybrid' || systemType === 'off-grid';
+
+  // Raw input values substituted into the formula below (no pre-computation)
+  const dayNum = parseFloat(dayConsumption) || 0;
+  const nightNum = parseFloat(nightConsumption) || 0;
+  const pshNum = parseFloat(pshValue) || 3.5;
+  const targetNum = parseFloat(targetSavings) || 0;
+  const loadReady = isDataLoaded && (dayNum + nightNum) > 0 && pshNum > 0;
 
   const handleCalculate = () => {
     if (!isDataLoaded || totalDailyConsumption === 0 || !selectedPanelForCalc) {
@@ -473,10 +622,48 @@ export const LoadProfileCalculationCard = ({
 
 
 
-        <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> (Total Daily Consumption × Safety Factor / PSH) × Target Savings</label>
-         
-        </div>
+        <FormulaShell>
+          <math display="block" className="math-formula" aria-label="System Size equals Total Daily Consumption Load Profile times 1.3 divided by PSH, times Target Savings">
+            <mrow>
+              <mtext>System Size (kWp)</mtext>
+              <mo>=</mo>
+              <mfrac>
+                <mrow>
+                  <mtext>Total Daily Consumption (Load Profile)</mtext>
+                  <mo>×</mo>
+                  <mn>1.3</mn>
+                </mrow>
+                <mrow>
+                  <mtext>PSH</mtext>
+                </mrow>
+              </mfrac>
+              <mo>×</mo>
+              <mtext>Target Savings</mtext>
+            </mrow>
+          </math>
+          <Substitution ready={loadReady} hint="No consumption data yet — values will appear here once client data is loaded.">
+            
+            <math display="block" className="math-formula" aria-label="System Size with your data substituted">
+              <mrow>
+                <mtext>System Size (kWp)</mtext>
+                <mo>=</mo>
+                <mfrac>
+                  <mrow>
+                    <mtext>{safeToFixed(totalDailyConsumption)}</mtext>
+                    <mo>×</mo>
+                    <mn>1.3</mn>
+                  </mrow>
+                  <mrow>
+                    <mn>{pshNum}</mn>
+                  </mrow>
+                </mfrac>
+                <mo>×</mo>
+                <mn>{safeToFixed(targetNum)}</mn>
+                <mtext>%</mtext>
+              </mrow>
+            </math>
+          </Substitution>
+        </FormulaShell>
 
         <button
           className="btn-calculate"
@@ -526,6 +713,13 @@ export const NetMeteringCalculationCard = ({
   const dayNetMeteringConsumption = (dayConsumption * 1.3 )/ psh;
   const nightNetMeteringConsumption = nightConsumption * 12 / exportRate;
   const nightNetMeteringPvCapacity = nightNetMeteringConsumption * 1.3 / psh;
+
+  // Raw input values substituted into the formula below (no pre-computation)
+  const dayNum = parseFloat(dayConsumption) || 0;
+  const nightNum = parseFloat(nightConsumption) || 0;
+  const expNum = parseFloat(exportRate) || 0;
+  const targetNum = parseFloat(targetSavings) || 0;
+  const netReady = isDataLoaded && (dayNum > 0 || nightNum > 0) && expNum > 0 && psh > 0;
 
   const handleCalculate = () => {
     if (!isDataLoaded || (dayConsumption === 0 && nightConsumption === 0) || !selectedPanelForCalc) {
@@ -622,10 +816,43 @@ export const NetMeteringCalculationCard = ({
           
         </div>
 
-        <div className="formula-display">
-          <label className="form-label-enad"><strong>Formula:</strong> (Day PV Capacity + Night PV Capacity) × Target Savings</label>
-          
-        </div>
+        <FormulaShell>
+          <math display="block" className="math-formula" aria-label="System Size equals Day PV Capacity plus Night PV Capacity times Target Savings">
+            <mrow>
+              <mtext>System Size (kWp)</mtext>
+              <mo>=</mo>
+              <mrow>
+                <mo>(</mo>
+                <mtext>Day PV Capacity</mtext>
+                <mo>+</mo>
+                <mtext>Night PV Capacity</mtext>
+                <mo>)</mo>
+              </mrow>
+              <mo>×</mo>
+              <mtext>Target Savings</mtext>
+            </mrow>
+          </math>
+          <Substitution ready={netReady} hint="No consumption data yet — values will appear here once client data is loaded.">
+            
+            
+            <math display="block" className="math-formula" aria-label="System Size with your data substituted">
+              <mrow>
+                <mtext>System Size (kWp)</mtext>
+                <mo>=</mo>
+                <mrow>
+                  <mo>(</mo>
+                  <mtext>{safeToFixed(dayNetMeteringConsumption, 2)}</mtext>
+                  <mo>+</mo>
+                  <mtext>{safeToFixed(nightNetMeteringPvCapacity, 2)}</mtext>
+                  <mo>)</mo>
+                </mrow>
+                <mo>×</mo>
+                <mn>{safeToFixed(targetNum)}</mn>
+                <mtext>%</mtext>
+              </mrow>
+            </math>
+          </Substitution>
+        </FormulaShell>
 
         <button
           className="btn-calculate"
@@ -652,9 +879,24 @@ export const CalculationResultsCard = ({
   applyCalculationResults,
   resetCalculationCards,
   systemType,
-  showToast
+  showToast,
+  motorWatts = 0,
+  nonMotorWatts = 0
 }) => {
   const showBattery = systemType === 'hybrid' || systemType === 'off-grid';
+  const resultsRef = useRef(null);
+  const hasApplianceWatts = (parseFloat(motorWatts) || 0) > 0 || (parseFloat(nonMotorWatts) || 0) > 0;
+
+  // Scroll to the calculation result whenever new results are produced
+  // (covers clicks on any card's "Calculate System Size" button).
+  useEffect(() => {
+    if (calculationResults.recommendedSystemSize > 0 && resultsRef.current) {
+      const t = setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+      return () => clearTimeout(t);
+    }
+  }, [calculationResults.recommendedSystemSize, selectedCalculationMethod]);
 
   const handleApplyResults = () => {
     if (calculationResults.recommendedSystemSize === 0) {
@@ -671,7 +913,7 @@ export const CalculationResultsCard = ({
   };
 
   return (
-    <div className="calculation-results-card">
+    <div className="calculation-results-card" ref={resultsRef}>
       <div className="results-header">
         <h4>Calculation Results</h4>
         <span className="results-method">
@@ -689,10 +931,14 @@ export const CalculationResultsCard = ({
         <div className="result-item">
           <label>Inverter Size</label>
           <strong>{safeToFixed(calculationResults.inverterSize)} kW</strong>
+          {hasApplianceWatts
+            ? <small>( ({motorWatts} x 3 )+ {nonMotorWatts} )1.3</small>
+            : <small>( (Total Motor power x 3 )+ other non motor )1.3</small>}
         </div>
         <div className="result-item">
           <label>Panels Needed</label>
           <strong>{calculationResults.panelsNeeded || 0} pcs</strong>
+          <small>({safeToFixed(calculationResults.recommendedSystemSize)} X 1000)/{calculationResults.panelWattage || 0}</small>
         </div>
 
         {showBattery && (calculationResults.batteryCapacity1Day > 0 || calculationResults.batteryCapacity2Day > 0 || calculationResults.batteryCapacity3Day > 0) && (

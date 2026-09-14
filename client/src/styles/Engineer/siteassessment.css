@@ -1523,6 +1523,115 @@ body.dark-mode {
   border-color: var(--autonomy-btn-active-bg);
 }
 
+/* Final Formula - proper mathematical typesetting (MathML) */
+.formula-display.math-block {
+  margin: 12px 0 14px 0;
+  padding: 12px 14px 10px 14px;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.formula-display.math-block .formula-title {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--cost-value-color);
+  margin-bottom: 6px;
+}
+
+.formula-display.math-block .math-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 2px 4px 2px;
+  scrollbar-width: thin;
+}
+
+.formula-display.math-block math.math-formula {
+  font-family: 'Cambria Math', 'STIX Two Math', 'Latin Modern Math', 'Times New Roman', serif;
+  font-size: 17px;
+  color: var(--text-primary);
+}
+
+.formula-display.math-block math.math-formula + math.math-formula {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-medium);
+}
+
+.formula-display.math-block mi {
+  font-style: italic;
+}
+
+.formula-display.math-block mn,
+.formula-display.math-block mtext {
+  font-style: normal;
+}
+
+.formula-display.math-block mfrac {
+  font-size: 0.94em;
+}
+
+.formula-display.math-block .math-unit {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.formula-display.math-block .formula-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.formula-display.math-block .formula-legend i {
+  font-family: 'Cambria Math', 'STIX Two Math', serif;
+  color: var(--text-secondary);
+}
+
+.formula-display.math-block-compact {
+  margin: 8px 0 0 0;
+  padding: 10px 12px 8px 12px;
+  width: 100%;
+}
+
+/* Substituted-values (worked solution) block inside Final Formula */
+.formula-display.math-block .math-substitution {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-medium);
+}
+
+.formula-display.math-block .math-substitution-label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.formula-display.math-block .math-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.formula-display.math-block mn.math-result {
+  font-weight: 700;
+  color: var(--cost-value-color);
+}
+
 /* Calculate Button */
 .btn-calculate {
   width: 100%;
@@ -1550,6 +1659,7 @@ body.dark-mode {
 
 /* Calculation Results Card */
 .calculation-results-card {
+  scroll-margin-top: 16px;
   background: var(--bg-results-card);
   border-radius: 12px;
   border: 2px solid var(--icon-color);

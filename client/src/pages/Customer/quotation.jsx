@@ -348,10 +348,16 @@ const Quotation = () => {
     return finalInvoice && finalInvoice.status === 'paid';
   };
 
-  const NON_PAYABLE_PREASSESSMENT_STATUSES = ['cancelled', 'refund_pending', 'refunded', 'no_refund', 'failed'];
+  // ✅ FIX: 'failed' (admin-rejected or PayMongo-declined) must stay repayable —
+  // only terminal states block Pay Now.
+  const NON_PAYABLE_PREASSESSMENT_STATUSES = ['cancelled', 'refund_pending', 'refunded', 'no_refund'];
 
   const isNonPayablePreAssessment = (item) => {
     if (!item || item.type !== 'pre-assessment') return false;
+    // Legit customer cancels set assessmentStatus cancelled + cancellation;
+    // old admin rejects left failed/cancelled with no cancellation object —
+    // those must stay payable so the customer can resubmit.
+    if (item.assessmentStatus === 'cancelled' && (item.paymentStatus === 'failed' || item.status === 'failed')) return false;
     return item.assessmentStatus === 'cancelled' ||
       NON_PAYABLE_PREASSESSMENT_STATUSES.includes(item.paymentStatus || item.status);
   };
@@ -362,11 +368,11 @@ const Quotation = () => {
   const isPayableNow = (item) => {
     if (!item) return false;
     if (item.type === 'pre-assessment') {
-      return (item.status === 'pending' || item.status === 'pending_payment') &&
+      return (item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed') &&
         !isNonPayablePreAssessment(item);
     }
     if (item.type !== 'project') return false;
-    if (item.status !== 'pending' && item.status !== 'partial') return false;
+    if (item.status !== 'pending' && item.status !== 'partial' && item.status !== 'failed') return false;
     return !isPayNowDisabled(item);
   };
 
@@ -1335,7 +1341,7 @@ const Quotation = () => {
     // TOTAL counts only "active" transactions — future installments that are
     // not due yet are excluded (same due-now rule as the PENDING card).
     const countableItems = allItems.filter((i) => {
-      if (i.type === 'project' && (i.status === 'pending' || i.status === 'partial')) {
+      if (i.type === 'project' && (i.status === 'pending' || i.status === 'partial' || i.status === 'failed')) {
         return isPayableNow(i);
       }
       return true;
@@ -1638,7 +1644,7 @@ const Quotation = () => {
     if (tab === 'all') return filteredItems;
     if (tab === 'pre-assessment') return filteredItems.filter(item => item.type === 'pre-assessment');
     if (tab === 'project') return filteredItems.filter(item => item.type === 'project');
-    if (tab === 'pending') return filteredItems.filter(item => item.status === 'pending' || item.status === 'pending_payment');
+    if (tab === 'pending') return filteredItems.filter(item => item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed');
     if (tab === 'paid') return filteredItems.filter(item => item.status === 'paid');
     if (tab === 'for_verification') return filteredItems.filter(item => item.status === 'for_verification');
     return filteredItems;
@@ -1646,10 +1652,10 @@ const Quotation = () => {
 
   const getVisibleItems = (items) => {
     return items.filter(item => {
-      if (item.type === 'project' && (item.status === 'pending' || item.status === 'pending_payment')) {
+      if (item.type === 'project' && (item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed')) {
         return !isPayNowDisabled(item);
       }
-      if (item.type === 'pre-assessment' && (item.status === 'pending' || item.status === 'pending_payment')) {
+      if (item.type === 'pre-assessment' && (item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed')) {
         return true;
       }
       return true;
@@ -2140,7 +2146,7 @@ const Quotation = () => {
                   {tabItems.map((item, index) => {
                     const isPreAssessment = item.type === 'pre-assessment';
                     const isPaid = item.status === 'paid';
-                    const isPending = item.status === 'pending' || item.status === 'pending_payment';
+                    const isPending = item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed';
                     const isVerifying = item.status === 'for_verification';
                     const isPayNowButtonDisabled = isPayNowDisabled(item);
                     const hasReceipt = item.receiptUrl;
@@ -2349,7 +2355,7 @@ const Quotation = () => {
           ) : (
             tabItems.map((item, index) => {
               const isPreAssessment = item.type === 'pre-assessment';
-              const isPending = item.status === 'pending' || item.status === 'pending_payment';
+              const isPending = item.status === 'pending' || item.status === 'pending_payment' || item.status === 'failed';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const hasReceipt = item.receiptUrl;
               const isExpanded = expandedMobileId === item.id;

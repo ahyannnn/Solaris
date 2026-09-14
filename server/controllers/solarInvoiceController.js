@@ -580,16 +580,22 @@ exports.verifySolarInvoicePayment = async (req, res) => {
       });
 
     } else {
-      // Payment rejected
+      // Payment rejected — keep repayable (pending) so customer Pay Now stays available
       invoice.paymentStatus = 'pending';
       invoice.status = 'pending';
-      invoice.adminRemarks = notes || 'Payment rejected - please resubmit';
+      invoice.internalNotes = notes || 'Payment rejected - please resubmit';
 
       const gcashPayment = invoice.payments.find(p => p.method === 'gcash');
       if (gcashPayment) {
         gcashPayment.notes = `REJECTED by admin on ${new Date().toLocaleString()}. Reason: ${notes || 'No reason provided'}`;
         gcashPayment.verifiedBy = null;
         gcashPayment.verifiedAt = null;
+        // Revert optimistic amountPaid added on submit to allow clean resubmit
+        const lastAmount = Number(gcashPayment.amount) || 0;
+        if (lastAmount > 0 && (invoice.amountPaid || 0) > 0) {
+          invoice.amountPaid = Math.max(0, (invoice.amountPaid || 0) - lastAmount);
+          invoice.balance = (invoice.totalAmount || 0) - (invoice.amountPaid || 0);
+        }
       }
 
       // Reset project payment schedule
@@ -657,11 +663,26 @@ exports.rejectSolarInvoicePayment = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    invoice.paymentStatus = 'failed';
-    invoice.status = 'cancelled';
-    invoice.adminRemarks = notes || 'Payment rejected by admin';
-    invoice.rejectedBy = adminId;
-    invoice.rejectedAt = new Date();
+    // ✅ FIX: Rejected payment must stay repayable — revert to pending
+    // (was 'failed'/'cancelled' which hid the customer Pay Now button and
+    // 'failed' isn't even a valid SolarInvoice paymentStatus enum).
+    invoice.paymentStatus = 'pending';
+    invoice.status = 'pending';
+    invoice.internalNotes = notes || 'Payment rejected by admin - customer may resubmit';
+    // Revert the optimistic amountPaid added on submit so a resubmit
+    // doesn't double-count (due amount falls back to totalAmount when 0).
+    if (invoice.payments && invoice.payments.length > 0) {
+      const lastPayment = invoice.payments[invoice.payments.length - 1];
+      const lastAmount = Number(lastPayment.amount) || 0;
+      if (lastAmount > 0 && (invoice.amountPaid || 0) > 0) {
+        invoice.amountPaid = Math.max(0, (invoice.amountPaid || 0) - lastAmount);
+        invoice.balance = (invoice.totalAmount || 0) - (invoice.amountPaid || 0);
+        lastPayment.notes = `REJECTED by admin on ${new Date().toLocaleString()}. Reason: ${notes || 'No reason provided'}`;
+      }
+    } else if ((invoice.amountPaid || 0) > 0 && (invoice.balance || 0) <= 0) {
+      invoice.amountPaid = 0;
+      invoice.balance = invoice.totalAmount || 0;
+    }
 
     await invoice.save();
 

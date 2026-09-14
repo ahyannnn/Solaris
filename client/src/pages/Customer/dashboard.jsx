@@ -100,7 +100,7 @@ const Dashboard = () => {
         .filter(a => {
           if (!a.invoiceNumber || a.assessmentStatus === 'pending_review') return false;
           const status = (a.paymentStatus || '').toLowerCase();
-          return status === 'pending' || status === 'pending_payment';
+          return status === 'pending' || status === 'pending_payment' || status === 'failed';
         })
         .map(a => ({
           id: a._id, type: 'pre-assessment', title: 'Pre-Assessment Fee',
@@ -113,7 +113,7 @@ const Dashboard = () => {
         .filter(inv => {
           const status = (inv.paymentStatus || '').toLowerCase();
           if (['for_verification', 'paid', 'partial', 'overdue'].includes(status)) return false;
-          return status === 'pending' || status === 'pending_payment';
+          return status === 'pending' || status === 'pending_payment' || status === 'failed';
         })
         .map(inv => ({
           id: inv._id, type: 'project', title: inv.description || 'Project Bill',

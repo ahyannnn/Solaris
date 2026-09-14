@@ -53,6 +53,12 @@ exports.createPayMongoPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
+    // ✅ FIX: Old admin rejects left records as cancelled/failed — reopen for retry.
+    // Legit customer cancels always set cancellation.requestedAt, so only reopen those.
+    if (assessment.assessmentStatus === 'cancelled' && ['failed', 'pending'].includes(assessment.paymentStatus) && !assessment.cancellation?.requestedAt) {
+      assessment.assessmentStatus = 'pending_payment';
+    }
+
     if (assessment.assessmentStatus === 'cancelled') {
       return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
     }
@@ -61,7 +67,7 @@ exports.createPayMongoPaymentIntent = async (req, res) => {
       return res.status(400).json({ message: `Cannot process payment for ${assessment.paymentStatus} booking` });
     }
 
-    if (assessment.paymentStatus !== 'pending') {
+    if (assessment.paymentStatus !== 'pending' && assessment.paymentStatus !== 'failed') {
       return res.status(400).json({ message: 'Payment already processed' });
     }
 
@@ -1159,6 +1165,11 @@ exports.submitPayment = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
+    // ✅ FIX: Reopen old admin-reject records (cancelled + failed/pending, no customer cancel) for retry
+    if (preAssessment.assessmentStatus === 'cancelled' && ['failed', 'pending'].includes(preAssessment.paymentStatus) && !preAssessment.cancellation?.requestedAt) {
+      preAssessment.assessmentStatus = 'pending_payment';
+    }
+
     if (preAssessment.assessmentStatus === 'cancelled') {
       return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
     }
@@ -1271,6 +1282,11 @@ exports.submitPaymentProof = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    // ✅ FIX: Reopen old admin-reject records for retry; allow 'failed' to resubmit
+    if (preAssessment.assessmentStatus === 'cancelled' && ['failed', 'pending'].includes(preAssessment.paymentStatus) && !preAssessment.cancellation?.requestedAt) {
+      preAssessment.assessmentStatus = 'pending_payment';
+    }
+
     if (preAssessment.assessmentStatus === 'cancelled') {
       return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
     }
@@ -1279,7 +1295,7 @@ exports.submitPaymentProof = async (req, res) => {
       return res.status(400).json({ message: `Cannot process payment for ${preAssessment.paymentStatus} booking` });
     }
 
-    if (preAssessment.paymentStatus !== 'pending') {
+    if (preAssessment.paymentStatus !== 'pending' && preAssessment.paymentStatus !== 'failed') {
       return res.status(400).json({ message: 'Payment already submitted' });
     }
 
@@ -1376,6 +1392,11 @@ exports.cashPayment = async (req, res) => {
 
     if (!preAssessment) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // ✅ FIX: Reopen old admin-reject records for retry
+    if (preAssessment.assessmentStatus === 'cancelled' && ['failed', 'pending'].includes(preAssessment.paymentStatus) && !preAssessment.cancellation?.requestedAt) {
+      preAssessment.assessmentStatus = 'pending_payment';
     }
 
     if (preAssessment.assessmentStatus === 'cancelled') {
@@ -1556,9 +1577,11 @@ exports.verifyPayment = async (req, res) => {
           }
         );
       }
-      preAssessment.paymentStatus = 'failed';
-      preAssessment.assessmentStatus = 'cancelled';
-      preAssessment.adminRemarks = notes || 'Payment rejected by admin';
+      // ✅ FIX: Rejected payment must stay repayable — revert to pending/pending_payment
+      // (was 'failed'/'cancelled' which hid the customer Pay Now button).
+      preAssessment.paymentStatus = 'pending';
+      preAssessment.assessmentStatus = 'pending_payment';
+      preAssessment.adminRemarks = (notes ? notes + ' - ' : '') + 'Payment rejected by admin - customer may resubmit';
 
       // Save audit trail
       await AuditLog.create({

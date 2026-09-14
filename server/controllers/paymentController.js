@@ -40,6 +40,11 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
       return res.status(404).json({ message: 'Pre-assessment not found', id: id });
     }
 
+    // ✅ FIX: Reopen old admin-reject records (cancelled + failed, no customer cancel) for retry
+    if (assessment.assessmentStatus === 'cancelled' && ['failed', 'pending'].includes(assessment.paymentStatus) && !assessment.cancellation?.requestedAt) {
+      assessment.assessmentStatus = 'pending_payment';
+    }
+
     if (assessment.assessmentStatus === 'cancelled') {
       return res.status(400).json({ message: 'Cannot process payment for cancelled booking' });
     }
@@ -50,7 +55,7 @@ exports.createPreAssessmentPaymentIntent = async (req, res) => {
       });
     }
 
-    if (assessment.paymentStatus !== 'pending') {
+    if (assessment.paymentStatus !== 'pending' && assessment.paymentStatus !== 'failed') {
       return res.status(400).json({
         message: `Payment already processed. Status: ${assessment.paymentStatus}`
       });
@@ -1455,9 +1460,11 @@ async function handleFailedPayment(assessment, invoice, eventData) {
   }
 
   if (invoice) {
-    invoice.paymentStatus = 'failed';
-    invoice.status = 'cancelled';
-    invoice.adminRemarks = `Payment failed: ${errorMessage}`;
+    // ✅ FIX: 'failed' is not a valid SolarInvoice enum and 'cancelled'
+    // hides the customer Pay Now button — keep pending so customer can retry.
+    invoice.paymentStatus = 'pending';
+    invoice.status = 'pending';
+    invoice.internalNotes = `Payment failed: ${errorMessage} - customer may retry`;
     await invoice.save();
     console.log(`❌ Invoice ${invoice.invoiceNumber} payment failed: ${errorMessage}`);
   }

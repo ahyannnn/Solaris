@@ -2537,6 +2537,13 @@ body.dark-mode .mobile-sheet {
     padding-bottom: 1rem;
   }
 
+  /* My Requests list on mobile (Book Assessment > View Requests):
+     dashboard header hidden (no title / bell / toggle / profile),
+     in-page < My Requests topbar takes over. Bottom nav stays. */
+  .on-req-list-page .dashboard-header-layout-dashboard {
+    display: none !important;
+  }
+
   body.dark-mode .mobile-bottom-nav-item.active {
     background: rgba(243, 156, 18, 0.18);
     color: #FFFFFF;

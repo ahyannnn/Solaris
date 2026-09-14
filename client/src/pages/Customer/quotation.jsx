@@ -7,8 +7,8 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 import InfoTip from '../../components/InfoTip';
 import { getCustomerStatusLabel } from '../../utils/customerFriendly';
 import '../../styles/Customer/quotation.css';
-import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet, FaClock, 
-FaChevronDown, FaSearch, FaSpinner } from 'react-icons/fa';
+import { FaUpload, FaEye, FaReceipt, FaDownload, FaWallet,
+FaChevronDown, FaSearch, FaSpinner, FaFilter, FaFileInvoice } from 'react-icons/fa';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 
 // =========================================
@@ -68,6 +68,7 @@ const Quotation = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const scrollContainerRef = useRef(null);
   const scrollPositionRef = useRef(0);
+  const filterWrapRef = useRef(null);
 
   const [selectedBankId, setSelectedBankId] = useState('');
   const [manualTransferForm, setManualTransferForm] = useState({
@@ -108,6 +109,9 @@ const Quotation = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [expandedMobileId, setExpandedMobileId] = useState(null);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -173,6 +177,13 @@ const Quotation = () => {
     return [user.contactFirstName, user.contactMiddleName, user.contactLastName].filter(n => n).join(' ');
   };
 
+  const safeLocaleDate = (value) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime()) || d.getFullYear() < 1980) return '—';
+    return d.toLocaleDateString();
+  };
+
   const fetchData = async () => {
     // First load → full-page skeleton. Every later refetch (payment submits,
     // realtime events) → silent background refresh so open modals and page
@@ -213,8 +224,8 @@ const Quotation = () => {
         )
         .map(assessment => ({
           id: assessment.invoiceNumber,
-          date: new Date(assessment.bookedAt).toLocaleDateString(),
-          dueDate: new Date(assessment.preferredDate).toLocaleDateString(),
+          date: safeLocaleDate(assessment.bookedAt),
+          dueDate: safeLocaleDate(assessment.preferredDate),
           amount: assessment.assessmentFee,
           status: assessment.paymentStatus || 'pending',
           description: 'Pre-Assessment Fee',
@@ -245,8 +256,8 @@ const Quotation = () => {
 
       const transformedProjectBills = invoices.map(invoice => ({
         id: invoice.invoiceNumber,
-        date: new Date(invoice.issueDate).toLocaleDateString(),
-        dueDate: new Date(invoice.dueDate).toLocaleDateString(),
+        date: safeLocaleDate(invoice.issueDate),
+        dueDate: safeLocaleDate(invoice.dueDate),
         amount: invoice.totalAmount,
         status: invoice.paymentStatus || 'pending',
         description: invoice.description,
@@ -1307,7 +1318,15 @@ const Quotation = () => {
       );
     }
 
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (sortOrder === 'dueDate') {
+      const dueTime = (v) => {
+        const t = new Date(v).getTime();
+        return Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
+      };
+      filtered.sort((a, b) => dueTime(a.dueDate) - dueTime(b.dueDate));
+    } else {
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
 
     return filtered;
   };
@@ -1639,6 +1658,70 @@ const Quotation = () => {
 
   const tabItems = getVisibleItems(getTabItems(activeTab));
 
+  // Mobile Lumen-style list helpers (mobile only UI, no logic change)
+  const getMobileStatusLabel = (item) => {
+    let label = getCustomerStatusLabel(item.status);
+    if (label === 'Done') label = 'Paid';
+    return label;
+  };
+
+  const getMobileDotClass = (status) => {
+    if (status === 'paid') return 'dot-paid';
+    if (status === 'for_verification') return 'dot-verifying';
+    if (status === 'partial') return 'dot-partial';
+    if (status === 'overdue') return 'dot-overdue';
+    if (status === 'cancelled' || status === 'no_refund') return 'dot-cancelled';
+    return 'dot-pending';
+  };
+
+  const hasValidDueDate = (dueDate) => {
+    if (!dueDate) return false;
+    const s = String(dueDate);
+    if (s.includes('1970') || s.toLowerCase().includes('invalid') || s === '—' || s === 'N/A') return false;
+    return true;
+  };
+
+  // Mobile collapsed rows show the short label only
+  // ("Final Payment (50%) for James Mateo - Solar Installation" -> "Final Payment (50%)")
+  const getMobileCardTitle = (item) => {
+    const desc = item?.description || '';
+    const idx = desc.toLowerCase().indexOf(' for ');
+    if (item?.type === 'project' && idx > 0) return desc.slice(0, idx).trim();
+    return desc;
+  };
+
+  const mobileTabOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'for_verification', label: 'Verifying' },
+  ];
+
+  const selectMobileFilter = (value) => {
+    setActiveTab(value);
+    setStatusFilter(value);
+    setExpandedMobileId(null);
+  };
+
+  const activeMobileFilterCount = statusFilter !== 'all' ? 1 : 0;
+
+  // Collapse expanded card when list changes (avoid stale open card)
+  useEffect(() => {
+    setExpandedMobileId(null);
+  }, [activeTab, statusFilter, typeFilter, searchTerm, sortOrder]);
+
+  // Close filter dropdown when tapping outside of it
+  useEffect(() => {
+    if (!showMobileFilter) return;
+    const handleClickOutside = (e) => {
+      if (filterWrapRef.current && !filterWrapRef.current.contains(e.target)) {
+        setShowMobileFilter(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showMobileFilter]);
+
   // =========================================
   // FIXED: DROPDOWN POSITIONING
   // =========================================
@@ -1955,6 +2038,51 @@ const Quotation = () => {
 
         {/* FILTERS */}
         <div className="billing-customer-filters">
+          <div className="billing-customer-search-group">
+            <FaSearch className="billing-customer-search-icon" />
+            <input
+              type="text"
+              placeholder="Search by reference, invoice, or project..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button className="billing-customer-clear-search" onClick={() => setSearchTerm('')}>×</button>
+            )}
+          </div>
+
+          <div className="billing-customer-filter-dropdown-wrap" ref={filterWrapRef}>
+            <button
+              className={`billing-customer-filter-btn ${showMobileFilter || activeMobileFilterCount > 0 ? 'active' : ''}`}
+              onClick={() => setShowMobileFilter((v) => !v)}
+              aria-label="Toggle filters"
+              aria-expanded={showMobileFilter}
+            >
+              <FaFilter className="billing-customer-filter-btn-icon" />
+              <span>Filter</span>
+              {activeMobileFilterCount > 0 && (
+                <span className="billing-customer-filter-count">{activeMobileFilterCount}</span>
+              )}
+              <FaChevronDown className={`billing-customer-filter-chevron ${showMobileFilter ? 'open' : ''}`} />
+            </button>
+            <div
+              className={`billing-customer-filter-menu ${showMobileFilter ? 'open' : ''}`}
+              aria-hidden={!showMobileFilter}
+              inert={!showMobileFilter}
+            >
+              {mobileTabOptions.map((s) => (
+                <button
+                  key={s.value}
+                  className={`billing-customer-filter-menu-item ${statusFilter === s.value ? 'active' : ''}`}
+                  onClick={() => { selectMobileFilter(s.value); setShowMobileFilter(false); }}
+                >
+                  <span>{s.label}</span>
+                  {statusFilter === s.value && <span className="billing-customer-filter-check">✓</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="billing-customer-filter-group">
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="all">All Status</option>
@@ -1970,19 +2098,6 @@ const Quotation = () => {
             </select>
           </div>
 
-          <div className="billing-customer-search-group">
-            <FaSearch className="billing-customer-search-icon" />
-            <input
-              type="text"
-              placeholder="Search by reference, invoice, or project..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button className="billing-customer-clear-search" onClick={() => setSearchTerm('')}>×</button>
-            )}
-          </div>
-
           {(typeFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
             <button className="billing-customer-clear-filters-btn" onClick={() => {
               setTypeFilter('all');
@@ -1992,24 +2107,6 @@ const Quotation = () => {
               Clear
             </button>
           )}
-
-          {/* Mobile-only status pills (mirrors mobile BillingFilters) — 4 only */}
-          <div className="billing-customer-status-pills">
-            {[
-              { value: 'all', label: 'All Status' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'paid', label: 'Paid' },
-              { value: 'for_verification', label: 'Verifying' },
-            ].map((pill) => (
-              <button
-                key={pill.value}
-                className={`billing-customer-status-pill ${statusFilter === pill.value ? 'active' : ''}`}
-                onClick={() => setStatusFilter(pill.value)}
-              >
-                {pill.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="billing-customer-results-count">
@@ -2242,7 +2339,7 @@ const Quotation = () => {
           </div>
         </div>
 
-        {/* MOBILE CARDS */}
+        {/* MOBILE CARDS — Lumen-style expandable rows (mobile only via CSS) */}
         <div className="billing-customer-mobile-cards">
           {tabItems.length === 0 ? (
             <div className="billing-customer-empty-state">
@@ -2252,219 +2349,116 @@ const Quotation = () => {
           ) : (
             tabItems.map((item, index) => {
               const isPreAssessment = item.type === 'pre-assessment';
-              const isPaid = item.status === 'paid';
               const isPending = item.status === 'pending' || item.status === 'pending_payment';
-              const isVerifying = item.status === 'for_verification';
               const isPayNowButtonDisabled = isPayNowDisabled(item);
               const hasReceipt = item.receiptUrl;
-              const isDropdownOpen = activeDropdown === item.id;
+              const isExpanded = expandedMobileId === item.id;
+              const refId = isPreAssessment ? item.bookingReference || item.id : item.id;
+              const statusLabel = getMobileStatusLabel(item);
 
               return (
-                <div key={index} className="billing-customer-mobile-card">
-                  <div className="billing-customer-mobile-card-header">
-                    <div className="billing-customer-mobile-card-title">
-                      <span className="billing-customer-ref-id">{isPreAssessment ? item.bookingReference || item.id : item.id}</span>
-                      {item.projectName && <span className="billing-customer-ref-project">{item.projectName}</span>}
-                    </div>
-                    <div className="billing-customer-mobile-card-status">
-                      {getStatusBadge(item.status)}
-                    </div>
-                  </div>
-
-                  <div className="billing-customer-mobile-card-body">
-                    <div className="billing-customer-mobile-card-item">
-                      <span className="billing-customer-label">Transaction</span>
-                      <span className="billing-customer-value">{item.description}</span>
-                    </div>
-                    {!isPreAssessment && item.invoiceType && (
-                      <div className="billing-customer-mobile-card-item">
-                        <span className="billing-customer-label">Type</span>
-                        <span className="billing-customer-value">{getInvoiceTypeLabel(item)}</span>
-                      </div>
-                    )}
-                    <div className="billing-customer-mobile-card-item">
-                      <span className="billing-customer-label">Amount</span>
-                      <span className="billing-customer-value">
-                        <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
-                        {item.paymentStatus === 'partial' && (
-                          <span className="billing-customer-amount-balance">Balance: {formatCurrency(item.balance)}</span>
+                <div key={item.id || index} className={`billing-customer-mobile-card ${isExpanded ? 'expanded' : ''}`}>
+                  <button
+                    className="billing-customer-mobile-row"
+                    onClick={() => setExpandedMobileId(isExpanded ? null : item.id)}
+                    aria-expanded={isExpanded}
+                  >
+                    <span className="billing-customer-mobile-avatar" aria-hidden="true">
+                      {isPreAssessment ? <FaFileInvoice /> : <FaWallet />}
+                    </span>
+                    <span className="billing-customer-mobile-main">
+                      <span className="billing-customer-mobile-name" title={item.description}>{getMobileCardTitle(item)}</span>
+                      <span className="billing-customer-mobile-sub">
+                        <span className={`billing-customer-dot ${getMobileDotClass(item.status)}`} />
+                        <span className="billing-customer-mobile-status">{statusLabel}</span>
+                        {hasValidDueDate(item.dueDate) && (
+                          <span className="billing-customer-mobile-due">· Due {item.dueDate}</span>
                         )}
                       </span>
-                    </div>
-                    <div className="billing-customer-mobile-card-item">
-                      <span className="billing-customer-label">Date</span>
-                      <span className="billing-customer-value">{item.date}</span>
-                    </div>
-                    <div className="billing-customer-mobile-card-item">
-                      <span className="billing-customer-label">Due Date</span>
-                      <span className="billing-customer-value">{item.dueDate}</span>
+                    </span>
+                    <span className="billing-customer-mobile-right">
+                      <span className="billing-customer-amount-main">{formatCurrency(item.amount)}</span>
+                      <FaChevronDown className={`billing-customer-mobile-chevron ${isExpanded ? 'open' : ''}`} />
+                      {isPending && (
+                        <span className="billing-customer-pending-dot" aria-label="Pending payment" title="Pending payment" />
+                      )}
+                    </span>
+                  </button>
+
+                  <div
+                    className={`billing-customer-mobile-expand ${isExpanded ? 'open' : ''}`}
+                    aria-hidden={!isExpanded}
+                    inert={!isExpanded}
+                  >
+                    <div className="billing-customer-mobile-expand-inner">
+                      <div className="billing-customer-mobile-card-body">
+                        <div className="billing-customer-mobile-card-item">
+                          <span className="billing-customer-label">Invoice</span>
+                          <span className="billing-customer-value billing-customer-ref-id">{refId}</span>
+                        </div>
+                        {!isPreAssessment && item.invoiceType && (
+                          <div className="billing-customer-mobile-card-item">
+                            <span className="billing-customer-label">Type</span>
+                            <span className="billing-customer-value">{getInvoiceTypeLabel(item)}</span>
+                          </div>
+                        )}
+                        <div className="billing-customer-mobile-card-item">
+                          <span className="billing-customer-label">Date</span>
+                          <span className="billing-customer-value">{item.date}</span>
+                        </div>
+                        {(item.paymentStatus === 'partial' || item.balance > 0) && item.balance != null && (
+                          <div className="billing-customer-mobile-card-item">
+                            <span className="billing-customer-label">Balance</span>
+                            <span className="billing-customer-value">{formatCurrency(item.balance)}</span>
+                          </div>
+                        )}
+                        {item.projectName && (
+                          <div className="billing-customer-mobile-card-item">
+                            <span className="billing-customer-label">Project</span>
+                            <span className="billing-customer-value">{item.projectName}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="billing-customer-mobile-card-footer">
+                        {isPending && !isPayNowButtonDisabled ? (
+                          <>
+                            <button
+                              className="billing-customer-paynow-btn"
+                              onClick={() => handlePayNowClick(item)}
+                              disabled={isSubmitting}
+                            >
+                              <FaWallet className="billing-customer-btn-icon" /> Pay Now
+                            </button>
+                            <button
+                              className="billing-customer-mobile-secondary-btn"
+                              onClick={() => handleViewDetails(item)}
+                            >
+                              <FaEye className="billing-customer-btn-icon" /> Details
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="billing-customer-mobile-secondary-btn"
+                              onClick={() => handleViewDetails(item)}
+                            >
+                              <FaEye className="billing-customer-btn-icon" /> View details
+                            </button>
+                            {hasReceipt && (
+                              <button
+                                className="billing-customer-mobile-secondary-btn"
+                                onClick={() => handleViewReceipt(item)}
+                              >
+                                <FaReceipt className="billing-customer-btn-icon" /> Receipt
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="billing-customer-mobile-card-footer">
-                    {isPending ? (
-                      !isPayNowButtonDisabled ? (
-                        <button
-                          className="billing-customer-paynow-btn"
-                          onClick={() => handlePayNowClick(item)}
-                          disabled={isSubmitting}
-                        >
-                          <FaWallet className="billing-customer-btn-icon" /> Pay Now
-                        </button>
-                      ) : (
-                        <span className="billing-customer-no-action">—</span>
-                      )
-                    ) : isVerifying ? (
-                      // For verification status - show dropdown with only View Details
-                      <div className="billing-customer-dropdown-menu-container">
-                        <button
-                          className="billing-customer-dropdown-trigger-btn"
-                          onClick={(e) => toggleDropdown(item.id, e)}
-                        >
-                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
-                        </button>
-
-                        {isDropdownOpen && (
-                          <div
-                            className="billing-customer-dropdown-menu"
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px',
-                              zIndex: 99999,
-                            }}
-                          >
-                            <button
-                              className="billing-customer-dropdown-item view-details"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                handleViewDetails(item);
-                              }}
-                            >
-                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : isPaid ? (
-                      // For paid status - show dropdown with all actions
-                      <div className="billing-customer-dropdown-menu-container">
-                        <button
-                          className="billing-customer-dropdown-trigger-btn"
-                          onClick={(e) => toggleDropdown(item.id, e)}
-                        >
-                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
-                        </button>
-
-                        {isDropdownOpen && (
-                          <div
-                            className="billing-customer-dropdown-menu"
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px',
-                              zIndex: 99999,
-                            }}
-                          >
-                            <button
-                              className="billing-customer-dropdown-item view-details"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                handleViewDetails(item);
-                              }}
-                            >
-                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
-                            </button>
-
-                            {hasReceipt && (
-                              <>
-                                <button
-                                  className="billing-customer-dropdown-item view-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleViewReceipt(item);
-                                  }}
-                                >
-                                  <FaReceipt className="billing-customer-dropdown-item-icon" /> View Receipt
-                                </button>
-                                <button
-                                  className="billing-customer-dropdown-item download-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleDownloadReceipt(item);
-                                  }}
-                                >
-                                  <FaDownload className="billing-customer-dropdown-item-icon" /> Download Receipt
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : isNonPayablePreAssessment(item) ? (
-                      <div className="billing-customer-dropdown-menu-container">
-                        <button
-                          className="billing-customer-dropdown-trigger-btn"
-                          onClick={(e) => toggleDropdown(item.id, e)}
-                        >
-                          Actions <FaChevronDown className="billing-customer-trigger-chevron" />
-                        </button>
-
-                        {isDropdownOpen && (
-                          <div
-                            className="billing-customer-dropdown-menu"
-                            style={{
-                              position: 'fixed',
-                              top: dropdownPosition.top + 'px',
-                              left: dropdownPosition.left + 'px',
-                              zIndex: 99999,
-                            }}
-                          >
-                            <button
-                              className="billing-customer-dropdown-item view-details"
-                              onClick={() => {
-                                setActiveDropdown(null);
-                                handleViewDetails(item);
-                              }}
-                            >
-                              <FaEye className="billing-customer-dropdown-item-icon" /> View Details
-                            </button>
-
-                            {hasReceipt && (
-                              <>
-                                <button
-                                  className="billing-customer-dropdown-item view-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleViewReceipt(item);
-                                  }}
-                                >
-                                  <FaReceipt className="billing-customer-dropdown-item-icon" /> View Receipt
-                                </button>
-                                <button
-                                  className="billing-customer-dropdown-item download-receipt"
-                                  onClick={() => {
-                                    setActiveDropdown(null);
-                                    handleDownloadReceipt(item);
-                                  }}
-                                >
-                                  <FaDownload className="billing-customer-dropdown-item-icon" /> Download Receipt
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="billing-customer-status-text">{getCustomerStatusLabel(item.status) === 'Done' ? 'Paid' : getCustomerStatusLabel(item.status)}</span>
-                    )}
-                  </div>
-                  {isVerifying && (
-                    <div className="billing-customer-mobile-verifying">
-                      <FaClock /> Verifying...
-                    </div>
-                  )}
-                </div>
               );
             })
           )}
@@ -2831,7 +2825,6 @@ const Quotation = () => {
         {showDetailsModal && detailsItem && (
           <div className="billing-customer-modal-overlay" onClick={() => setShowDetailsModal(false)}>
             <div className="billing-customer-modal billing-customer-details-modal" onClick={e => e.stopPropagation()}>
-              <button className="billing-customer-modal-close" onClick={() => setShowDetailsModal(false)}>×</button>
               <h3>Transaction Details</h3>
               <div className="billing-customer-modal-scroll-content" ref={scrollContainerRef}>
                 <div className="billing-customer-details-content">

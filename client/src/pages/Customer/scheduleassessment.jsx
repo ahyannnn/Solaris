@@ -1,5 +1,5 @@
 // pages/Customer/ScheduleAssessment.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
@@ -30,6 +30,7 @@ import {
   FaClock,
   FaFilter,
   FaSearch,
+  FaChevronDown,
   FaSolarPanel,
   FaFolderOpen
 } from 'react-icons/fa';
@@ -54,6 +55,10 @@ const ScheduleAssessment = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requestFilter, setRequestFilter] = useState('all');
+  const [requestSearch, setRequestSearch] = useState('');
+  const [expandedRequestId, setExpandedRequestId] = useState(null);
+  const [showReqFilter, setShowReqFilter] = useState(false);
+  const reqFilterWrapRef = useRef(null);
   const [hasPendingFreeQuote, setHasPendingFreeQuote] = useState(false);
   // Dynamic pre-assessment fee from admin Maintenance (SystemConfig). Falls back to 1500.
   const [assessmentFee, setAssessmentFee] = useState(1500);
@@ -592,6 +597,19 @@ const ScheduleAssessment = () => {
       }
     }
   }, [showPreAssessmentSuccess, submitted]);
+
+  // Mobile My Requests: swap the dashboard header for an in-page
+  // "< My Requests" bar (no profile / bell / toggle). Desktop untouched.
+  useEffect(() => {
+    const root = document.querySelector('.dashboard-layout-dashboard');
+    if (!root) return;
+    if (currentStep === 'my-requests') {
+      root.classList.add('on-req-list-page');
+    } else {
+      root.classList.remove('on-req-list-page');
+    }
+    return () => root.classList.remove('on-req-list-page');
+  }, [currentStep]);
 
   const fetchClientData = async () => {
     try {
@@ -1434,14 +1452,148 @@ const ScheduleAssessment = () => {
   const addressDisplay = getAddressDisplay();
 
   const getFilteredRequests = () => {
-    if (requestFilter === 'free-quotes') return { freeQuotes, preAssessments: [] };
-    if (requestFilter === 'pre-assessments') return { freeQuotes: [], preAssessments };
-    return { freeQuotes, preAssessments };
+    let fq = [...freeQuotes];
+    let pa = [...preAssessments];
+    if (requestFilter === 'free-quotes') pa = [];
+    else if (requestFilter === 'pre-assessments') fq = [];
+
+    const term = requestSearch.trim().toLowerCase();
+    if (term) {
+      fq = fq.filter((q) =>
+        [
+          q.quotationReference,
+          'free quote',
+          'free-quote',
+          q.status,
+          q.propertyType,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(term)
+      );
+      pa = pa.filter((a) =>
+        [
+          a.bookingReference,
+          'pre assessment',
+          'pre-assessment',
+          a.assessmentStatus,
+          a.paymentStatus,
+          a.propertyType,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(term)
+      );
+    }
+    return { freeQuotes: fq, preAssessments: pa };
   };
 
   const { freeQuotes: filteredFreeQuotes, preAssessments: filteredPreAssessments } = getFilteredRequests();
   const hasRequests = freeQuotes.length > 0 || preAssessments.length > 0;
   const totalRequests = freeQuotes.length + preAssessments.length;
+
+  // Single source for "needs accept" (quotation ready to accept).
+  // Reused by table rows, mobile cards, and the entry-row red dot.
+  const isAcceptableQuote = (quote) => {
+    const hasQuotation = quote.quotationFile || quote.quotationUrl;
+    const isAccepted = quote.status === 'accepted';
+    const alreadyProjectCreated = projects.some((p) => {
+      if (p.sourceType === 'free-quote' && p.sourceId) {
+        const projectSourceId = typeof p.sourceId === 'object' ?
+          p.sourceId._id?.toString() : p.sourceId?.toString();
+        return projectSourceId === quote._id?.toString();
+      }
+      return false;
+    });
+    return hasQuotation && !isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled';
+  };
+
+  const isAcceptableAssessment = (assessment) => {
+    const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+    const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
+      projects.some((p) => {
+        if (p.preAssessmentId) {
+          const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
+            p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
+          return projectPreAssessmentId === assessment._id?.toString();
+        }
+        return false;
+      });
+    return hasQuotation && !alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted';
+  };
+
+  const needsAccept =
+    freeQuotes.some(isAcceptableQuote) ||
+    preAssessments.some(isAcceptableAssessment);
+
+  const quoteSummary = (quote) =>
+    [
+      quote.monthlyBill ? `${formatCurrency(quote.monthlyBill)}/mo` : null,
+      quote.propertyType ? capitalizeFirstLetter(quote.propertyType) : null,
+      quote.recommendedSystemSize ? `${quote.recommendedSystemSize} kW` : null,
+    ]
+      .filter(Boolean)
+      .join(' • ') || '—';
+
+  const assessmentSummary = (assessment) =>
+    [
+      assessment.assessmentFee ? `Fee ${formatCurrency(assessment.assessmentFee)}` : null,
+      assessment.monthlyBill ? `${formatCurrency(assessment.monthlyBill)}/mo` : null,
+      assessment.propertyType ? capitalizeFirstLetter(assessment.propertyType) : null,
+    ]
+      .filter(Boolean)
+      .join(' • ') || '—';
+
+  // Plain status label + dot tone for mobile collapsed rows.
+  const getReqStatusInfo = (status) => {
+    const map = {
+      'pending': ['Pending', 'pending'],
+      'pending_review': ['Pending Review', 'pending'],
+      'pending_payment': ['Pending Payment', 'pending'],
+      'assigned': ['Assigned', 'verifying'],
+      'processing': ['Processing', 'verifying'],
+      'for_verification': ['For Verification', 'verifying'],
+      'paid': ['Paid', 'paid'],
+      'scheduled': ['Scheduled', 'paid'],
+      'site_visit_ongoing': ['Site Visit', 'verifying'],
+      'device_deployed': ['Device Deployed', 'verifying'],
+      'data_collecting': ['Collecting', 'verifying'],
+      'data_analyzing': ['Analyzing', 'verifying'],
+      'report_draft': ['Report Draft', 'verifying'],
+      'completed': ['Completed', 'paid'],
+      'accepted': ['Accepted', 'paid'],
+      'quotation_accepted': ['Quotation Accepted', 'paid'],
+      'cancelled': ['Cancelled', 'cancelled'],
+    };
+    const found = map[status];
+    if (found) return { label: found[0], tone: found[1] };
+    return { label: status || '—', tone: 'pending' };
+  };
+
+  const requestFilterOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'free-quotes', label: 'Free Quotes' },
+    { value: 'pre-assessments', label: 'Pre-Assessments' },
+  ];
+
+  // Collapse expanded card when list changes (avoid stale open card).
+  useEffect(() => {
+    setExpandedRequestId(null);
+  }, [requestFilter, requestSearch]);
+
+  // Close filter dropdown when tapping outside of it.
+  useEffect(() => {
+    if (!showReqFilter) return;
+    const handleClickOutside = (e) => {
+      if (reqFilterWrapRef.current && !reqFilterWrapRef.current.contains(e.target)) {
+        setShowReqFilter(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showReqFilter]);
 
   const SkeletonLoader = () => (
     <div className="schedule-container-cusset">
@@ -1462,6 +1614,17 @@ const ScheduleAssessment = () => {
       <>
         <Helmet><title>My Requests | Salfer Engineering</title></Helmet>
         <div className="schedule-container-cusset">
+          {/* Mobile-only replacement header: < My Requests (dashboard header hidden via CSS) */}
+          <div className="req-mobile-topbar-cusset">
+            <button
+              className="req-mobile-back-cusset"
+              onClick={() => setCurrentStep('service-selection')}
+              aria-label="Back to services"
+            >
+              <FaArrowLeft />
+            </button>
+            <span className="req-mobile-topbar-title-cusset">My Requests</span>
+          </div>
           <div className="back-button-container-cusset">
             <button onClick={() => setCurrentStep('service-selection')} className="back-to-services-cusset">
               <FaArrowLeft /> Back to Services
@@ -1504,6 +1667,53 @@ const ScheduleAssessment = () => {
             </button>
           </div>
 
+          {/* Search + mobile Filter dropdown (same pattern as billing) */}
+          <div className="req-filters-row-cusset">
+            <div className="req-search-group-cusset">
+              <FaSearch className="req-search-icon-cusset" />
+              <input
+                type="text"
+                placeholder="Search by reference, type, or status..."
+                value={requestSearch}
+                onChange={(e) => setRequestSearch(e.target.value)}
+              />
+              {requestSearch && (
+                <button className="req-clear-search-cusset" onClick={() => setRequestSearch('')}>×</button>
+              )}
+            </div>
+            <div className="req-filter-dropdown-wrap-cusset" ref={reqFilterWrapRef}>
+              <button
+                className={`req-filter-btn-cusset ${showReqFilter || requestFilter !== 'all' ? 'active' : ''}`}
+                onClick={() => setShowReqFilter((v) => !v)}
+                aria-label="Toggle filters"
+                aria-expanded={showReqFilter}
+              >
+                <FaFilter className="req-filter-btn-icon-cusset" />
+                <span>Filter</span>
+                {requestFilter !== 'all' && (
+                  <span className="req-filter-count-cusset">1</span>
+                )}
+                <FaChevronDown className={`req-filter-chevron-cusset ${showReqFilter ? 'open' : ''}`} />
+              </button>
+              <div
+                className={`req-filter-menu-cusset ${showReqFilter ? 'open' : ''}`}
+                aria-hidden={!showReqFilter}
+                inert={!showReqFilter}
+              >
+                {requestFilterOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`req-filter-menu-item-cusset ${requestFilter === opt.value ? 'active' : ''}`}
+                    onClick={() => { setRequestFilter(opt.value); setShowReqFilter(false); }}
+                  >
+                    <span>{opt.label}</span>
+                    {requestFilter === opt.value && <span className="req-filter-check-cusset">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="req-table-container-cusset">
             <div className="req-table-wrapper-cusset">
               {(filteredFreeQuotes.length === 0 && filteredPreAssessments.length === 0) ? (
@@ -1533,22 +1743,9 @@ const ScheduleAssessment = () => {
                   <tbody>
                     {filteredFreeQuotes.map(quote => {
                       const hasQuotation = quote.quotationFile || quote.quotationUrl;
-                      const isAccepted = quote.status === 'accepted';
-                      const alreadyProjectCreated = projects.some(p => {
-                        if (p.sourceType === 'free-quote' && p.sourceId) {
-                          const projectSourceId = typeof p.sourceId === 'object' ?
-                            p.sourceId._id?.toString() : p.sourceId?.toString();
-                          return projectSourceId === quote._id?.toString();
-                        }
-                        return false;
-                      });
-                      const canAccept = hasQuotation && !isAccepted && !alreadyProjectCreated && quote.status !== 'cancelled';
+                      const canAccept = isAcceptableQuote(quote);
                       const rowId = `fq-${quote._id}`;
-                      const summaryParts = [
-                        quote.monthlyBill ? `${formatCurrency(quote.monthlyBill)}/mo` : null,
-                        quote.propertyType ? capitalizeFirstLetter(quote.propertyType) : null,
-                        quote.recommendedSystemSize ? `${quote.recommendedSystemSize} kW` : null
-                      ].filter(Boolean);
+                      const summaryText = quoteSummary(quote);
 
                       return (
                         <tr key={quote._id} className="req-table-row-cusset">
@@ -1556,7 +1753,7 @@ const ScheduleAssessment = () => {
                           <td data-label="Type"><span className="type-badge-page free-quote">Free Quote</span></td>
                           <td data-label="Date">{formatDate(quote.requestedAt)}</td>
                           <td data-label="Status">{getFreeQuoteStatusBadge(quote.status)}</td>
-                          <td data-label="Summary"><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td data-label="Summary"><span className="req-summary-cusset">{summaryText}</span></td>
                           <td data-label="Actions">
                             <div className="req-action-cell-cusset">
                               {canAccept ? (
@@ -1629,22 +1826,9 @@ const ScheduleAssessment = () => {
                     {filteredPreAssessments.map(assessment => {
                       const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
                       const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
-                      const alreadyProjectCreated = assessment.assessmentStatus === 'quotation_accepted' ||
-                        projects.some(p => {
-                          if (p.preAssessmentId) {
-                            const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
-                              p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
-                            return projectPreAssessmentId === assessment._id?.toString();
-                          }
-                          return false;
-                        });
-                      const canAccept = hasQuotation && !alreadyProjectCreated && assessment.assessmentStatus !== 'quotation_accepted';
+                      const canAccept = isAcceptableAssessment(assessment);
                       const rowId = `pa-${assessment._id}`;
-                      const summaryParts = [
-                        assessment.assessmentFee ? `Fee ${formatCurrency(assessment.assessmentFee)}` : null,
-                        assessment.monthlyBill ? `${formatCurrency(assessment.monthlyBill)}/mo` : null,
-                        assessment.propertyType ? capitalizeFirstLetter(assessment.propertyType) : null
-                      ].filter(Boolean);
+                      const summaryText = assessmentSummary(assessment);
 
                       return (
                         <tr key={assessment._id} className="req-table-row-cusset">
@@ -1652,7 +1836,7 @@ const ScheduleAssessment = () => {
                           <td data-label="Type"><span className="type-badge-page pre-assessment">Pre Assessment</span></td>
                           <td data-label="Date">{formatDate(assessment.bookedAt || assessment.createdAt)}</td>
                           <td data-label="Status">{getAssessmentStatusBadge(assessment.assessmentStatus || assessment.paymentStatus)}</td>
-                          <td data-label="Summary"><span className="req-summary-cusset">{summaryParts.length > 0 ? summaryParts.join(' • ') : '—'}</span></td>
+                          <td data-label="Summary"><span className="req-summary-cusset">{summaryText}</span></td>
                           <td data-label="Actions">
                             <div className="req-action-cell-cusset">
                               {canAccept ? (
@@ -1745,6 +1929,233 @@ const ScheduleAssessment = () => {
               )}
             </div>
           </div>
+
+          {/* MOBILE CARDS — collapsible rows, same pattern as billing */}
+          <div className="req-mobile-cards-cusset">
+          {(filteredFreeQuotes.length === 0 && filteredPreAssessments.length === 0) ? (
+            <div className="empty-requests-page-cusset">
+              <FaFileInvoice className="empty-icon-cusset" />
+              <h3>No requests yet</h3>
+              <p>Start your solar journey by requesting a free quotation or booking a pre-assessment.</p>
+              <button
+                className="schedule-btn-primary-cusset"
+                onClick={() => setCurrentStep('service-selection')}
+              >
+                Get Started
+              </button>
+            </div>
+          ) : (
+            <>
+              {filteredFreeQuotes.map((quote) => {
+                const canAccept = isAcceptableQuote(quote);
+                const hasQuotation = quote.quotationFile || quote.quotationUrl;
+                const cardId = `fq-${quote._id}`;
+                const isExpanded = expandedRequestId === cardId;
+                const statusInfo = getReqStatusInfo(quote.status);
+                return (
+                  <div key={quote._id} className={`req-mobile-card-cusset ${isExpanded ? 'expanded' : ''}`}>
+                    <button
+                      className="req-mobile-row-cusset"
+                      onClick={() => setExpandedRequestId(isExpanded ? null : cardId)}
+                      aria-expanded={isExpanded}
+                    >
+                      <span className="req-mobile-avatar-cusset" aria-hidden="true">
+                        <FaFileInvoice />
+                      </span>
+                      <span className="req-mobile-main-cusset">
+                        <span className="req-mobile-name-cusset">{quote.quotationReference}</span>
+                        <span className="req-mobile-sub-cusset">
+                          <span className={`req-mobile-dot-cusset dot-${statusInfo.tone}`} />
+                          <span className="req-mobile-status-cusset">{statusInfo.label}</span>
+                          <span className="req-mobile-due-cusset">· {formatDate(quote.requestedAt)}</span>
+                        </span>
+                      </span>
+                      <span className="req-mobile-right-cusset">
+                        <FaChevronDown className={`req-mobile-chevron-cusset ${isExpanded ? 'open' : ''}`} />
+                        {canAccept && (
+                          <span className="req-pending-dot-cusset" aria-label="Quotation ready to accept" title="Quotation ready to accept" />
+                        )}
+                      </span>
+                    </button>
+                    <div
+                      className={`req-mobile-expand-cusset ${isExpanded ? 'open' : ''}`}
+                      aria-hidden={!isExpanded}
+                      inert={!isExpanded}
+                    >
+                      <div className="req-mobile-expand-inner-cusset">
+                        <div className="req-mobile-card-body-cusset">
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Reference</span>
+                            <span className="req-mobile-value-cusset req-mobile-ref-cusset">{quote.quotationReference}</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Type</span>
+                            <span className="req-mobile-value-cusset">Free Quote</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Date</span>
+                            <span className="req-mobile-value-cusset">{formatDate(quote.requestedAt)}</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Summary</span>
+                            <span className="req-mobile-value-cusset">{quoteSummary(quote)}</span>
+                          </div>
+                        </div>
+                        <div className="req-mobile-card-footer-cusset">
+                          {canAccept ? (
+                            <>
+                              <button
+                                className="req-accept-btn-cusset"
+                                onClick={() => handleAcceptFreeQuoteClick(quote)}
+                              >
+                                <FaCheckCircle /> Accept
+                              </button>
+                              <button
+                                className="req-mobile-secondary-btn-cusset"
+                                onClick={() => { setSelectedRequest({ kind: 'free-quote', data: quote }); setShowDetailsModal(true); }}
+                              >
+                                <FaEye /> Details
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="req-mobile-secondary-btn-cusset"
+                                onClick={() => { setSelectedRequest({ kind: 'free-quote', data: quote }); setShowDetailsModal(true); }}
+                              >
+                                <FaEye /> View details
+                              </button>
+                              {hasQuotation && (
+                                <button
+                                  className="req-mobile-secondary-btn-cusset"
+                                  onClick={() => handleViewFreeQuoteQuotation(quote)}
+                                >
+                                  <FaFileInvoice /> Quotation
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredPreAssessments.map((assessment) => {
+                const canAccept = isAcceptableAssessment(assessment);
+                const hasQuotation = assessment.finalQuotation || assessment.quotation?.quotationUrl;
+                const hasPhotos = assessment.sitePhotos && assessment.sitePhotos.length > 0;
+                const cardId = `pa-${assessment._id}`;
+                const isExpanded = expandedRequestId === cardId;
+                const statusInfo = getReqStatusInfo(assessment.assessmentStatus || assessment.paymentStatus);
+                return (
+                  <div key={assessment._id} className={`req-mobile-card-cusset ${isExpanded ? 'expanded' : ''}`}>
+                    <button
+                      className="req-mobile-row-cusset"
+                      onClick={() => setExpandedRequestId(isExpanded ? null : cardId)}
+                      aria-expanded={isExpanded}
+                    >
+                      <span className="req-mobile-avatar-cusset" aria-hidden="true">
+                        <FaCalendarAlt />
+                      </span>
+                      <span className="req-mobile-main-cusset">
+                        <span className="req-mobile-name-cusset">{assessment.bookingReference}</span>
+                        <span className="req-mobile-sub-cusset">
+                          <span className={`req-mobile-dot-cusset dot-${statusInfo.tone}`} />
+                          <span className="req-mobile-status-cusset">{statusInfo.label}</span>
+                          <span className="req-mobile-due-cusset">· {formatDate(assessment.bookedAt || assessment.createdAt)}</span>
+                        </span>
+                      </span>
+                      <span className="req-mobile-right-cusset">
+                        <FaChevronDown className={`req-mobile-chevron-cusset ${isExpanded ? 'open' : ''}`} />
+                        {canAccept && (
+                          <span className="req-pending-dot-cusset" aria-label="Quotation ready to accept" title="Quotation ready to accept" />
+                        )}
+                      </span>
+                    </button>
+                    <div
+                      className={`req-mobile-expand-cusset ${isExpanded ? 'open' : ''}`}
+                      aria-hidden={!isExpanded}
+                      inert={!isExpanded}
+                    >
+                      <div className="req-mobile-expand-inner-cusset">
+                        <div className="req-mobile-card-body-cusset">
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Reference</span>
+                            <span className="req-mobile-value-cusset req-mobile-ref-cusset">{assessment.bookingReference}</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Type</span>
+                            <span className="req-mobile-value-cusset">Pre-Assessment</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Date</span>
+                            <span className="req-mobile-value-cusset">{formatDate(assessment.bookedAt || assessment.createdAt)}</span>
+                          </div>
+                          <div className="req-mobile-card-item-cusset">
+                            <span className="req-mobile-label-cusset">Summary</span>
+                            <span className="req-mobile-value-cusset">{assessmentSummary(assessment)}</span>
+                          </div>
+                        </div>
+                        <div className="req-mobile-card-footer-cusset">
+                          {canAccept ? (
+                            <>
+                              <button
+                                className="req-accept-btn-cusset"
+                                onClick={() => handleAcceptQuotationClick(assessment)}
+                              >
+                                <FaCheckCircle /> Accept
+                              </button>
+                              <button
+                                className="req-mobile-secondary-btn-cusset"
+                                onClick={() => { setSelectedRequest({ kind: 'pre-assessment', data: assessment }); setShowDetailsModal(true); }}
+                              >
+                                <FaEye /> Details
+                              </button>
+                              {hasPhotos && (
+                                <button
+                                  className="req-mobile-secondary-btn-cusset"
+                                  onClick={() => openPhotoModal(assessment.sitePhotos, 0)}
+                                >
+                                  <FaImages /> Photos ({assessment.sitePhotos.length})
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="req-mobile-secondary-btn-cusset"
+                                onClick={() => { setSelectedRequest({ kind: 'pre-assessment', data: assessment }); setShowDetailsModal(true); }}
+                              >
+                                <FaEye /> View details
+                              </button>
+                              {hasQuotation && (
+                                <button
+                                  className="req-mobile-secondary-btn-cusset"
+                                  onClick={() => handleViewQuotation(assessment)}
+                                >
+                                  <FaFileInvoice /> Quotation
+                                </button>
+                              )}
+                              {hasPhotos && (
+                                <button
+                                  className="req-mobile-secondary-btn-cusset"
+                                  onClick={() => openPhotoModal(assessment.sitePhotos, 0)}
+                                >
+                                  <FaImages /> Photos ({assessment.sitePhotos.length})
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
         </div>
 
         {showDetailsModal && selectedRequest && (
@@ -1808,6 +2219,25 @@ const ScheduleAssessment = () => {
                       {selectedRequest.data.siteVisitDate && <p><strong>Site Visit:</strong> {formatDate(selectedRequest.data.siteVisitDate)}</p>}
                       {selectedRequest.data.paymentMethod && <p><strong>Payment Method:</strong> {selectedRequest.data.paymentMethod} {selectedRequest.data.paymentStatus ? `(${selectedRequest.data.paymentStatus})` : ''}</p>}
                     </div>
+                    {selectedRequest.data.sitePhotos && selectedRequest.data.sitePhotos.length > 0 && (
+                      <div className="req-details-section-cusset">
+                        <h4>Site Photos ({selectedRequest.data.sitePhotos.length})</h4>
+                        <div className="photos-preview-cusset">
+                          {selectedRequest.data.sitePhotos.slice(0, 6).map((photo, idx) => (
+                            <div key={idx} className="photo-preview-item-cusset" onClick={() => openPhotoModal(selectedRequest.data.sitePhotos, idx)}>
+                              <img src={photo} alt={`Site photo ${idx + 1}`} />
+                              <div className="photo-preview-overlay-cusset"><FaEye /></div>
+                            </div>
+                          ))}
+                          {selectedRequest.data.sitePhotos.length > 6 && (
+                            <div className="photo-preview-item-cusset more" onClick={() => openPhotoModal(selectedRequest.data.sitePhotos, 0)}>
+                              <FaImages />
+                              <span>+{selectedRequest.data.sitePhotos.length - 6} more</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     {selectedRequest.data.cancellation && (
                       <div className="req-details-section-cusset">
                         <h4>Cancellation &amp; Refund</h4>
@@ -2140,7 +2570,7 @@ const ScheduleAssessment = () => {
           <div className="schedule-header-card-cusset">
             <div className="schedule-header-content-cusset">
               <h1 className="schedule-title-cusset">Get Your Solar Solution</h1>
-              <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar journey</p>
+              <p className="schedule-subtitle-cusset">Choose how you want to proceed with your solar</p>
             </div>
           </div>
 
@@ -2152,7 +2582,7 @@ const ScheduleAssessment = () => {
               <small>{totalRequests > 0 ? `You have ${totalRequests} request(s)` : 'No requests yet'}</small>
             </span>
             <span className="svc-sel-requests-right">
-              {totalRequests > 0 && <span className="svc-sel-count-pill">{totalRequests}</span>}
+              {needsAccept && <span className="req-entry-dot" aria-label="Quotation ready to accept" title="Quotation ready to accept" />}
               <FaChevronRight className="svc-sel-chevron" />
             </span>
           </button>

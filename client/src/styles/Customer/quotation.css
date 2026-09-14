@@ -2674,11 +2674,11 @@ body {
     text-overflow: ellipsis;
   }
 
-  /* Info table box */
+  /* Expanded details — no grey box, plain rows */
   .billing-customer-mobile-card-body {
-    background: var(--bg-primary);
-    border-radius: 16px;
-    padding: 4px 14px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
     gap: 0;
     margin-bottom: 12px;
   }
@@ -2821,5 +2821,460 @@ body {
   .billing-customer-mobile-card .billing-customer-empty-state {
     text-align: center;
     padding: 32px 16px;
+  }
+}
+
+/* ============================================
+   LUMEN-STYLE MOBILE LIST + FILTER SHEET
+   Desktop defaults (mobile-only UI hidden)
+   ============================================ */
+.billing-customer-filter-btn {
+  display: none;
+}
+
+.billing-customer-filter-btn.active {
+  border-color: rgba(243, 156, 18, 0.5);
+}
+
+.billing-customer-filter-chevron {
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: transform 200ms ease;
+}
+
+.billing-customer-filter-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Filter dropdown — hidden on desktop, anchored under the button on mobile */
+.billing-customer-filter-dropdown-wrap {
+  display: none;
+}
+
+.billing-customer-filter-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-dropdown, var(--bg-modal));
+  border: 1px solid var(--border-dropdown, var(--border-modal));
+  border-radius: 12px;
+  box-shadow: var(--shadow-dropdown, var(--shadow-modal));
+  padding: 6px;
+  z-index: 500;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.billing-customer-filter-menu.open {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.billing-customer-filter-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.billing-customer-filter-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.billing-customer-filter-menu-item.active {
+  color: #F39C12;
+}
+
+.billing-customer-filter-check {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Lumen row primitives (only visible inside mobile cards) */
+.billing-customer-mobile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+}
+
+.billing-customer-mobile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  color: #F39C12;
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.billing-customer-mobile-main {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.billing-customer-mobile-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.billing-customer-mobile-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  column-gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.billing-customer-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.billing-customer-dot.dot-paid { background: #10B981; }
+.billing-customer-dot.dot-pending { background: #F39C12; }
+.billing-customer-dot.dot-verifying { background: #3B82F6; }
+.billing-customer-dot.dot-partial { background: #8B5CF6; }
+.billing-customer-dot.dot-overdue { background: #EF4444; }
+.billing-customer-dot.dot-cancelled { background: #98A2B3; }
+
+.billing-customer-mobile-status {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.billing-customer-mobile-due {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.billing-customer-mobile-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 42%;
+  margin-left: auto;
+  padding-top: 2px;
+}
+
+.billing-customer-mobile-right .billing-customer-amount-main {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.billing-customer-mobile-chevron {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 200ms ease;
+}
+
+.billing-customer-mobile-chevron.open {
+  transform: rotate(180deg);
+}
+
+.billing-customer-pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.billing-customer-mobile-expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-6px);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 1px solid transparent;
+  transition:
+    grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms ease,
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    margin-top 300ms ease,
+    padding-top 300ms ease,
+    border-color 300ms ease;
+}
+
+.billing-customer-mobile-expand.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top-color: var(--border-color);
+}
+
+.billing-customer-mobile-expand-inner {
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+.billing-customer-mobile-secondary-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 0 12px;
+}
+
+@media (max-width: 768px) {
+  /* Search + Filter in one row */
+  .billing-customer-filters {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .billing-customer-search-group {
+    flex: 1 1 0%;
+    width: auto;
+    min-width: 0;
+  }
+
+  .billing-customer-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    width: auto;
+    height: 48px;
+    padding: 0 18px;
+    box-sizing: border-box;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .billing-customer-filter-btn-icon {
+    font-size: 14px;
+  }
+
+  .billing-customer-filter-count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 20px;
+    background: #F39C12;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .billing-customer-filter-sort-hint {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* Filter dropdown anchor */
+  .billing-customer-filter-dropdown-wrap {
+    display: block;
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .billing-customer-status-pills {
+    display: none !important;
+  }
+
+  /* Lumen compact cards */
+  .billing-customer-mobile-cards {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .billing-customer-mobile-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .billing-customer-mobile-card.expanded {
+    border-color: rgba(243, 156, 18, 0.35);
+  }
+
+  .billing-customer-mobile-card .billing-customer-ref-project {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .billing-customer-mobile-card .billing-customer-mobile-card-body {
+    margin-bottom: 10px;
+  }
+
+  .billing-customer-mobile-card .billing-customer-mobile-card-footer {
+    display: flex;
+    gap: 8px;
+  }
+
+  .billing-customer-mobile-card .billing-customer-mobile-card-footer .billing-customer-paynow-btn {
+    flex: 1;
+    background: #F39C12;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-customer-mobile-name {
+    font-size: 13px;
+  }
+
+  .billing-customer-mobile-sub {
+    font-size: 11px;
+  }
+
+  .billing-customer-mobile-right .billing-customer-amount-main {
+    font-size: 14px;
+  }
+
+  .billing-customer-mobile-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================
+   TIGHT MOBILE GAPS — match compact reference pic
+   (scoped to billing only, wins over earlier queries)
+   ============================================ */
+@media (max-width: 768px) {
+  .billing-customer-container {
+    padding: 4px 4px 12px;
+    padding-bottom: 96px;
+  }
+
+  .billing-customer-filters {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .billing-customer-search-group input {
+    padding: 12px 38px 12px 40px;
+    font-size: 13px;
+    border-radius: 14px;
+  }
+
+  .billing-customer-filter-btn {
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .billing-customer-results-count {
+    margin-bottom: 6px;
+  }
+
+  .billing-customer-results-count p {
+    font-size: 11px;
+  }
+
+  .billing-customer-mobile-cards {
+    gap: 8px;
+  }
+
+  .billing-customer-mobile-card {
+    padding: 10px 12px;
+  }
+
+  .billing-customer-mobile-expand.open {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-customer-container {
+    padding: 2px 2px 10px;
+    padding-bottom: 96px;
   }
 }

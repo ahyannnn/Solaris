@@ -396,6 +396,7 @@ body.dark-mode {
   gap: 8px;
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
+  position: relative;
 }
 
 .tab-btn-adminbilling:hover {
@@ -427,6 +428,26 @@ body.dark-mode {
 .tab-btn-adminbilling.active .tab-badge-adminbilling {
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
+}
+
+/* Red dot on tabs with needs-action (replaces number badge) */
+.tab-needs-dot-adminbilling {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #EF4444;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card, #FFFFFF);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  animation: pulse-needs-dot-adminbilling 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-needs-dot-adminbilling {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.15); opacity: 0.95; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
 }
 
 /* ============================================
@@ -871,6 +892,21 @@ body.dark-mode {
   cursor: pointer;
   transition: all 200ms ease;
   font-family: 'Poppins', sans-serif;
+  position: relative;
+}
+
+.action-needs-dot-adminbilling {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: #EF4444;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card, #FFFFFF);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  animation: pulse-needs-dot-adminbilling 1.8s ease-in-out infinite;
 }
 
 .action-dropdown-toggle-adminbilling:hover {

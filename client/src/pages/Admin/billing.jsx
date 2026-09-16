@@ -222,6 +222,14 @@ const AdminBilling = () => {
     };
   }, [activeTab]);
 
+  // Prefetch other tabs' lists on mount so tab red dots show
+  // immediately without visiting each tab first.
+  useEffect(() => {
+    fetchSolarInvoices();
+    fetchBankTransfers();
+    fetchBankTransferStats();
+  }, []);
+
   const handleDropdownClick = (event, itemId, forceFlip = false) => {
     event.stopPropagation();
     const buttonRect = event.currentTarget.getBoundingClientRect();
@@ -274,6 +282,19 @@ const AdminBilling = () => {
   };
 
   const getBillingBankPriority = (p) => (p.status === 'waiting_verification' ? 1 : 2);
+
+  // Toggle/tab red dots: true only when admin has something to act on.
+  const hasBillingPreNeedsAction = (a) => {
+    if (!a) return false;
+    const nonPayable = ['cancelled', 'refund_pending', 'refunded', 'no_refund'];
+    if (a.assessmentStatus === 'cancelled' || nonPayable.includes(a.paymentStatus)) return false;
+    return a.paymentStatus === 'for_verification';
+  };
+  const hasInvoiceNeedsAction = (inv) => {
+    if (!inv) return false;
+    return inv.paymentStatus === 'for_verification' || inv.status === 'draft';
+  };
+  const hasBankNeedsAction = (p) => p?.status === 'waiting_verification';
 
   const applyPreAssessmentFilters = () => {
     let filtered = [...allAssessments];
@@ -1232,7 +1253,7 @@ const AdminBilling = () => {
 
     if (assessment.paymentMethod === 'gcash' && assessment.paymentStatus === 'for_verification') {
       actions.push(
-        { label: 'View Proof', action: () => { if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank'); setOpenDropdownId(null); } },
+        { label: 'View Proof', action: () => { if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank'); else showToast('No proof uploaded', 'warning'); setOpenDropdownId(null); } },
         { label: 'Verify Payment', action: () => { setSelectedAssessment(assessment); setShowVerifyModal(true); setOpenDropdownId(null); }, color: 'success' },
         { label: 'Reject Payment', action: () => { setSelectedAssessment(assessment); setVerificationNote(''); handleVerifyPayment(false); }, color: 'danger' }
       );
@@ -1281,8 +1302,14 @@ const AdminBilling = () => {
     }
 
     if (invoice.paymentStatus === 'for_verification') {
+      // Cash has no screenshot — only show View Proof when a GCash proof actually exists.
+      const gcashPayment = invoice.payments?.find(p => p.method === 'gcash' && p.proof);
+      if (gcashPayment) {
+        actions.push(
+          { label: 'View Proof', action: () => { window.open(gcashPayment.proof, '_blank'); setOpenDropdownId(null); } }
+        );
+      }
       actions.push(
-        { label: 'View Proof', action: () => { const p = invoice.payments?.find(p => p.method === 'gcash'); p?.proof ? window.open(p.proof, '_blank') : showToast('No proof', 'warning'); setOpenDropdownId(null); } },
         { label: 'Verify Payment', action: () => { setSelectedInvoice(invoice); setShowSolarVerifyModal(true); setOpenDropdownId(null); }, color: 'success' },
         { label: 'Reject Payment', action: () => handleVerifySolarPayment(false, invoice), color: 'danger' }
       );
@@ -1556,23 +1583,21 @@ const AdminBilling = () => {
               onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
             >
               <span>Pre-Assessments</span>
-              <span className="tab-badge-adminbilling">{stats.totalPreAssessments}</span>
+              {allAssessments.some(hasBillingPreNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active' : ''}`}
               onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
             >
               <span>Solar Invoices</span>
-              <span className="tab-badge-adminbilling">{stats.totalSolarInvoices}</span>
+              {allSolarInvoices.some(hasInvoiceNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'bank-transfers' ? 'active' : ''}`}
               onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); setIsMobileMenuOpen(false); }}
             >
               <span>Bank Transfers</span>
-              {bankTransferStats?.waiting_verification > 0 && (
-                <span className="tab-badge-adminbilling">{bankTransferStats.waiting_verification}</span>
-              )}
+              {allBankTransfers.some(hasBankNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active' : ''}`}
@@ -1730,6 +1755,7 @@ const AdminBilling = () => {
                                     onClick={(e) => handleDropdownClick(e, assessment._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
+                                    {hasBillingPreNeedsAction(assessment) && <span className="action-needs-dot-adminbilling" title="Needs action"></span>}
                                   </button>
                                   {isOpen && (
                                     <div
@@ -1870,6 +1896,7 @@ const AdminBilling = () => {
                                     onClick={(e) => handleDropdownClick(e, invoice._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
+                                    {hasInvoiceNeedsAction(invoice) && <span className="action-needs-dot-adminbilling" title="Needs action"></span>}
                                   </button>
                                   {isOpen && (
                                     <div
@@ -1995,6 +2022,7 @@ const AdminBilling = () => {
                                   onClick={(e) => handleDropdownClick(e, payment._id, idx >= arr.length - 2)}
                                 >
                                   Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
+                                  {hasBankNeedsAction(payment) && <span className="action-needs-dot-adminbilling" title="Needs action"></span>}
                                 </button>
                                 {isOpen && (
                                   <div

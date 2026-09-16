@@ -15,7 +15,6 @@ import {
   FaUserCog,
   FaMicrochip,
   FaMoneyBillWave,
-  FaTools,
   FaWifi,
   FaChevronDown,
   FaUpload,
@@ -92,8 +91,8 @@ const SiteAssessment = () => {
   const buttonRefs = useRef({});
   const dropdownRef = useRef(null);
   const [stats, setStats] = useState({
-    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
-    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0 }
+    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0, needsAction: 0 },
+    preAssessments: { total: 0, pendingReview: 0, pendingPayment: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0, autoVerified: 0, needsAction: 0 }
   });
 
   // --- CHART DATA ---
@@ -229,13 +228,31 @@ const SiteAssessment = () => {
       const assessments = preAssessmentsRes.data.assessments || [];
       const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
 
+      // Needs-action counts: only rows where admin has something to do.
+      // Free: pending (assign) + processing (quotation/complete) — assigned is engineer's turn.
+      const freeNeedsAction = quotes.filter(q => ['pending', 'processing'].includes(q.status)).length;
+      const preNeedsAction = assessments.filter(a => {
+        // Engineer-owned stages: admin has nothing to do here, never dot.
+        // (site_visit_ongoing falls through: dot only if device still missing.)
+        if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(a.assessmentStatus)) return false;
+        if (a.assessmentStatus === 'pending_review') return true;
+        if (a.assessmentStatus === 'cancelled' && a.cancellation && ['pending', 'processing'].includes(a.cancellation.refundStatus)) return true;
+        if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') return true;
+        if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification' && !a.paymentGateway) return true;
+        if (a.paymentStatus === 'paid' && a.assessmentStatus === 'scheduled' && !a.assignedEngineerId) return true;
+        const hasDevice = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
+        if (a.assignedEngineerId && !hasDevice) return true;
+        return false;
+      }).length;
+
       setStats({
         freeQuotes: {
           total: quotes.length,
           pending: quotes.filter(q => q.status === 'pending').length,
           assigned: quotes.filter(q => q.status === 'assigned').length,
           processing: quotes.filter(q => q.status === 'processing').length,
-          completed: quotes.filter(q => q.status === 'completed').length
+          completed: quotes.filter(q => q.status === 'completed').length,
+          needsAction: freeNeedsAction
         },
         preAssessments: {
           total: assessments.length,
@@ -245,7 +262,8 @@ const SiteAssessment = () => {
           paid: assessments.filter(a => a.paymentStatus === 'paid').length,
           scheduled: assessments.filter(a => a.assessmentStatus === 'scheduled').length,
           completed: assessments.filter(a => a.assessmentStatus === 'completed').length,
-          autoVerified: autoVerified
+          autoVerified: autoVerified,
+          needsAction: preNeedsAction
         }
       });
 
@@ -591,14 +609,28 @@ const SiteAssessment = () => {
     ? (FREE_QUOTE_PRIORITY[item.status] ?? 9)
     : getPreAssessmentPriority(item);
 
+  // Toggle dot only: true when the row actually needs admin action.
+  // Free assigned is engineer's turn (marks processing), so no dot.
+  // Pre engineer-owned stages (report_draft, device_deployed, data_*) never dot.
+  const hasNeedsAction = (item) => {
+    if (activeTab === 'free-quotes') {
+      return ['pending', 'processing'].includes(item.status);
+    }
+    if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(item.assessmentStatus)) return false;
+    return getPreAssessmentPriority(item) <= 5;
+  };
+
   const filteredItems = (activeTab === 'free-quotes' ? freeQuotes : preAssessments).filter(item => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
       item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
       (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
-    // Stable sort: priority groups first, newest kept within each group.
+    // Stable sort: needs-action rows first (newest on top),
+    // then the rest by priority group, newest within each group.
   }).sort((a, b) => {
+    const needDiff = (hasNeedsAction(b) ? 1 : 0) - (hasNeedsAction(a) ? 1 : 0);
+    if (needDiff !== 0) return needDiff;
     const priorityDiff = getItemPriority(a) - getItemPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return getItemTime(b) - getItemTime(a);
@@ -789,11 +821,6 @@ const SiteAssessment = () => {
           { label: 'Assign Engineer', icon: <FaUserCog />, action: () => handleOpenAssignModal(item), color: 'primary' }
         );
       }
-      if (item.status === 'assigned') {
-        actions.push(
-          { label: 'Mark as Processing', icon: <FaTools />, action: () => handleUpdateStatus(item._id, 'processing'), color: 'warning' }
-        );
-      }
       if (item.status === 'processing') {
         actions.push(
           { label: 'Upload Quotation', icon: <FaUpload />, action: () => { setSelectedItem(item); setShowUploadModal(true); setOpenDropdownId(null); }, color: 'primary' },
@@ -938,14 +965,14 @@ const SiteAssessment = () => {
             onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
           >
             Free Quotes
-            <span className="tab-badge-adminbills_">{stats.freeQuotes.total}</span>
+            {stats.freeQuotes.needsAction > 0 && <span className="tab-needs-dot-adminbills_" title={`${stats.freeQuotes.needsAction} need action`}></span>}
           </button>
           <button
             className={`tab-btn-adminbills_ ${activeTab === 'pre-assessments' ? 'active-adminbills_' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
             Pre-Assessments
-            <span className="tab-badge-adminbills_">{stats.preAssessments.total}</span>
+            {stats.preAssessments.needsAction > 0 && <span className="tab-needs-dot-adminbills_" title={`${stats.preAssessments.needsAction} need action`}></span>}
           </button>
         </div>
 
@@ -1072,6 +1099,7 @@ const SiteAssessment = () => {
                               onClick={(e) => handleDropdownClick(e, item._id, idx >= arr.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-adminbills_ ${isOpen ? 'open-adminbills_' : ''}`} />
+                              {hasNeedsAction(item) && <span className="action-needs-dot-adminbills_" title="Needs action"></span>}
                             </button>
 
                             {isOpen && (

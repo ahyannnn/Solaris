@@ -454,6 +454,15 @@ const ProjectManagement = () => {
     return Number.isNaN(t) ? 0 : t;
   };
 
+  // Toggle red dot: true only when admin must act (approve quoted or
+  // assign engineer). Cancelled/completed/in-progress never dot.
+  const hasProjectNeedsAction = (project) => {
+    if (!project) return false;
+    const s = project.status?.toLowerCase() || '';
+    if (s === 'cancelled' || s === 'completed') return false;
+    return getAdminProjectPriority(project) <= 2;
+  };
+
   const filteredProjects = projects
     .filter(project => filter === 'all' || project.status === filter)
     .filter(project => {
@@ -855,6 +864,7 @@ const ProjectManagement = () => {
                               onClick={(e) => handleDropdownClick(e, project._id, idx >= pagedProjects.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
+                              {hasProjectNeedsAction(project) && <span className="action-needs-dot-projectmanagement" title="Needs action"></span>}
                             </button>
 
                             {isOpen && (

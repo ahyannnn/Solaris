@@ -44,6 +44,7 @@ const IoTDevice = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [hasStats, setHasStats] = useState(false);
+  const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -165,7 +166,8 @@ const IoTDevice = () => {
         assessmentId: assessment._id,
         assessmentStatus: assessment.assessmentStatus,
         bookingReference: assessment.bookingReference,
-        clientName: `${assessment.clientId?.contactFirstName || ''} ${assessment.clientId?.contactLastName || ''}`,
+        clientName: `${assessment.clientId?.contactFirstName || ''} ${assessment.clientId?.contactLastName || ''}`.trim() || 'N/A',
+        clientPhotoURL: typeof assessment.clientId?.userId === 'object' ? (assessment.clientId?.userId?.photoURL || null) : null,
         propertyType: assessment.propertyType,
         address: assessment.addressId,
         deployedAt: assessment.deviceDeployedAt,
@@ -467,6 +469,18 @@ const IoTDevice = () => {
                         </td>
                         <td data-label="Client">
                           <div className="client-cell-iotdevicead">
+                            {device.clientPhotoURL && !brokenPhotos.has(device._id) ? (
+                              <img
+                                src={device.clientPhotoURL}
+                                alt=""
+                                className="client-photo-iotdevicead"
+                                onError={() => setBrokenPhotos((prev) => new Set(prev).add(device._id))}
+                              />
+                            ) : (
+                              <span className="client-initials-iotdevicead">
+                                {(device.clientName || '—').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                              </span>
+                            )}
                             <div className="client-name-iotdevicead">{device.clientName}</div>
                           </div>
                         </td>

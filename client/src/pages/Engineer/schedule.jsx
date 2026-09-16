@@ -27,6 +27,18 @@ import {
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  AreaChart,
+  Area,
+  Cell
+} from 'recharts';
 import '../../styles/Admin/schedule.css';
 
 // ============================================================
@@ -479,6 +491,72 @@ const EngineerSchedule = () => {
     { debounceMs: 600 }
   );
 
+  // ====== CHART DATA: derived from allSchedules (current tab, no new API) ======
+  const groupScheduleStatus = (raw) => {
+    const s = (raw || '').toLowerCase();
+    if (s === 'pending') return { name: 'Pending', fill: '#F39C12' };
+    if (['confirmed', 'scheduled', 'rescheduled'].includes(s)) return { name: 'Scheduled', fill: '#3B82F6' };
+    if (['in_progress', 'site_visit_ongoing'].includes(s)) return { name: 'In Progress', fill: '#8B5CF6' };
+    if (s === 'device_deployed') return { name: 'Device Deployed', fill: '#0EA5E9' };
+    if (['data_collecting', 'data_analyzing'].includes(s)) return { name: 'Data Phase', fill: '#A78BFA' };
+    if (['full_paid', 'progress_paid'].includes(s)) return { name: 'Paid Stage', fill: '#F59E0B' };
+    if (s === 'completed') return { name: 'Completed', fill: '#10B981' };
+    if (s === 'cancelled') return { name: 'Cancelled', fill: '#EF4444' };
+    return { name: 'Others', fill: '#98A2B3' };
+  };
+
+  const statusChartData = React.useMemo(() => {
+    const buckets = {};
+    allSchedules.forEach((item) => {
+      const raw = item._enrichedStatus || item.status;
+      const g = groupScheduleStatus(raw);
+      if (!buckets[g.name]) buckets[g.name] = { name: g.name, value: 0, fill: g.fill };
+      buckets[g.name].value += 1;
+    });
+    return Object.values(buckets);
+  }, [allSchedules]);
+
+  const monthlyChartData = React.useMemo(() => {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const scheduled = Array(12).fill(0);
+    const finished = Array(12).fill(0);
+    allSchedules.forEach((item) => {
+      const d = new Date(item.scheduledDate);
+      if (isNaN(d.getTime())) return;
+      const m = d.getMonth();
+      scheduled[m] += 1;
+      const st = (item._enrichedStatus || item.status || '').toLowerCase();
+      if (st === 'completed') finished[m] += 1;
+    });
+    return MONTHS.map((name, i) => ({ name, scheduled: scheduled[i], completed: finished[i] }));
+  }, [allSchedules]);
+
+  const ScheduleBarTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-schedule">
+          <p className="tooltip-label-schedule">{label}</p>
+          <p className="tooltip-item-schedule" style={{ color: payload[0].payload.fill }}>{payload[0].payload.name}: {payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const ScheduleAreaTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-schedule">
+          <p className="tooltip-label-schedule">{label}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="tooltip-item-schedule" style={{ color: entry.color }}>{entry.name}: {entry.value}</p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   // ============================================================
   // TIMELINE FUNCTIONS - SAME AS ADMIN
   // ============================================================
@@ -831,27 +909,63 @@ const EngineerSchedule = () => {
         <section className="schedule-overview-section">
 
 
-          {/* 4 SHARED KPI CARDS */}
-          <div className="kpi-grid">
-            <div className="kpi-card">
-              <div className="kpi-value">{stats.total}</div>
-              <div className="kpi-label">Total Schedules</div>
-
+          {/* ===== ANALYTICS CHARTS (replaces 4 KPI cards) ===== */}
+          <div className="schedule-charts-row">
+            {/* Chart A: Status Distribution */}
+            <div className="schedule-chart-card">
+              <div className="schedule-chart-header">
+                <h3>My Schedule Status</h3>
+                <span className="schedule-chart-period">By status • Total {allSchedules.length}</span>
+              </div>
+              <div className="schedule-chart-wrapper">
+                {allSchedules.length === 0 ? (
+                  <div className="schedule-chart-empty">No schedules yet — charts will appear once bookings come in.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={statusChartData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--border-color, #E8EDE8)" />
+                      <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #5A6A7A)', fontSize: 11, fontWeight: 500 }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #5A6A7A)', fontSize: 11, fontWeight: 500 }} width={105} />
+                      <Tooltip content={<ScheduleBarTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                      <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={18} label={{ position: 'right', fill: 'var(--text-primary, #17212B)', fontSize: 12, fontWeight: 600, formatter: (v) => (v > 0 ? v : '') }}>
+                        {statusChartData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
-            <div className="kpi-card">
-              <div className="kpi-value">{stats.upcoming}</div>
-              <div className="kpi-label">Upcoming</div>
 
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-value">{stats.confirmed}</div>
-              <div className="kpi-label">Confirmed</div>
-
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-value">{stats.completed}</div>
-              <div className="kpi-label">Completed</div>
-
+            {/* Chart B: Monthly Volume */}
+            <div className="schedule-chart-card">
+              <div className="schedule-chart-header">
+                <h3>Monthly Volume</h3>
+                <span className="schedule-chart-period">Scheduled vs Completed • Last 12 months</span>
+              </div>
+              <div className="schedule-chart-wrapper">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyChartData} margin={{ top: 10, right: 10, left: 5, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScheduledEng" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorCompletedEng" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #E8EDE8)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #5A6A7A)', fontSize: 11, fontWeight: 500 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #5A6A7A)', fontSize: 11, fontWeight: 500 }} width={36} allowDecimals={false} />
+                    <Tooltip content={<ScheduleAreaTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
+                    <Area type="monotone" dataKey="scheduled" name="Scheduled" stroke="#F39C12" strokeWidth={2.5} fillOpacity={1} fill="url(#colorScheduledEng)" dot={{ r: 3, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                    <Area type="monotone" dataKey="completed" name="Completed" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCompletedEng)" dot={{ r: 3, fill: '#10B981', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

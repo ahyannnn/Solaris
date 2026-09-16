@@ -272,8 +272,9 @@ body.dark-mode {
    BASE LAYOUT
    ============================================ */
 .engineer-project-container {
-  padding-top: 20px;
-  padding-inline: 24px;
+  padding-top: 4px;
+  margin-top: -12px;
+  padding-inline: 4px;
   background: var(--bg-primary);
   min-height: 100vh;
   max-width: 100%;
@@ -312,13 +313,13 @@ body.dark-mode {
 }
 
 /* ============================================
-   SUMMARY CARDS - GLASS
+   SUMMARY CARDS - GLASS (kept for backward compat, now unused)
    ============================================ */
 .summary-cards-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .summary-card {
@@ -402,11 +403,101 @@ body.dark-mode {
 }
 
 /* ============================================
+   PROJECT CHARTS — REPLACES 4 CARDS (2 charts, mobile stacked)
+   ============================================ */
+.project-charts-row-enad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.project-chart-card-enad {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.project-chart-header-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.project-chart-header-enad h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.project-chart-period-enad {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.project-chart-wrapper-enad {
+  width: 100%;
+  height: 220px;
+  min-height: 220px;
+  flex: 1;
+}
+
+.project-chart-empty-enad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 220px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 24px;
+  line-height: 1.5;
+}
+
+.recharts-custom-tooltip-enad {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-card, #EEF0ED);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-tooltip, 0 8px 24px rgba(0,0,0,0.12));
+  min-width: 140px;
+}
+
+.recharts-custom-tooltip-enad .tooltip-label-enad {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+}
+
+.recharts-custom-tooltip-enad .tooltip-item-enad {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 2px 0;
+}
+
+/* ============================================
    FILTERS
    ============================================ */
 .project-filters-engineerproject {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 20px;
   flex-wrap: wrap;
   align-items: center;
@@ -687,8 +778,8 @@ body.dark-mode {
 }
 
 .system-size {
-  font-weight: 600;
-  color: var(--system-size-color);
+  font-weight: 400;
+  color: var(--text-primary);
   font-size: 14px;
   transition: color 0.3s ease;
 }
@@ -736,7 +827,7 @@ body.dark-mode {
 
 .amount-paid {
   font-size: 12px;
-  color: var(--amount-paid-color);
+  color: var(--text-primary);
   font-weight: 500;
   transition: color 0.3s ease;
 }
@@ -754,9 +845,10 @@ body.dark-mode {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 0;
   padding: 2px 0;
-  min-width: 60px;
+  min-width: 50px;
 }
 
 .progress-percentage-display {
@@ -1986,14 +2078,15 @@ body.dark-mode {
    PROGRESS PERCENTAGE TEXT
    ============================================ */
 .progress-percentage-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--progress-percent-color);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-primary);
   transition: color 0.3s ease;
 }
 
 .progress-percentage-text.completed {
-  color: var(--progress-percent-completed);
+  color: var(--text-primary);
+  font-weight: 400;
 }
 
 /* ============================================
@@ -2003,7 +2096,7 @@ body.dark-mode {
 /* Tablet */
 @media (max-width: 1024px) {
   .engineer-project-container {
-    padding-inline: 18px;
+    padding-inline: 6px;
   }
 
   .summary-cards-grid {
@@ -2017,6 +2110,16 @@ body.dark-mode {
 
   .summary-card-value {
     font-size: 24px;
+  }
+
+  .project-charts-row-enad {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .project-chart-wrapper-enad {
+    height: 260px;
+    min-height: 260px;
   }
 
   .projects-table-engineerproject {
@@ -2035,8 +2138,9 @@ body.dark-mode {
 /* Mobile */
 @media (max-width: 768px) {
   .engineer-project-container {
-    padding-inline: 14px;
-    padding-top: 12px;
+    padding-inline: 4px;
+    padding-top: 4px;
+    margin-top: 0;
   }
 
   .project-header-engineerproject h1 {
@@ -2069,6 +2173,20 @@ body.dark-mode {
 
   .summary-card-subtitle {
     font-size: 10px;
+  }
+
+  .project-charts-row-enad {
+    gap: 14px;
+  }
+
+  .project-chart-card-enad {
+    padding: 14px 14px 10px;
+    border-radius: 14px;
+  }
+
+  .project-chart-wrapper-enad {
+    height: 220px;
+    min-height: 220px;
   }
 
   .project-filters-engineerproject {
@@ -2434,12 +2552,21 @@ body.dark-mode {
 /* Small Mobile */
 @media (max-width: 480px) {
   .engineer-project-container {
-    padding-inline: 10px;
+    padding-inline: 4px;
   }
 
   .summary-cards-grid {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+  }
+
+  .project-charts-row-enad {
+    gap: 10px;
+  }
+
+  .project-chart-wrapper-enad {
+    height: 200px;
+    min-height: 200px;
   }
 
   .summary-card {

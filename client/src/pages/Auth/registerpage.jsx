@@ -7,6 +7,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
 import { Helmet } from 'react-helmet-async';
 import logo from '../../assets/Salfare_Logo.png';
+import TermsModal from '../../assets/termsandconditions';
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
@@ -15,6 +16,8 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [hasViewedTerms, setHasViewedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [verifiedCode, setVerifiedCode] = useState(null);
 
   const [cooldown, setCooldown] = useState(0);
@@ -306,7 +309,18 @@ const RegisterPage = () => {
   };
 
   const openTermsInNewTab = () => {
-    window.open('/terms', '_blank');
+    setShowTermsModal(true);
+  };
+
+  const handleTermsAccept = () => {
+    setHasViewedTerms(true);
+    setTermsAccepted(true);
+    setShowTermsModal(false);
+    setErrors(prev => ({ ...prev, terms: '' }));
+  };
+
+  const handleTermsClose = () => {
+    setShowTermsModal(false);
   };
 
   const validateStep1 = () => {
@@ -351,7 +365,9 @@ const RegisterPage = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (!termsAccepted) {
+    if (!hasViewedTerms) {
+      newErrors.terms = 'Please view the Terms and Conditions before agreeing';
+    } else if (!termsAccepted) {
       newErrors.terms = 'You must agree to the Terms and Conditions';
     }
 
@@ -669,6 +685,7 @@ const RegisterPage = () => {
       !passwordErrors.password &&
       formData.confirmPassword &&
       formData.password === formData.confirmPassword &&
+      hasViewedTerms &&
       termsAccepted
     );
   };
@@ -931,12 +948,20 @@ const RegisterPage = () => {
                   </div>
 
                   <div className="new-register-form-group">
-                    <label className="new-register-checkbox-label">
+                    <label className={`new-register-checkbox-label ${!hasViewedTerms ? 'new-register-checkbox-label-disabled' : ''}`}>
                       <input
                         type="checkbox"
                         checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        disabled={!hasViewedTerms}
+                        onChange={(e) => {
+                          if (!hasViewedTerms) return;
+                          setTermsAccepted(e.target.checked);
+                          if (e.target.checked) {
+                            setErrors(prev => ({ ...prev, terms: '' }));
+                          }
+                        }}
                         className="new-register-terms-checkbox"
+                        title={!hasViewedTerms ? 'Please view Terms and Conditions first' : undefined}
                       />
                       <span className="new-register-checkbox-text">
                         I agree to the{' '}
@@ -947,6 +972,7 @@ const RegisterPage = () => {
                         >
                           Terms and Conditions
                         </button>
+                        {!hasViewedTerms && <span className="new-register-terms-hint"> — please view terms first</span>}
                       </span>
                     </label>
                     {errors.terms && <span className="new-register-error-message">{errors.terms}</span>}
@@ -1074,6 +1100,13 @@ const RegisterPage = () => {
             )}
           </div>
         </div>
+        <TermsModal
+          isOpen={showTermsModal}
+          onClose={handleTermsClose}
+          onAccept={handleTermsAccept}
+          mode="registration"
+          title="Terms and Conditions"
+        />
       </div>
     </>
   );

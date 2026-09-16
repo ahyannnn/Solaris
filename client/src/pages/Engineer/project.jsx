@@ -19,6 +19,18 @@ import {
   FaCheck,
   FaClock
 } from 'react-icons/fa';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  AreaChart,
+  Area,
+  Cell
+} from 'recharts';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
 import '../../styles/Engineer/project.css';
@@ -517,6 +529,64 @@ const EngineerProject = () => {
   const inProgress = projects.filter(p => p.status === 'in_progress').length;
   const completed = projects.filter(p => p.status === 'completed').length;
 
+  // ====== CHART DATA: derived from projects (no new API) ======
+  const pipelineData = React.useMemo(() => {
+    const countBy = (pred) => projects.filter(pred).length;
+    const pending = countBy(p => ['quoted','approved'].includes(p.status));
+    const ready = countBy(p => ['initial_paid','full_paid'].includes(p.status) && getProjectAction(p).type === 'start');
+    const progress = countBy(p => p.status === 'in_progress');
+    const progressPaid = countBy(p => p.status === 'progress_paid');
+    const done = countBy(p => p.status === 'completed');
+    return [
+      { name: 'Pending', value: pending, fill: '#F39C12' },
+      { name: 'Ready', value: ready, fill: '#3B82F6' },
+      { name: 'In Progress', value: progress, fill: '#8B5CF6' },
+      { name: 'Progress Paid', value: progressPaid, fill: '#A78BFA' },
+      { name: 'Completed', value: done, fill: '#10B981' },
+    ];
+  }, [projects]);
+
+  const monthlyChartData = React.useMemo(() => {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const created = Array(12).fill(0);
+    const finished = Array(12).fill(0);
+    projects.forEach(p => {
+      const c = new Date(p.createdAt);
+      if (!isNaN(c.getTime())) created[c.getMonth()]++;
+      if (p.status === 'completed' && p.actualCompletionDate) {
+        const f = new Date(p.actualCompletionDate);
+        if (!isNaN(f.getTime())) finished[f.getMonth()]++;
+      }
+    });
+    return MONTHS.map((name,i)=>({ name, created: created[i], completed: finished[i] }));
+  }, [projects]);
+
+  const PipelineTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-enad">
+          <p className="tooltip-label-enad">{label}</p>
+          <p className="tooltip-item-enad" style={{ color: payload[0].payload.fill }}>{payload[0].payload.name}: {payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const MonthlyTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-enad">
+          <p className="tooltip-label-enad">{label}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="tooltip-item-enad" style={{ color: entry.color }}>{entry.name}: {entry.value}</p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   // ============================================================
   // RENDER PROGRESS INDICATOR
   // ============================================================
@@ -528,13 +598,6 @@ const EngineerProject = () => {
     return (
       <div className="progress-indicator-compact">
         <span className={`progress-percentage-text ${isCompleted ? 'completed' : ''}`}>{progress}%</span>
-        <div className="progress-stage-label">
-          {isCompleted ? (
-            <span className="stage-label completed-label">Completed</span>
-          ) : (
-            <span className="stage-label current-label">{getTimelineItems(project).find(i => !i.completed)?.title || ''}</span>
-          )}
-        </div>
       </div>
     );
   };
@@ -571,9 +634,9 @@ const EngineerProject = () => {
 
   const SkeletonLoader = () => (
     <div className="engineer-project-container">
-      <div className="summary-cards-grid">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="summary-card skeleton-card">
+      <div className="project-charts-row-enad">
+        {[1, 2].map(i => (
+          <div key={i} className="project-chart-card-enad skeleton-card">
             <div className="skeleton-line large"></div>
             <div className="skeleton-line medium"></div>
           </div>
@@ -634,37 +697,62 @@ const EngineerProject = () => {
 
       <div className="engineer-project-container">
 
-        {/* SUMMARY CARDS */}
-        <div className="summary-cards-grid">
-          <div className="summary-card">
-            <div className="summary-card-content">
-              <span className="summary-card-value">{totalProjects}</span>
-              <span className="summary-card-label">Total Projects</span>
-              <span className="summary-card-subtitle">Assigned projects</span>
+        {/* ===== ANALYTICS CHARTS (replaces 4 summary cards) ===== */}
+        <div className="project-charts-row-enad">
+          {/* Chart A: Project Pipeline */}
+          <div className="project-chart-card-enad">
+            <div className="project-chart-header-enad">
+              <h3>Project Pipeline</h3>
+              <span className="project-chart-period-enad">By status • Total {totalProjects}</span>
+            </div>
+            <div className="project-chart-wrapper-enad">
+              {projects.length === 0 ? (
+                <div className="project-chart-empty-enad">No projects yet — charts will appear once assigned.</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={pipelineData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--border-color, #EEF0ED)" />
+                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} width={98} />
+                    <Tooltip content={<PipelineTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={18} label={{ position: 'right', fill: 'var(--text-primary, #17212B)', fontSize: 12, fontWeight: 600, formatter: (v) => (v > 0 ? v : '') }}>
+                      {pipelineData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
-          <div className="summary-card">
-            <div className="summary-card-content">
-              <span className="summary-card-value">{readyToStart}</span>
-              <span className="summary-card-label">Ready to Start</span>
-              <span className="summary-card-subtitle">Ready for installation</span>
+          {/* Chart B: Monthly Projects */}
+          <div className="project-chart-card-enad">
+            <div className="project-chart-header-enad">
+              <h3>Monthly Projects</h3>
+              <span className="project-chart-period-enad">Created vs Completed • Last 12 months</span>
             </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-card-content">
-              <span className="summary-card-value">{inProgress}</span>
-              <span className="summary-card-label">In Progress</span>
-              <span className="summary-card-subtitle">Active installations</span>
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-card-content">
-              <span className="summary-card-value">{completed}</span>
-              <span className="summary-card-label">Completed</span>
-              <span className="summary-card-subtitle">Finished projects</span>
+            <div className="project-chart-wrapper-enad">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyChartData} margin={{ top: 10, right: 10, left: 5, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorCreatedProj" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorCompletedProj" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} width={36} allowDecimals={false} />
+                  <Tooltip content={<MonthlyTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
+                  <Area type="monotone" dataKey="created" name="Created" stroke="#F39C12" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCreatedProj)" dot={{ r: 3, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                  <Area type="monotone" dataKey="completed" name="Completed" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCompletedProj)" dot={{ r: 3, fill: '#10B981', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

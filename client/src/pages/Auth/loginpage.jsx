@@ -411,11 +411,11 @@ const LoginPage = () => {
             {/* Mobile-app look only (mirrors mobile login_screen.dart) */}
             <img src={logo} alt="Salfer Engineering" className="new-login-mobile-logo" />
             <div className="new-login-mobile-heading">
-              <h2>{isLocked ? 'Account Locked' : 'Welcome Back'}</h2>
+              <h2>{isLocked ? 'Account Locked' : 'Login to your account'}</h2>
               <p>
                 {isLocked
                   ? `Please wait ${lockMinutesRemaining} minute(s) before trying again`
-                  : 'Sign in to continue to your account'
+                  : 'Sign in to manage your solar projects'
                 }
               </p>
             </div>

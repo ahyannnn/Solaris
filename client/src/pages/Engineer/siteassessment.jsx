@@ -10,6 +10,18 @@ import {
   FaChevronDown,
   FaSearch
 } from 'react-icons/fa';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  AreaChart,
+  Area,
+  Cell
+} from 'recharts';
 import '../../styles/Engineer/siteassessment.css';
 
 // Import Calculation Card Components
@@ -1051,6 +1063,79 @@ const MyAssessments = () => {
     setDashboardStats({ total, pending, inProgress, completed });
   }, [allAssessments]);
 
+  // ====== CHART DATA: derived from allAssessments (no new API) ======
+  const pipelineData = React.useMemo(() => {
+    const getStatus = (item) => item.type === 'free_quote' ? item.status : item.assessmentStatus;
+    const isPending = (s) => s === 'pending' || s === 'pending_payment' || s === 'pending_review';
+    const isScheduled = (s) => s === 'scheduled' || s === 'assigned' || s === 'processing';
+    const isFieldWork = (s) => s === 'site_visit_ongoing' || s === 'device_deployed';
+    const isDataPhase = (s) => s === 'data_collecting' || s === 'data_analyzing';
+    const isReportDraft = (s) => s === 'report_draft';
+    const isCompleted = (s) => s === 'completed' || s === 'accepted' || s === 'quotation_generated' || s === 'quotation_accepted';
+    const buckets = [
+      { key: 'pending', name: 'Pending', fill: '#F39C12', count: 0 },
+      { key: 'scheduled', name: 'Scheduled', fill: '#3B82F6', count: 0 },
+      { key: 'field', name: 'Field Work', fill: '#8B5CF6', count: 0 },
+      { key: 'data', name: 'Data Phase', fill: '#A78BFA', count: 0 },
+      { key: 'draft', name: 'Report Draft', fill: '#F59E0B', count: 0 },
+      { key: 'completed', name: 'Completed', fill: '#10B981', count: 0 },
+    ];
+    allAssessments.forEach((item) => {
+      const s = getStatus(item);
+      if (isPending(s)) buckets[0].count += 1;
+      else if (isScheduled(s)) buckets[1].count += 1;
+      else if (isFieldWork(s)) buckets[2].count += 1;
+      else if (isDataPhase(s)) buckets[3].count += 1;
+      else if (isReportDraft(s)) buckets[4].count += 1;
+      else if (isCompleted(s)) buckets[5].count += 1;
+    });
+    return buckets.map((b) => ({ name: b.name, value: b.count, fill: b.fill }));
+  }, [allAssessments]);
+
+  const monthlyChartData = React.useMemo(() => {
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const quotes = Array(12).fill(0);
+    const assessments = Array(12).fill(0);
+    allAssessments.forEach((a) => {
+      const raw = a.type === 'free_quote' ? (a.requestedAt || a.createdAt || a.preferredDate) : (a.bookedAt || a.createdAt || a.preferredDate || a.requestedAt);
+      const d = new Date(raw);
+      if (!isNaN(d.getTime())) {
+        const m = d.getMonth();
+        if (a.type === 'free_quote') quotes[m] += 1;
+        else assessments[m] += 1;
+      }
+    });
+    return MONTHS.map((name, i) => ({ name, quotes: quotes[i], assessments: assessments[i] }));
+  }, [allAssessments]);
+
+  const PipelineTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-enad">
+          <p className="tooltip-label-enad">{label}</p>
+          <p className="tooltip-item-enad" style={{ color: payload[0].payload.fill }}>{payload[0].payload.name}: {payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const MonthlyTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="recharts-custom-tooltip-enad">
+          <p className="tooltip-label-enad">{label}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="tooltip-item-enad" style={{ color: entry.color }}>
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const fetchFreeQuoteDetails = async (quoteId) => {
     try {
       resetCalculationState();
@@ -2015,75 +2100,95 @@ const MyAssessments = () => {
         />
         <div className="my-assessments-enad">
 
-          {/* ===== DASHBOARD STATS CARDS ===== */}
-          <div className="dashboard-stats-enad">
-            <div className="stat-card-enad total">
-
-              <div className="stat-info-enad">
-                <span className="stat-number-enad">{dashboardStats.total}</span>
-                <span className="stat-label-enad">Total Records</span>
+          {/* ===== ANALYTICS CHARTS (replaces 4 stat cards) ===== */}
+          <div className="assessment-charts-row-enad">
+            {/* Chart A: Workload Pipeline - vertical BarChart */}
+            <div className="assessment-chart-card-enad">
+              <div className="assessment-chart-header-enad">
+                <h3>Workload Pipeline</h3>
+                <span className="assessment-chart-period-enad">By status • Total {dashboardStats.total}</span>
+              </div>
+              <div className="assessment-chart-wrapper-enad">
+                {allAssessments.length === 0 ? (
+                  <div className="assessment-chart-empty-enad">No assessments yet — charts will appear once you have assignments.</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={pipelineData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--border-color, #EEF0ED)" />
+                      <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} width={95} />
+                      <Tooltip content={<PipelineTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                      <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={18} label={{ position: 'right', fill: 'var(--text-primary, #17212B)', fontSize: 12, fontWeight: 600, formatter: (v) => (v > 0 ? v : '') }}>
+                        {pipelineData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
-            <div className="stat-card-enad pending">
 
-              <div className="stat-info-enad">
-                <span className="stat-number-enad">{dashboardStats.pending}</span>
-                <span className="stat-label-enad">Pending</span>
+            {/* Chart B: Monthly Volume - dual AreaChart */}
+            <div className="assessment-chart-card-enad">
+              <div className="assessment-chart-header-enad">
+                <h3>Monthly Volume</h3>
+                <span className="assessment-chart-period-enad">Free Quotes vs Pre-Assessments • Last 12 months</span>
               </div>
-            </div>
-            <div className="stat-card-enad in-progress">
-
-              <div className="stat-info-enad">
-                <span className="stat-number-enad">{dashboardStats.inProgress}</span>
-                <span className="stat-label-enad">In Progress</span>
-              </div>
-            </div>
-            <div className="stat-card-enad completed">
-
-              <div className="stat-info-enad">
-                <span className="stat-number-enad">{dashboardStats.completed}</span>
-                <span className="stat-label-enad">Completed</span>
+              <div className="assessment-chart-wrapper-enad">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyChartData} margin={{ top: 10, right: 10, left: 5, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorQuotesEnad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F39C12" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#F39C12" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorAssessmentsEnad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="var(--border-color, #EEF0ED)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary, #667085)', fontSize: 11, fontWeight: 500 }} width={36} allowDecimals={false} />
+                    <Tooltip content={<MonthlyTooltip />} cursor={{ stroke: 'var(--border-color, #D1D5DB)', strokeWidth: 1 }} />
+                    <Area type="monotone" dataKey="quotes" name="Free Quotes" stroke="#F39C12" strokeWidth={2.5} fillOpacity={1} fill="url(#colorQuotesEnad)" dot={{ r: 3, fill: '#F39C12', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                    <Area type="monotone" dataKey="assessments" name="Pre-Assessments" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAssessmentsEnad)" dot={{ r: 3, fill: '#10B981', strokeWidth: 2, stroke: 'var(--bg-card, #FFFFFF)' }} activeDot={{ r: 5 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          <div className="search-bar-enad">
-            <FaSearch className="search-icon-enad" />
-            <input
-              type="text"
-              placeholder="Search by reference or client name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="assessment-search-input-enad"
-            />
-          </div>
-
-          <div className="filter-controls-enad">
-            <div className="filter-tabs-enad">
-              <button
-                className={`filter-tab-enad ${activeTypeFilter === 'all' ? 'active-enad' : ''}`}
-                onClick={() => setActiveTypeFilter('all')}
-              >
-                All
-              </button>
-              <button
-                className={`filter-tab-enad ${activeTypeFilter === 'free_quote' ? 'active-enad' : ''}`}
-                onClick={() => setActiveTypeFilter('free_quote')}
-              >
-                Free Quotes
-              </button>
-              <button
-                className={`filter-tab-enad ${activeTypeFilter === 'pre_assessment' ? 'active-enad' : ''}`}
-                onClick={() => setActiveTypeFilter('pre_assessment')}
-              >
-                Pre-Assessments
-              </button>
+          <div className="assessment-toolbar-enad">
+            <div className="search-bar-enad">
+              <FaSearch className="search-icon-enad" />
+              <input
+                type="text"
+                placeholder="Search by reference or client name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="assessment-search-input-enad"
+              />
             </div>
 
-            <div className="status-filter-dropdown-enad">
-              <select
-                className="status-filter-select-enad"
-                value={activeStatusFilter}
+            <div className="filter-controls-enad">
+              <div className="status-filter-dropdown-enad">
+                <select
+                  className="status-filter-select-enad"
+                  value={activeTypeFilter}
+                  onChange={(e) => setActiveTypeFilter(e.target.value)}
+                >
+                  <option value="all">All Types</option>
+                  <option value="free_quote">Free Quotes</option>
+                  <option value="pre_assessment">Pre-Assessments</option>
+                </select>
+              </div>
+
+              <div className="status-filter-dropdown-enad">
+                <select
+                  className="status-filter-select-enad"
+                  value={activeStatusFilter}
                 onChange={(e) => setActiveStatusFilter(e.target.value)}
               >
                 <option value="all">All Status</option>
@@ -2097,6 +2202,7 @@ const MyAssessments = () => {
                 })}
               </select>
             </div>
+          </div>
           </div>
 
           {error && <div className="error-container-enad"><span>{error}</span></div>}

@@ -364,7 +364,8 @@ body.dark-mode {
    BASE LAYOUT
    ============================================ */
 .my-assessments-enad {
-  padding-top: 20px;
+  padding-top: 4px;
+  margin-top: -12px;
   background: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -375,10 +376,20 @@ body.dark-mode {
 /* ============================================
    SEARCH BAR
    ============================================ */
+.assessment-toolbar-enad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+}
+
 .search-bar-enad {
   position: relative;
+  flex: 1 1 320px;
   max-width: 400px;
-  margin-bottom: 16px;
+  min-width: 200px;
+  margin-bottom: 0;
 }
 
 .search-icon-enad {
@@ -424,12 +435,14 @@ body.dark-mode {
    ============================================ */
 .filter-controls-enad {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
   align-items: center;
+  flex: 0 1 auto;
+  margin-bottom: 0;
 }
 
+/* Legacy tab bar kept for detail view / other usages - hidden in toolbar */
 .filter-tabs-enad {
   display: inline-flex;
   gap: 6px;
@@ -3116,13 +3129,103 @@ body.dark-mode {
 }
 
 /* ============================================
-   DASHBOARD STATS CARDS
+   DASHBOARD STATS CARDS (legacy - kept for backward compat, unused after charts)
    ============================================ */
 .dashboard-stats-enad {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 28px;
+}
+
+/* ============================================
+   ANALYTICS CHARTS — REPLACES 4 CARDS (2 charts, mobile stacked)
+   ============================================ */
+.assessment-charts-row-enad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.assessment-chart-card-enad {
+  background: var(--bg-stat-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.assessment-chart-header-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.assessment-chart-header-enad h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.assessment-chart-period-enad {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.assessment-chart-wrapper-enad {
+  width: 100%;
+  height: 220px;
+  min-height: 220px;
+  flex: 1;
+}
+
+.assessment-chart-empty-enad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 240px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 24px;
+  line-height: 1.5;
+}
+
+.recharts-custom-tooltip-enad {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-card, #EEF0ED);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-tooltip, 0 8px 24px rgba(0,0,0,0.12));
+  min-width: 140px;
+}
+
+.recharts-custom-tooltip-enad .tooltip-label-enad {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+}
+
+.recharts-custom-tooltip-enad .tooltip-item-enad {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 2px 0;
 }
 
 .stat-card-enad {
@@ -3279,6 +3382,9 @@ body.dark-mode {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
+  .assessment-charts-row-enad {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -3306,6 +3412,25 @@ body.dark-mode {
   .assessments-table-enad {
     table-layout: auto;
   }
+  .assessment-charts-row-enad {
+    grid-template-columns: 1fr;
+  }
+  .assessment-chart-wrapper-enad {
+    height: 260px;
+    min-height: 260px;
+  }
+  .assessment-toolbar-enad {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .search-bar-enad {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .filter-controls-enad {
+    flex-wrap: wrap;
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -3315,16 +3440,29 @@ body.dark-mode {
     max-width: 100%;
     overflow-x: clip;
   }
-  .filter-controls-enad {
+  .assessment-toolbar-enad {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+  }
+  .search-bar-enad {
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .filter-controls-enad {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    width: 100%;
   }
   .filter-tabs-enad {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 4px;
     gap: 4px;
     -webkit-overflow-scrolling: touch;
@@ -3336,7 +3474,11 @@ body.dark-mode {
     flex-shrink: 0;
   }
   .status-filter-dropdown-enad {
-    min-width: auto;
+    min-width: 135px;
+    flex: 1 1 0;
+  }
+  .status-filter-dropdown-enad:last-child {
+    min-width: 135px;
   }
   .assessments-table-container-enad {
     background: transparent;
@@ -3791,6 +3933,23 @@ body.dark-mode {
     padding: 18px 20px;
     border-radius: 12px;
   }
+  .assessment-charts-row-enad {
+    gap: 14px;
+  }
+  .assessment-chart-card-enad {
+    padding: 14px 14px 10px;
+    border-radius: 14px;
+  }
+  .assessment-chart-wrapper-enad {
+    height: 220px;
+    min-height: 220px;
+  }
+  .assessment-chart-header-enad h3 {
+    font-size: 14px;
+  }
+  .assessment-chart-period-enad {
+    font-size: 11px;
+  }
   .appliances-table-container-enad {
     background: transparent;
     border: none;
@@ -4118,6 +4277,10 @@ body.dark-mode {
   }
   .stat-card-enad .stat-label-enad {
     font-size: 11px;
+  }
+  .assessment-chart-wrapper-enad {
+    height: 200px;
+    min-height: 200px;
   }
 }
 

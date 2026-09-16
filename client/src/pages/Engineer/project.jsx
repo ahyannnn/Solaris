@@ -884,33 +884,39 @@ const EngineerProject = () => {
                             )}
 
                             {isStart && (
-                              <button
-                                className="action-btn start"
-                                onClick={() => {
-                                  setSelectedProject(project);
-                                  setProgressForm({ installationNotes: '' });
-                                  setNewPhotoFiles([]);
-                                  setNewPhotoPreviews([]);
-                                  setShowProgressModal(true);
-                                }}
-                              >
-                                <FaTools /> Start
-                              </button>
+                              <span className="action-btn-wrap">
+                                <button
+                                  className="action-btn start"
+                                  onClick={() => {
+                                    setSelectedProject(project);
+                                    setProgressForm({ installationNotes: '' });
+                                    setNewPhotoFiles([]);
+                                    setNewPhotoPreviews([]);
+                                    setShowProgressModal(true);
+                                  }}
+                                >
+                                  <FaTools /> Start
+                                </button>
+                                {getRowPriority(project) === 0 && <span className="action-needs-dot" title="Needs update"></span>}
+                              </span>
                             )}
 
                             {isUpdate && (
-                              <button
-                                className="action-btn update"
-                                onClick={() => {
-                                  setSelectedProject(project);
-                                  setProgressForm({ installationNotes: project.installationNotes || '' });
-                                  setNewPhotoFiles([]);
-                                  setNewPhotoPreviews([]);
-                                  setShowProgressModal(true);
+                              <span className="action-btn-wrap">
+                                <button
+                                  className="action-btn update"
+                                  onClick={() => {
+                                    setSelectedProject(project);
+                                    setProgressForm({ installationNotes: project.installationNotes || '' });
+                                    setNewPhotoFiles([]);
+                                    setNewPhotoPreviews([]);
+                                    setShowProgressModal(true);
                                 }}
                               >
                                 <FaCheckCircle /> Update
                               </button>
+                                {getRowPriority(project) === 0 && <span className="action-needs-dot" title="Needs update"></span>}
+                              </span>
                             )}
 
                             {noAction && (

@@ -93,6 +93,8 @@ const ProjectManagement = () => {
   const buttonRefs = useRef({});
   const [autoOpenAssignModal, setAutoOpenAssignModal] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
+  const [engineerSearch, setEngineerSearch] = useState('');
+  const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -264,6 +266,31 @@ const ProjectManagement = () => {
     }
   };
 
+  // Searchable max 5: filter then slice (5 before search, 20 after search)
+  const filteredEngineers = useMemo(() => {
+    const term = (engineerSearch || '').trim().toLowerCase();
+    const list = term
+      ? engineers.filter(e => `${e.fullName || ''} ${e.email || ''}`.toLowerCase().includes(term))
+      : engineers;
+    return list.slice(0, term ? 20 : 5);
+  }, [engineers, engineerSearch]);
+
+  const engineerMoreCount = useMemo(() => {
+    const term = (engineerSearch || '').trim().toLowerCase();
+    const total = term
+      ? engineers.filter(e => `${e.fullName || ''} ${e.email || ''}`.toLowerCase().includes(term)).length
+      : engineers.length;
+    return Math.max(0, total - filteredEngineers.length);
+  }, [engineers, engineerSearch, filteredEngineers.length]);
+
+  useEffect(() => {
+    if (showAssignModal) {
+      setShowEngineerDropdown(true);
+    } else {
+      setShowEngineerDropdown(false);
+    }
+  }, [showAssignModal]);
+
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
@@ -345,6 +372,8 @@ const ProjectManagement = () => {
         }
         // Set the selected project and open assign modal
         setSelectedProject(projectToAssign);
+        setEngineerSearch('');
+        setShowEngineerDropdown(true);
         setShowAssignModal(true);
         setAutoOpenAssignModal(false); // Reset flag
       }
@@ -367,6 +396,7 @@ const ProjectManagement = () => {
       setShowAssignModal(false);
       setSelectedProject(null);
       setFormData({ ...formData, engineerId: '', assignNotes: '' });
+      setEngineerSearch('');
       setOpenDropdownId(null);
       return;
     }
@@ -383,6 +413,7 @@ const ProjectManagement = () => {
       setShowAssignModal(false);
       setSelectedProject(null);
       setFormData({ ...formData, engineerId: '', assignNotes: '' });
+      setEngineerSearch('');
       setOpenDropdownId(null);
       fetchProjects();
       fetchStats();
@@ -532,6 +563,8 @@ const ProjectManagement = () => {
           icon: <FaUserCog />,
           action: () => {
             setSelectedProject(project);
+            setEngineerSearch('');
+            setShowEngineerDropdown(true);
             setShowAssignModal(true);
             setOpenDropdownId(null);
           },
@@ -1121,34 +1154,75 @@ const ProjectManagement = () => {
                 </div>
 
                 <div className="form-group-projectmanagement">
-                  <label>Select Engineer</label>
-                  <div className="engineer-grid-projectmanagement">
-                    {engineers.length === 0 ? (
-                      <div className="no-engineers-projectmanagement">No engineers available</div>
-                    ) : (
-                      engineers.map(eng => (
-                        <div
-                          key={eng._id}
-                          className={`engineer-card-projectmanagement ${formData.engineerId === eng._id ? 'selected-projectmanagement' : ''}`}
-                          onClick={() => setFormData({ ...formData, engineerId: eng._id })}
-                        >
-                          <div className="engineer-avatar-projectmanagement">
-                            <span>{eng.fullName?.charAt(0) || 'E'}</span>
-                          </div>
-                          <div className="engineer-info-projectmanagement">
-                            <div className="engineer-name-projectmanagement">{eng.fullName || 'Engineer'}</div>
-                            <div className="engineer-email-projectmanagement">{eng.email}</div>
-                          </div>
-                          {formData.engineerId === eng._id && (
-                            <div className="engineer-selected-badge-projectmanagement">
-                              <FaCheckCircle />
-                            </div>
-                          )}
-                        </div>
-                      ))
+                  <label>Select Engineer <span className="required-field-projectmanagement">*</span></label>
+                  <div className="google-search-wrap-projectmanagement" onBlur={(e)=>{ if(!e.currentTarget.contains(e.relatedTarget)) setShowEngineerDropdown(false); }}>
+                    <div className="google-search-input-wrap-projectmanagement">
+                      <FaSearch className="google-search-icon-projectmanagement" />
+                      <input
+                        type="text"
+                        className="google-search-input-projectmanagement"
+                        placeholder={formData.engineerId ? engineers.find(e=>e._id===formData.engineerId)?.fullName || 'Search engineer...' : 'Search engineer by name or email...'}
+                        value={engineerSearch}
+                        onChange={(e) => { setEngineerSearch(e.target.value); setShowEngineerDropdown(true); }}
+                        onFocus={() => setShowEngineerDropdown(true)}
+                      />
+                      {formData.engineerId && (
+                        <button type="button" className="google-search-clear-projectmanagement" onClick={()=>{setFormData({ ...formData, engineerId: '' }); setEngineerSearch(''); setShowEngineerDropdown(true);}} title="Clear">×</button>
+                      )}
+                    </div>
+                    {showEngineerDropdown && (
+                      <div className="google-search-dropdown-projectmanagement">
+                        {engineers.length === 0 ? (
+                          <div className="google-search-empty-projectmanagement">No engineers available</div>
+                        ) : filteredEngineers.length === 0 ? (
+                          <div className="google-search-empty-projectmanagement">No match for "{engineerSearch}"</div>
+                        ) : (
+                          filteredEngineers.map(eng => (
+                            <button
+                              key={eng._id}
+                              type="button"
+                              className={`google-search-item-projectmanagement ${formData.engineerId === eng._id ? 'selected-projectmanagement' : ''}`}
+                              onMouseDown={(e)=>{ e.preventDefault(); setFormData({ ...formData, engineerId: eng._id }); setEngineerSearch(eng.fullName || eng.email); setShowEngineerDropdown(false); }}
+                            >
+                              <span className="google-search-item-icon-projectmanagement" style={{ overflow:'hidden', padding:0 }}>
+                                {eng.photoURL && !brokenPhotos.has(eng._id) ? (
+                                  <img src={eng.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} onError={()=> setBrokenPhotos(prev=> new Set(prev).add(eng._id))} />
+                                ) : (
+                                  <span style={{ width:'100%', height:'100%', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:700 }}>{eng.fullName?.charAt(0) || 'E'}</span>
+                                )}
+                              </span>
+                              <span className="google-search-item-text-projectmanagement">
+                                <strong>{eng.fullName || 'Engineer'}</strong>
+                                <small>{eng.email}</small>
+                              </span>
+                              {formData.engineerId === eng._id && <FaCheckCircle className="google-search-item-check-projectmanagement" />}
+                            </button>
+                          ))
+                        )}
+                        {engineerMoreCount > 0 && (
+                          <div className="google-search-more-projectmanagement">{engineerMoreCount} more — type to narrow</div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
+
+                {formData.engineerId && (
+                  <div className="info-box-projectmanagement" style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    {(() => {
+                      const eng = engineers.find(e => e._id === formData.engineerId);
+                      return eng?.photoURL && !brokenPhotos.has(eng._id) ? (
+                        <img src={eng.photoURL} alt="" style={{ width:32, height:32, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={()=> setBrokenPhotos(prev=> new Set(prev).add(eng._id))} />
+                      ) : (
+                        <span style={{ width:32, height:32, borderRadius:'50%', background:'var(--bg-engineer-avatar)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'var(--icon-warning)', flexShrink:0 }}>{eng?.fullName?.charAt(0) || 'E'}</span>
+                      );
+                    })()}
+                    <small>
+                      Selected: <strong>{engineers.find(e => e._id === formData.engineerId)?.fullName || 'Engineer'}</strong>
+                    </small>
+                    <FaCheckCircle style={{ marginLeft:'auto', color:'var(--icon-color)' }} />
+                  </div>
+                )}
 
                 <div className="form-group-projectmanagement">
                   <label>Notes</label>

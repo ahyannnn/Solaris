@@ -2062,7 +2062,6 @@ const MyAssessments = () => {
       <td><div className="skeleton-cell-enad"></div></td>
       <td><div className="skeleton-cell-enad"></div></td>
       <td><div className="skeleton-cell-enad"></div></td>
-      <td><div className="skeleton-cell-enad"></div></td>
     </tr>
   );
 
@@ -2086,7 +2085,6 @@ const MyAssessments = () => {
             <tr>
               <th>Client</th>
               <th>Reference</th>
-              <th>Type</th>
               <th>Status</th>
               <th>Address</th>
               <th>Date</th>
@@ -2241,17 +2239,15 @@ const MyAssessments = () => {
                     <tr>
                       <th>Client</th>
                       <th>Reference</th>
-                      <th>Type</th>
                       <th>Status</th>
                       <th>Address</th>
                       <th>Date</th>
-                      <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                      <th style={{ width: '130px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentRows.map((item) => {
                       const StatusConfig = getStatusConfig(item);
-                      const TypeConfig = getTypeConfig(item.type);
                       const photoKey = `${item.type}-${item.id}`;
                       const initials = ((item.clientName?.[0] || '') + (item.clientLastName?.[0] || '') || '—').toUpperCase();
                       return (
@@ -2276,9 +2272,6 @@ const MyAssessments = () => {
                           </td>
                           <td className="ref-cell-enad" data-label="Reference">
                             <span className="ref-text-enad">{item.bookingReference || item.quotationReference}</span>
-                          </td>
-                          <td className="type-cell-enad" data-label="Type">
-                            <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
                           </td>
                           <td className="status-cell-enad" data-label="Status">
                             <span className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</span>

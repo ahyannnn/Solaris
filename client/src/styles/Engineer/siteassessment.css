@@ -552,10 +552,10 @@ body.dark-mode {
   transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
-/* Column Widths - Fixed */
+/* Column Widths - Fixed (Type removed → 6 cols) */
 .assessments-table-enad th:nth-child(1),
 .assessments-table-enad td:nth-child(1) {
-  width: 14%;
+  width: 16%;
 }
 
 .assessments-table-enad th:nth-child(2),
@@ -565,29 +565,23 @@ body.dark-mode {
 
 .assessments-table-enad th:nth-child(3),
 .assessments-table-enad td:nth-child(3) {
-  width: 12%;
+  width: 14%;
   text-align: center;
 }
 
 .assessments-table-enad th:nth-child(4),
 .assessments-table-enad td:nth-child(4) {
-  width: 14%;
-  text-align: center;
+  width: 24%;
 }
 
 .assessments-table-enad th:nth-child(5),
 .assessments-table-enad td:nth-child(5) {
-  width: 18%;
+  width: 14%;
 }
 
 .assessments-table-enad th:nth-child(6),
 .assessments-table-enad td:nth-child(6) {
-  width: 12%;
-}
-
-.assessments-table-enad th:nth-child(7),
-.assessments-table-enad td:nth-child(7) {
-  width: 12%;
+  width: 14%;
   text-align: center;
 }
 

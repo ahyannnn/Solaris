@@ -920,6 +920,31 @@ body.dark-mode {
 
 .assign-engineer-modal-adminbills_ {
   max-width: 620px;
+  max-height: 72vh;
+  height: auto;
+  overflow: hidden;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.assign-iot-modal-adminbills_ {
+  max-height: 86vh;
+}
+
+.assign-engineer-modal-adminbills_ .modal-body-adminbills_ {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal-overlay-adminbills_ {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px 20px;
 }
 
 .modal-header-adminbills_ {
@@ -1138,6 +1163,177 @@ body.dark-mode {
   transition: color 0.3s ease;
 }
 
+/* Google-style search overlay (not cards) — max 5 overlay, typed search narrows to 20 */
+.google-search-wrap-adminbills_ {
+  position: relative;
+}
+
+.google-search-input-wrap-adminbills_ {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 999px;
+  padding: 0 14px 0 40px;
+  transition: all 200ms ease;
+  box-shadow: var(--shadow-card);
+}
+
+.google-search-input-wrap-adminbills_:focus-within {
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.12), var(--shadow-dropdown);
+}
+
+.google-search-icon-adminbills_ {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.google-search-input-adminbills_ {
+  flex: 1;
+  padding: 12px 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  border-radius: 0 !important;
+}
+
+.google-search-clear-adminbills_ {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  line-height: 1;
+}
+
+.google-search-dropdown-adminbills_ {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border-dropdown);
+  border-radius: 16px;
+  box-shadow: var(--shadow-dropdown);
+  overflow: hidden;
+  z-index: 30;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.google-search-dropdown-up-adminbills_ {
+  top: auto;
+  bottom: calc(100% + 8px);
+  max-height: 200px;
+  z-index: 40;
+}
+
+/* Ensure dropdown not clipped by modal edges */
+.google-search-wrap-adminbills_ {
+  z-index: 1;
+}
+
+.google-search-wrap-adminbills_:focus-within {
+  z-index: 2;
+}
+
+/* IoT dropdown renders in-flow (static) so it can never clip at modal edges */
+.google-search-dropdown-static-adminbills_ {
+  position: static;
+  margin-top: 8px;
+  max-height: 220px;
+  z-index: auto;
+}
+
+.google-search-item-adminbills_ {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 150ms ease;
+}
+
+.google-search-item-adminbills_:hover {
+  background: var(--bg-hover);
+}
+
+.google-search-item-adminbills_.selected-adminbills_ {
+  background: var(--bg-engineer-selected);
+}
+
+.google-search-item-icon-adminbills_ {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-engineer-avatar);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--icon-color);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.google-search-item-text-adminbills_ {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.google-search-item-text-adminbills_ strong {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-search-item-text-adminbills_ small {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-search-item-check-adminbills_ {
+  color: var(--icon-color);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.google-search-empty-adminbills_ {
+  padding: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.google-search-more-adminbills_ {
+  padding: 8px 14px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
 /* Engineer Grid */
 .engineer-grid-adminbills_ {
   display: grid;
@@ -1248,6 +1444,11 @@ body.dark-mode {
   justify-content: flex-end;
   flex-wrap: wrap;
   transition: border-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.assign-engineer-modal-adminbills_ .modal-header-adminbills_ {
+  flex-shrink: 0;
 }
 
 .cancel-btn-adminbills_ {

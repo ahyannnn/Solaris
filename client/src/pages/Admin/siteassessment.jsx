@@ -1,5 +1,5 @@
 // src/pages/Admin/SiteAssessment.jsx - Updated with Shared Assignment Modal
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
@@ -74,6 +74,10 @@ const SiteAssessment = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [siteVisitDate, setSiteVisitDate] = useState('');
   const [siteVisitNotes, setSiteVisitNotes] = useState('');
+  const [engineerSearch, setEngineerSearch] = useState('');
+  const [deviceSearch, setDeviceSearch] = useState('');
+  const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
+  const [showDeviceDropdown, setShowDeviceDropdown] = useState(false);
   const [quotationFile, setQuotationFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -240,8 +244,9 @@ const SiteAssessment = () => {
         if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') return true;
         if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification' && !a.paymentGateway) return true;
         if (a.paymentStatus === 'paid' && a.assessmentStatus === 'scheduled' && !a.assignedEngineerId) return true;
+        // Old flow: engineer assigned but no IoT device — no available device to assign, so not actionable; dot removed per user request (aligns with sidebar badge which only counts paid scheduled no engineer)
         const hasDevice = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
-        if (a.assignedEngineerId && !hasDevice) return true;
+        if (a.assignedEngineerId && !hasDevice) return false;
         return false;
       }).length;
 
@@ -387,12 +392,14 @@ const SiteAssessment = () => {
     setSelectedDeviceId('');
     setSiteVisitDate('');
     setSiteVisitNotes('');
+    setEngineerSearch('');
+    setDeviceSearch('');
     setAssignmentStep('engineer');
     setShowAssignModal(true);
     setOpenDropdownId(null);
   };
 
-  // --- NEW: Handle moving from engineer step to IoT step ---
+  // --- NEW: Handle moving from engineer step to IoT step — IoT overlay bukas agad, bawal mag-clip
   const handleProceedToIoT = () => {
     if (!selectedEngineerId) {
       showToast('Please select an engineer first', 'warning');
@@ -408,7 +415,19 @@ const SiteAssessment = () => {
     }
 
     setAssignmentStep('iot');
+    setShowDeviceDropdown(true);
+    setShowEngineerDropdown(false);
   };
+
+  // Auto-open Engineer dropdown on modal open
+  useEffect(() => {
+    if (showAssignModal && assignmentStep === 'engineer') {
+      setShowEngineerDropdown(true);
+    }
+    if (showAssignModal && assignmentStep === 'iot') {
+      setShowDeviceDropdown(true);
+    }
+  }, [showAssignModal, assignmentStep]);
 
   // --- NEW: Handle going back to engineer step ---
   const handleBackToEngineer = () => {
@@ -612,11 +631,14 @@ const SiteAssessment = () => {
   // Toggle dot only: true when the row actually needs admin action.
   // Free assigned is engineer's turn (marks processing), so no dot.
   // Pre engineer-owned stages (report_draft, device_deployed, data_*) never dot.
+  // Legacy: engineer assigned but no IoT device — dot removed (no available device, aligns with sidebar badge)
   const hasNeedsAction = (item) => {
     if (activeTab === 'free-quotes') {
       return ['pending', 'processing'].includes(item.status);
     }
     if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(item.assessmentStatus)) return false;
+    const hasDevice = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
+    if (item.assignedEngineerId && !hasDevice) return false;
     return getPreAssessmentPriority(item) <= 5;
   };
 
@@ -688,6 +710,26 @@ const SiteAssessment = () => {
   const hasDeviceAssigned = (item) => {
     return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
   };
+
+  // Searchable max 5: filter then slice (5 before search, 20 after search)
+  const filteredEngineers = useMemo(() => {
+    const term = engineerSearch.trim().toLowerCase();
+    const list = term
+      ? engineers.filter(e => `${e.fullName || ''} ${e.email || ''}`.toLowerCase().includes(term))
+      : engineers;
+    return list.slice(0, term ? 20 : 5);
+  }, [engineers, engineerSearch]);
+
+  const filteredDevices = useMemo(() => {
+    const term = deviceSearch.trim().toLowerCase();
+    const list = term
+      ? devices.filter(d => `${d.deviceName || ''} ${d.deviceId || ''}`.toLowerCase().includes(term))
+      : devices;
+    return list.slice(0, term ? 20 : 5);
+  }, [devices, deviceSearch]);
+
+  const engineerMoreCount = Math.max(0, (engineerSearch ? engineers.filter(e => `${e.fullName || ''} ${e.email || ''}`.toLowerCase().includes(engineerSearch.trim().toLowerCase())).length : engineers.length) - filteredEngineers.length);
+  const deviceMoreCount = Math.max(0, (deviceSearch ? devices.filter(d => `${d.deviceName || ''} ${d.deviceId || ''}`.toLowerCase().includes(deviceSearch.trim().toLowerCase())).length : devices.length) - filteredDevices.length);
 
   const closeRefundModal = (refresh = false) => {
     setShowRefundModal(false);
@@ -1183,10 +1225,10 @@ const SiteAssessment = () => {
           </div>
         )}
 
-        {/* --- SHARED ASSIGNMENT MODAL (Two Steps) --- */}
+        {/* --- SHARED ASSIGNMENT MODAL (Combined searchable, max 5) — close only via × button --- */}
         {showAssignModal && selectedItem && (
-          <div className="modal-overlay-adminbills_" onClick={() => setShowAssignModal(false)}>
-            <div className="modal-adminbills_ assign-engineer-modal-adminbills_" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbills_">
+            <div className={`modal-adminbills_ assign-engineer-modal-adminbills_ ${assignmentStep === 'iot' ? 'assign-iot-modal-adminbills_' : ''}`}>
               <div className="modal-header-adminbills_">
                 <h3>
                   {assignmentStep === 'engineer' ? 'Assign Engineer' : 'Assign IoT Device'}
@@ -1195,6 +1237,8 @@ const SiteAssessment = () => {
                   setShowAssignModal(false);
                   setSelectedEngineerId('');
                   setSelectedDeviceId('');
+                  setEngineerSearch('');
+                  setDeviceSearch('');
                   setAssignmentStep('engineer');
                 }}>×</button>
               </div>
@@ -1208,42 +1252,59 @@ const SiteAssessment = () => {
                   <strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong>
                 </div>
 
-                {/* --- STEP 1: Engineer Selection --- */}
+                {/* --- STEP 1: Engineer Google overlay (max 5, mukha) --- */}
                 {assignmentStep === 'engineer' && (
                   <>
                     <div className="form-group-adminbills_">
                       <label>Select Engineer <span className="required-field-adminbills_">*</span></label>
-                      <div className="engineer-grid-adminbills_">
-                        {engineers.length === 0 ? (
-                          <div className="no-engineers-adminbills_">No engineers available</div>
-                        ) : (
-                          engineers.map(eng => (
-                            <div
-                              key={eng._id}
-                              className={`engineer-card-adminbills_ ${selectedEngineerId === eng._id ? 'selected-adminbills_' : ''}`}
-                              onClick={() => setSelectedEngineerId(eng._id)}
-                            >
-                              <div className="engineer-avatar-adminbills_">
-                                {eng.photoURL && !brokenPhotos.has(eng._id) ? (
-                                  <img
-                                    src={eng.photoURL}
-                                    alt=""
-                                    className="engineer-photo-adminbills_"
-                                    onError={() => setBrokenPhotos((prev) => new Set(prev).add(eng._id))}
-                                  />
-                                ) : (
-                                  <span>{eng.fullName?.charAt(0) || 'E'}</span>
-                                )}
-                              </div>
-                              <div className="engineer-info-adminbills_">
-                                <div className="engineer-name-adminbills_">{eng.fullName || 'Engineer'}</div>
-                                <div className="engineer-email-adminbills_">{eng.email}</div>
-                              </div>
-                              {selectedEngineerId === eng._id && (
-                                <div className="engineer-selected-badge-adminbills_"><FaCheckCircle /></div>
-                              )}
-                            </div>
-                          ))
+                      <div className="google-search-wrap-adminbills_" onBlur={(e)=>{ if(!e.currentTarget.contains(e.relatedTarget)) setShowEngineerDropdown(false); }}>
+                        <div className="google-search-input-wrap-adminbills_">
+                          <FaSearch className="google-search-icon-adminbills_" />
+                          <input
+                            type="text"
+                            className="google-search-input-adminbills_"
+                            placeholder={selectedEngineerId ? engineers.find(e=>e._id===selectedEngineerId)?.fullName || 'Search engineer...' : 'Search engineer by name or email...'}
+                            value={engineerSearch}
+                            onChange={(e) => { setEngineerSearch(e.target.value); setShowEngineerDropdown(true); }}
+                            onFocus={() => setShowEngineerDropdown(true)}
+                          />
+                          {selectedEngineerId && (
+                            <button type="button" className="google-search-clear-adminbills_" onClick={()=>{setSelectedEngineerId(''); setEngineerSearch(''); setShowEngineerDropdown(true);}} title="Clear">×</button>
+                          )}
+                        </div>
+                        {showEngineerDropdown && (
+                          <div className="google-search-dropdown-adminbills_">
+                            {engineers.length === 0 ? (
+                              <div className="google-search-empty-adminbills_">No engineers available</div>
+                            ) : filteredEngineers.length === 0 ? (
+                              <div className="google-search-empty-adminbills_">No match for "{engineerSearch}"</div>
+                            ) : (
+                              filteredEngineers.map(eng => (
+                                <button
+                                  key={eng._id}
+                                  type="button"
+                                  className={`google-search-item-adminbills_ ${selectedEngineerId === eng._id ? 'selected-adminbills_' : ''}`}
+                                  onMouseDown={(e)=>{ e.preventDefault(); setSelectedEngineerId(eng._id); setEngineerSearch(eng.fullName || eng.email); setShowEngineerDropdown(false); }}
+                                >
+                                  <span className="google-search-item-icon-adminbills_" style={{ overflow:'hidden', padding:0 }}>
+                                    {eng.photoURL && !brokenPhotos.has(eng._id) ? (
+                                      <img src={eng.photoURL} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} onError={()=> setBrokenPhotos(prev=> new Set(prev).add(eng._id))} />
+                                    ) : (
+                                      <span style={{ width:'100%', height:'100%', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'12px', fontWeight:700 }}>{eng.fullName?.charAt(0) || 'E'}</span>
+                                    )}
+                                  </span>
+                                  <span className="google-search-item-text-adminbills_">
+                                    <strong>{eng.fullName || 'Engineer'}</strong>
+                                    <small>{eng.email}</small>
+                                  </span>
+                                  {selectedEngineerId === eng._id && <FaCheckCircle className="google-search-item-check-adminbills_" />}
+                                </button>
+                              ))
+                            )}
+                            {engineerMoreCount > 0 && (
+                              <div className="google-search-more-adminbills_">{engineerMoreCount} more — type to narrow</div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1284,63 +1345,91 @@ const SiteAssessment = () => {
                       />
                     </div>
 
-                    {/* Show selected engineer summary */}
                     {selectedEngineerId && (
-                      <div className="info-box-adminbills_">
-                        <FaCheckCircle />
+                      <div className="info-box-adminbills_" style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                        {(() => {
+                          const eng = engineers.find(e => e._id === selectedEngineerId);
+                          return eng?.photoURL && !brokenPhotos.has(eng._id) ? (
+                            <img src={eng.photoURL} alt="" style={{ width:32, height:32, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={()=> setBrokenPhotos(prev=> new Set(prev).add(eng._id))} />
+                          ) : (
+                            <span style={{ width:32, height:32, borderRadius:'50%', background:'var(--bg-engineer-avatar)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'var(--icon-warning)', flexShrink:0 }}>{eng?.fullName?.charAt(0) || 'E'}</span>
+                          );
+                        })()}
                         <small>
                           Selected: <strong>{engineers.find(e => e._id === selectedEngineerId)?.fullName || 'Engineer'}</strong>
                           {activeTab !== 'free-quotes' && siteVisitDate && ` • Site Visit: ${formatDate(siteVisitDate)}`}
                         </small>
+                        <FaCheckCircle style={{ marginLeft:'auto', color:'var(--icon-color)' }} />
                       </div>
                     )}
                   </>
                 )}
 
-                {/* --- STEP 2: IoT Device Selection --- */}
+                {/* --- STEP 2: IoT Device — Google overlay, retain engineer assign (engineer already picked, mukha shown) --- */}
                 {assignmentStep === 'iot' && (
                   <>
-                    {/* Show selected engineer summary */}
-                    <div className="info-box-adminbills_" style={{ marginBottom: '16px' }}>
-                      <FaCheckCircle />
+                    <div className="info-box-adminbills_" style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px' }}>
+                      {(() => {
+                        const eng = engineers.find(e => e._id === selectedEngineerId);
+                        return eng?.photoURL && !brokenPhotos.has(eng?._id) ? (
+                          <img src={eng?.photoURL} alt="" style={{ width:32, height:32, borderRadius:'50%', objectFit:'cover', flexShrink:0 }} onError={()=> setBrokenPhotos(prev=> new Set(prev).add(eng._id))} />
+                        ) : (
+                          <span style={{ width:32, height:32, borderRadius:'50%', background:'var(--bg-engineer-avatar)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'var(--icon-warning)', flexShrink:0 }}>{eng?.fullName?.charAt(0) || 'E'}</span>
+                        );
+                      })()}
                       <small>
                         Engineer: <strong>{engineers.find(e => e._id === selectedEngineerId)?.fullName || 'Engineer'}</strong>
-                        {activeTab !== 'free-quotes' && siteVisitDate && ` • Site Visit: ${formatDate(siteVisitDate)}`}
+                        {siteVisitDate && ` • Site Visit: ${formatDate(siteVisitDate)}`}
                       </small>
+                      <FaCheckCircle style={{ marginLeft:'auto', color:'var(--icon-color)' }} />
                     </div>
-
                     <div className="form-group-adminbills_">
                       <label>Select IoT Device <span className="required-field-adminbills_">*</span></label>
-                      <div className="device-grid-adminbills_">
-                        {devices.length === 0 ? (
-                          <div className="no-devices-adminbills_">No available IoT devices</div>
-                        ) : (
-                          devices.map(device => (
-                            <div
-                              key={device._id}
-                              className={`device-card-adminbills_ ${selectedDeviceId === device._id ? 'selected-adminbills_' : ''}`}
-                              onClick={() => setSelectedDeviceId(device._id)}
-                            >
-                              <div className="device-icon-adminbills_">
-                                <FaMicrochip />
-                              </div>
-                              <div className="device-info-adminbills_">
-                                <div className="device-name-adminbills_">{device.deviceName || 'IoT Device'}</div>
-                                <div className="device-id-adminbills_">ID: {device.deviceId}</div>
-                                <div className="device-status-adminbills_">
-                                  <span className="device-available-badge">Available</span>
-                                </div>
-                              </div>
-                              {selectedDeviceId === device._id && (
-                                <div className="device-selected-badge-adminbills_"><FaCheckCircle /></div>
-                              )}
-                            </div>
-                          ))
+                      <div className="google-search-wrap-adminbills_" onBlur={(e)=>{ if(!e.currentTarget.contains(e.relatedTarget)) setShowDeviceDropdown(false); }}>
+                        <div className="google-search-input-wrap-adminbills_">
+                          <FaSearch className="google-search-icon-adminbills_" />
+                          <input
+                            type="text"
+                            className="google-search-input-adminbills_"
+                            placeholder={selectedDeviceId ? devices.find(d=>d._id===selectedDeviceId)?.deviceName || 'Search device...' : 'Search device by name or ID...'}
+                            value={deviceSearch}
+                            onChange={(e) => { setDeviceSearch(e.target.value); setShowDeviceDropdown(true); }}
+                            onFocus={() => setShowDeviceDropdown(true)}
+                          />
+                          {selectedDeviceId && (
+                            <button type="button" className="google-search-clear-adminbills_" onClick={()=>{setSelectedDeviceId(''); setDeviceSearch(''); setShowDeviceDropdown(true);}} title="Clear">×</button>
+                          )}
+                        </div>
+                        {showDeviceDropdown && (
+                          <div className="google-search-dropdown-adminbills_ google-search-dropdown-static-adminbills_">
+                            {devices.length === 0 ? (
+                              <div className="google-search-empty-adminbills_">No available IoT devices</div>
+                            ) : filteredDevices.length === 0 ? (
+                              <div className="google-search-empty-adminbills_">No match for "{deviceSearch}"</div>
+                            ) : (
+                              filteredDevices.map(device => (
+                                <button
+                                  key={device._id}
+                                  type="button"
+                                  className={`google-search-item-adminbills_ ${selectedDeviceId === device._id ? 'selected-adminbills_' : ''}`}
+                                  onMouseDown={(e)=>{ e.preventDefault(); setSelectedDeviceId(device._id); setDeviceSearch(device.deviceName || device.deviceId); setShowDeviceDropdown(false); }}
+                                >
+                                  <span className="google-search-item-icon-adminbills_"><FaMicrochip /></span>
+                                  <span className="google-search-item-text-adminbills_">
+                                    <strong>{device.deviceName || 'IoT Device'}</strong>
+                                    <small>ID: {device.deviceId}</small>
+                                  </span>
+                                  {selectedDeviceId === device._id && <FaCheckCircle className="google-search-item-check-adminbills_" />}
+                                </button>
+                              ))
+                            )}
+                            {deviceMoreCount > 0 && (
+                              <div className="google-search-more-adminbills_">{deviceMoreCount} more — type to narrow</div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
-
-                    {/* Show selected device summary */}
                     {selectedDeviceId && (
                       <div className="info-box-adminbills_">
                         <FaCheckCircle />
@@ -1360,35 +1449,30 @@ const SiteAssessment = () => {
                     setShowAssignModal(false);
                     setSelectedEngineerId('');
                     setSelectedDeviceId('');
+                    setEngineerSearch('');
+                    setDeviceSearch('');
                     setAssignmentStep('engineer');
                   }}
                 >
                   Cancel
                 </button>
-                
                 {assignmentStep === 'engineer' && (
-                  <>
-                    <button
-                      className="assign-btn-adminbills_"
-                      onClick={activeTab === 'free-quotes' ? handleFinalAssign : handleProceedToIoT}
-                      disabled={!selectedEngineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
-                    >
-                      {isSubmitting ? 'Processing...' : 'Assign Engineer'}
-                    </button>
-                  </>
+                  <button
+                    className="assign-btn-adminbills_"
+                    onClick={activeTab === 'free-quotes' ? handleFinalAssign : handleProceedToIoT}
+                    disabled={!selectedEngineerId || isSubmitting || (activeTab !== 'free-quotes' && !siteVisitDate)}
+                  >
+                    {isSubmitting ? 'Processing...' : 'Assign Engineer'}
+                  </button>
                 )}
-
                 {assignmentStep === 'iot' && (
-                  <>
-                  
-                    <button
-                      className="assign-btn-adminbills_"
-                      onClick={handleFinalAssign}
-                      disabled={!selectedDeviceId || isSubmitting}
-                    >
-                      {isSubmitting ? 'Assigning...' : 'Assign IoT Device'}
-                    </button>
-                  </>
+                  <button
+                    className="assign-btn-adminbills_"
+                    onClick={handleFinalAssign}
+                    disabled={!selectedDeviceId || isSubmitting}
+                  >
+                    {isSubmitting ? 'Assigning...' : 'Assign IoT Device'}
+                  </button>
                 )}
               </div>
             </div>

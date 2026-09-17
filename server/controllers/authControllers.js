@@ -3,6 +3,24 @@ const Client = require("../models/Clients.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const AuditLog = require("../models/AuditLog");
+const mongoose = require("mongoose");
+
+const isMongooseBufferingError = (err) =>
+  err?.name === 'MongooseError' && /buffering timed out/i.test(err.message || '');
+
+const handleDbError = (res, error, context) => {
+  if (isMongooseBufferingError(error) || mongoose.connection.readyState !== 1) {
+    console.warn(`${context}: DB unavailable (buffering/disconnected):`, error.message);
+    return res.status(503).json({
+      success: false,
+      message: 'Database temporarily unavailable — please retry in a few seconds.',
+      db: 'disconnected',
+      retryAfter: 3
+    });
+  }
+  console.error(`${context}:`, error);
+  return res.status(500).json({ message: 'Server error', error: error.message });
+};
 
 /*
 =========================
@@ -11,10 +29,13 @@ REGISTER (UPDATED)
 */
 exports.register = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable — please retry in a few seconds.', db: 'disconnected', retryAfter: 3 });
+    }
     const { fullName, contactFirstName, contactMiddleName, contactLastName, email, password } = req.body;
 
     // Check if email exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).maxTimeMS(8000);
     if (existingUser) {
       return res.status(400).json({ message: "Email is already registered" });
     }
@@ -61,11 +82,7 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    return handleDbError(res, error, 'Register error');
   }
 };
 
@@ -76,10 +93,18 @@ LOGIN (UPDATED - email only)
 */
 exports.login = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database temporarily unavailable — please retry in a few seconds.',
+        db: 'disconnected',
+        retryAfter: 3
+      });
+    }
     const { email, password } = req.body;
 
-    // Search by email only
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Search by email only — bounded so it never buffers 10s when Mongo blips
+    const user = await User.findOne({ email: email.toLowerCase() }).maxTimeMS(8000);
 
     if (!user) {
       return res.status(400).json({
@@ -168,18 +193,17 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    return handleDbError(res, error, 'Login error');
   }
 };
 
 exports.checkLockStatus = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable — please retry in a few seconds.', db: 'disconnected', retryAfter: 3 });
+    }
     const { email } = req.params;
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase() }).maxTimeMS(5000);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -200,11 +224,7 @@ exports.checkLockStatus = async (req, res) => {
       lockMinutesRemaining: 0
     });
   } catch (error) {
-    console.error("Check lock status error:", error);
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    return handleDbError(res, error, 'Check lock status error');
   }
 };
 /*
@@ -214,10 +234,13 @@ GOOGLE REGISTER (UPDATED)
 */
 exports.googleRegister = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable — please retry in a few seconds.', db: 'disconnected', retryAfter: 3 });
+    }
     const { fullName, contactFirstName, contactMiddleName, contactLastName, email, googleId, photoURL } = req.body;
 
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email }).maxTimeMS(8000);
 
     if (user) {
       // Block deactivated accounts
@@ -298,11 +321,7 @@ exports.googleRegister = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Google register error:", error);
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    return handleDbError(res, error, 'Google register error');
   }
 };
 
@@ -313,6 +332,9 @@ GOOGLE LOGIN (UPDATED)
 */
 exports.googleLogin = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable — please retry in a few seconds.', db: 'disconnected', retryAfter: 3 });
+    }
     const { fullName, contactFirstName, contactMiddleName, contactLastName, email, googleId, photoURL } = req.body;
 
     if (!email) {
@@ -321,7 +343,7 @@ exports.googleLogin = async (req, res) => {
       });
     }
 
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email }).maxTimeMS(8000);
 
     // isNewUser tells clients to route straight to account setup (like signup)
     let isNewUser = false;
@@ -381,11 +403,7 @@ exports.googleLogin = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Google login error:", error);
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    return handleDbError(res, error, 'Google login error');
   }
 };
 

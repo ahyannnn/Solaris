@@ -254,10 +254,6 @@ body.dark-mode {
   border-color: rgba(243, 156, 18, 0.25);
 }
 
-.service-card-cusset.paid-cusset {
-  border-top: 4px solid #F39C12;
-}
-
 .service-card-header-cusset {
   display: flex;
   justify-content: space-between;

@@ -830,6 +830,31 @@ body.dark-mode {
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
 }
 
+.manage-btn-wrap-enad {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.manage-needs-dot-enad {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: #EF4444;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card, #FFFFFF);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  animation: pulse-manage-dot-enad 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-manage-dot-enad {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.15); opacity: 0.95; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
 /* ============================================
    EMPTY STATE
    ============================================ */

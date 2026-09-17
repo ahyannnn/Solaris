@@ -22,6 +22,8 @@ const {
   getPreAssessmentStats,
   // Engineer functions
   getEngineerAssessments,
+  getEngineerAssessmentActionCounts,
+  getEngineerDeviceActionCounts,
   updateSiteAssessment,
   uploadQuotationPDF,
   uploadSiteImages,
@@ -67,6 +69,8 @@ router.get('/:id/iot-data', verifyToken, engineer, getIoTData);
 
 
 // ============ ENGINEER FUNCTIONS ============
+router.get('/engineer/assessment-action-counts', verifyToken, engineer, getEngineerAssessmentActionCounts);
+router.get('/engineer/device-action-counts', verifyToken, engineer, getEngineerDeviceActionCounts);
 router.get('/engineer/my-assessments', verifyToken, engineer, getEngineerAssessments);
 router.put('/:id/update-assessment', verifyToken, engineer, updateSiteAssessment);
 router.post('/:id/upload-quotation', verifyToken, engineer, upload.single('quotation'), uploadQuotationPDF);

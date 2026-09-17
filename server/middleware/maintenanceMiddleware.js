@@ -1,4 +1,5 @@
 // middleware/maintenanceMiddleware.js
+const mongoose = require('mongoose');
 const Maintenance = require('../models/Maintenance');
 
 const maintenanceMiddleware = async (req, res, next) => {
@@ -7,9 +8,15 @@ const maintenanceMiddleware = async (req, res, next) => {
     if (req.path.startsWith('/api/maintenance')) {
       return next();
     }
+
+    // ✅ DB not connected yet — fail-open so login/health don't buffer 10s per request
+    // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+    if (mongoose.connection.readyState !== 1) {
+      return next();
+    }
     
     // Get maintenance settings
-    let maintenance = await Maintenance.findOne();
+    let maintenance = await Maintenance.findOne().maxTimeMS(5000);
     
     // If no maintenance record exists, create default
     if (!maintenance) {
@@ -148,7 +155,12 @@ const maintenanceMiddleware = async (req, res, next) => {
     `);
     
   } catch (error) {
-    console.error('Maintenance middleware error:', error);
+    // Don't block requests when DB is unreachable — just log and continue
+    if (error.name === 'MongooseError' || error.message?.includes('buffering timed out')) {
+      console.warn('Maintenance middleware: DB unavailable, bypassing check:', error.message);
+    } else {
+      console.error('Maintenance middleware error:', error);
+    }
     next();
   }
 };

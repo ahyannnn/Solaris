@@ -100,6 +100,10 @@ const Dashboard = () => {
   const [projectActionCount, setProjectActionCount] = useState(0);
   // Engineer sidebar badge: my projects waiting on my update (start/update).
   const [engineerProjectCount, setEngineerProjectCount] = useState(0);
+  // Engineer sidebar badge: my assessments waiting on my action (scheduled/site_visit/report_draft + pending/assigned/processing).
+  const [engineerAssessmentCount, setEngineerAssessmentCount] = useState(0);
+  // Engineer sidebar badge: device data strictly retrievable (data_collecting + has readings)
+  const [engineerDeviceCount, setEngineerDeviceCount] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -327,6 +331,39 @@ const Dashboard = () => {
       setEngineerProjectCount(response.data?.total || 0);
     } catch (error) {
       console.error('Error fetching engineer action counts:', error);
+    }
+  }, []);
+
+  // Fetch engineer assessment action counts (engineer only):
+  // my assessments waiting on my action (scheduled/site_visit/report_draft + pending/assigned/processing).
+  const fetchEngineerAssessmentCounts = useCallback(async () => {
+    if (userRoleRef.current !== 'engineer') return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/assessment-action-counts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEngineerAssessmentCount(response.data?.total || 0);
+    } catch (error) {
+      console.error('Error fetching engineer assessment action counts:', error);
+    }
+  }, []);
+
+  // Fetch engineer device action counts (engineer only): strictly retrievable (data_collecting + has readings)
+  const fetchEngineerDeviceCounts = useCallback(async () => {
+    if (userRoleRef.current !== 'engineer') return;
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/device-action-counts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEngineerDeviceCount(response.data?.total || 0);
+    } catch (error) {
+      console.error('Error fetching engineer device action counts:', error);
     }
   }, []);
 
@@ -814,7 +851,7 @@ const Dashboard = () => {
           isDropdown: false,
           items: [
             { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
-            { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
+            { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment', actionCountKey: 'engineerAssessments' },
             { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project', actionCountKey: 'engineerProjects' },
           ]
         },
@@ -824,7 +861,7 @@ const Dashboard = () => {
           icon: <FaTasks />,
           isDropdown: false,
           items: [
-            { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
+            { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device', actionCountKey: 'engineerDevices' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/engineer/schedule' },
           ]
         },
@@ -1019,11 +1056,17 @@ const Dashboard = () => {
 
     // Pre-assessment / free-quote / invoice / bank-transfer / project changes
     // affect the admin sidebar badges — refresh instantly instead of waiting.
-    // Project changes also refresh the engineer badge.
+    // Project changes also refresh the engineer badge. Sensor data changes refresh device badge.
     const handleTableChanged = (data) => {
-      if (['pre-assessments', 'free-quotes', 'bank-transfers', 'solar-invoices', 'projects'].includes(data?.entity)) {
+      if (['pre-assessments', 'free-quotes', 'bank-transfers', 'solar-invoices', 'projects', 'sensor-data'].includes(data?.entity)) {
         fetchSidebarActionCounts();
         fetchEngineerActionCounts();
+        fetchEngineerAssessmentCounts();
+        fetchEngineerDeviceCounts();
+      }
+      // iot-data / sensor-data ingest also affects device badge
+      if (data?.entity === 'sensor-data' || data?.entity === 'iot-data') {
+        fetchEngineerDeviceCounts();
       }
     };
     socketService.on('table:changed', handleTableChanged);
@@ -1035,7 +1078,7 @@ const Dashboard = () => {
       socketService.off('notification:deleted', handleNotificationDeleted);
       socketService.off('table:changed', handleTableChanged);
     };
-  }, [showNotificationToast, fetchActionAlerts, fetchSidebarActionCounts, fetchEngineerActionCounts]);
+  }, [showNotificationToast, fetchActionAlerts, fetchSidebarActionCounts, fetchEngineerActionCounts, fetchEngineerAssessmentCounts, fetchEngineerDeviceCounts]);
 
   // Poll for unread count as fallback
   useEffect(() => {
@@ -1071,6 +1114,24 @@ const Dashboard = () => {
     const interval = setInterval(fetchEngineerActionCounts, 30000);
     return () => clearInterval(interval);
   }, [initialized, userRole, fetchEngineerActionCounts]);
+
+  // Poll engineer assessment action counts as fallback (engineer only)
+  useEffect(() => {
+    if (!initialized || userRole !== 'engineer') return;
+
+    fetchEngineerAssessmentCounts();
+    const interval = setInterval(fetchEngineerAssessmentCounts, 30000);
+    return () => clearInterval(interval);
+  }, [initialized, userRole, fetchEngineerAssessmentCounts]);
+
+  // Poll engineer device action counts as fallback (engineer only) — strictly retrievable
+  useEffect(() => {
+    if (!initialized || userRole !== 'engineer') return;
+
+    fetchEngineerDeviceCounts();
+    const interval = setInterval(fetchEngineerDeviceCounts, 30000);
+    return () => clearInterval(interval);
+  }, [initialized, userRole, fetchEngineerDeviceCounts]);
 
   // Refresh profile photo (Google users get theirs at login via storage;
   // customers refresh from clients/me, staff from auth/me — so an admin-set
@@ -1419,6 +1480,12 @@ const Dashboard = () => {
                       )}
                       {item.actionCountKey === 'engineerProjects' && engineerProjectCount > 0 && (
                         <span className="notification-badge-sidebar">{engineerProjectCount > 99 ? '99+' : engineerProjectCount}</span>
+                      )}
+                      {item.actionCountKey === 'engineerAssessments' && engineerAssessmentCount > 0 && (
+                        <span className="notification-badge-sidebar">{engineerAssessmentCount > 99 ? '99+' : engineerAssessmentCount}</span>
+                      )}
+                      {item.actionCountKey === 'engineerDevices' && engineerDeviceCount > 0 && (
+                        <span className="notification-badge-sidebar">{engineerDeviceCount > 99 ? '99+' : engineerDeviceCount}</span>
                       )}
                       {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
                         (item.path === '/app/customer/billing' && billingPending)) && (

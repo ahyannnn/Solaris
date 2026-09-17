@@ -563,8 +563,7 @@ exports.getActionCounts = async (req, res) => {
       invoicesToVerify,
       bankWaiting,
       projApprove,
-      projAssign,
-      projRecordProgress
+      projAssign
     ] = await Promise.all([
       PreAssessment.countDocuments({
         $or: [
@@ -609,15 +608,13 @@ exports.getActionCounts = async (req, res) => {
       Project.countDocuments({
         status: { $in: ['approved', 'initial_paid'] },
         assignedEngineerId: null
-      }),
-      // 13. Projects: initial_paid waiting for progress payment recording
-      Project.countDocuments({ status: 'initial_paid' })
-      // NOTE: no toComplete bucket — Mark as Completed is the engineer's
-      // job, not the admin's, so in_progress is excluded from admin counts.
+      })
+      // NOTE: no toComplete / recordProgress bucket — initial_paid excluded per product decision (2 counts only)
+      // and Mark as Completed is the engineer's job, not the admin's, so in_progress is excluded.
     ]);
 
     const billingTotal = invoicesToSend + invoicesToVerify + bankWaiting;
-    const projectsTotal = projApprove + projAssign + projRecordProgress;
+    const projectsTotal = projApprove + projAssign;
 
     res.json({
       success: true,
@@ -633,7 +630,6 @@ exports.getActionCounts = async (req, res) => {
       projects: {
         approve: projApprove,
         assignEngineer: projAssign,
-        recordProgress: projRecordProgress,
         total: projectsTotal
       }
     });

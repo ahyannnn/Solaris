@@ -409,9 +409,12 @@ const EngineerProject = () => {
       return { type: 'view', label: 'View', icon: <FaEye />, isFinal: false };
     }
 
-    // WAITING FOR PAYMENT → NO BUTTON
-    if (status === 'quoted' || status === 'approved') {
+    // WAITING FOR PAYMENT → NO BUTTON for quoted; approved shows Check (view-only)
+    if (status === 'quoted') {
       return { type: 'none', label: null, icon: null, isFinal: false };
+    }
+    if (status === 'approved') {
+      return { type: 'view', label: 'Check', icon: <FaClock />, isFinal: false };
     }
 
     // Ready to start → Start Installation
@@ -612,6 +615,18 @@ const EngineerProject = () => {
     return 2;
   };
 
+  // Explicit table sorting: Start → Update → Check(in_progress waiting) → Approved → Completed → quoted
+  const getSortRank = (project) => {
+    const action = getProjectAction(project);
+    const priority = getRowPriority(project);
+    if (action.type === 'start') return 0; // Start (initial_paid ready)
+    if (action.type === 'update' && priority === 0) return 1; // Update + dot (in_progress act now)
+    if (action.type === 'update' && priority === 1) return 2; // Check (in_progress/progress_paid waiting payment)
+    if (action.type === 'view' && action.label === 'Check') return 3; // Approved Check
+    if (action.type === 'view' && action.label === 'View') return 4; // Completed View
+    return 5; // quoted / none
+  };
+
   const filteredProjects = projects
     .filter(project => filter === 'all' || project.status === filter)
     .filter(project => {
@@ -622,8 +637,15 @@ const EngineerProject = () => {
         project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
         project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
     })
-    // Stable sort: priority groups first, API order (newest) kept within groups.
-    .sort((a, b) => getRowPriority(a) - getRowPriority(b));
+    // Sorted: Start → Update → Check → Completed → quoted, newest first within each rank
+    .sort((a, b) => {
+      const ra = getSortRank(a);
+      const rb = getSortRank(b);
+      if (ra !== rb) return ra - rb;
+      const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
+      const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
+      return bTime - aTime;
+    });
 
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -876,10 +898,10 @@ const EngineerProject = () => {
                           <div className="actions-cell">
                             {isViewOnly && (
                               <button
-                                className="action-btn view"
+                                className={`action-btn ${action.label === 'Check' ? 'check' : 'view'}`}
                                 onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
                               >
-                                <FaEye /> View
+                                {action.icon} {action.label}
                               </button>
                             )}
 
@@ -897,27 +919,30 @@ const EngineerProject = () => {
                                 >
                                   <FaTools /> Start
                                 </button>
-                                {getRowPriority(project) === 0 && <span className="action-needs-dot" title="Needs update"></span>}
+                                <span className="action-needs-dot" title="Needs start"></span>
                               </span>
                             )}
 
-                            {isUpdate && (
-                              <span className="action-btn-wrap">
-                                <button
-                                  className="action-btn update"
-                                  onClick={() => {
-                                    setSelectedProject(project);
-                                    setProgressForm({ installationNotes: project.installationNotes || '' });
-                                    setNewPhotoFiles([]);
-                                    setNewPhotoPreviews([]);
-                                    setShowProgressModal(true);
-                                }}
-                              >
-                                <FaCheckCircle /> Update
-                              </button>
-                                {getRowPriority(project) === 0 && <span className="action-needs-dot" title="Needs update"></span>}
-                              </span>
-                            )}
+                            {isUpdate && (() => {
+                              const needsDot = getRowPriority(project) === 0;
+                              return (
+                                <span className="action-btn-wrap">
+                                  <button
+                                    className={`action-btn ${needsDot ? 'update' : 'check'}`}
+                                    onClick={() => {
+                                      setSelectedProject(project);
+                                      setProgressForm({ installationNotes: project.installationNotes || '' });
+                                      setNewPhotoFiles([]);
+                                      setNewPhotoPreviews([]);
+                                      setShowProgressModal(true);
+                                  }}
+                                  >
+                                    {needsDot ? <FaCheckCircle /> : <FaClock />} {needsDot ? 'Update' : 'Check'}
+                                  </button>
+                                  {needsDot && <span className="action-needs-dot" title="Needs update"></span>}
+                                </span>
+                              );
+                            })()}
 
                             {noAction && (
                               <span className="action-placeholder">—</span>

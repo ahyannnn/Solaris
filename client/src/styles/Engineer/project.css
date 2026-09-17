@@ -26,6 +26,8 @@
   --bg-existing-photos: rgba(255, 255, 255, 0.5);
   --bg-waiting-payment: rgba(255, 255, 255, 0.5);
   --bg-photo-item: rgba(255, 255, 255, 0.5);
+  --btn-check-bg: #F59E0B;
+  --btn-check-hover: #D97706;
   --text-primary: #17212B;
   --text-secondary: #667085;
   --text-muted: #98A2B3;
@@ -200,6 +202,8 @@ body.dark-mode {
   --btn-start-hover: #E67E22;
   --btn-update-bg: #10B981;
   --btn-update-hover: #059669;
+  --btn-check-bg: #F59E0B;
+  --btn-check-hover: #D97706;
   --btn-update-progress-bg: #F39C12;
   --btn-update-progress-hover: #E67E22;
   --btn-upload-photos-bg: rgba(255, 255, 255, 0.05);
@@ -1055,6 +1059,16 @@ body.dark-mode {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+.action-btn.check {
+  background: var(--btn-check-bg);
+  color: #FFFFFF;
+}
+
+.action-btn.check:hover {
+  background: var(--btn-check-hover);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
 .action-placeholder {
   color: var(--action-placeholder-color);
   font-size: 13px;
@@ -1063,8 +1077,8 @@ body.dark-mode {
 }
 
 /* ============================================
-   DISABLED START BUTTON
-   ============================================ */
+    DISABLED START BUTTON
+    ============================================ */
 .action-btn.start.disabled,
 .action-btn.start:disabled {
   background: var(--text-muted);

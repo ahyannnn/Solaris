@@ -19,8 +19,16 @@ const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // If DB is disconnected, don't buffer — trust the JWT and let route handle DB check.
+    // This prevents 2s/10s buffering timeout on every authenticated request during blip.
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      req.user = { id: decoded.id, role: decoded.role, email: decoded.email };
+      return next();
+    }
+
     // Immediately invalidate tokens of deactivated users
-    const dbUser = await User.findById(decoded.id).select('isActive role email');
+    const dbUser = await User.findById(decoded.id).select('isActive role email').maxTimeMS(5000);
     if (!dbUser) {
       return res.status(401).json({
         success: false,
@@ -42,6 +50,11 @@ const protect = async (req, res, next) => {
 
     next();
   } catch (error) {
+    // DB buffering / timeout → 503 so client can retry, not 401
+    if (error?.name === 'MongooseError' && /buffering timed out/i.test(error.message || '')) {
+      console.warn('Auth middleware: DB buffering — returning 503');
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable — please retry.', db: 'disconnected', retryAfter: 3 });
+    }
     console.error('Auth middleware error:', error);
     
     if (error.name === 'JsonWebTokenError') {

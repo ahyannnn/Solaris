@@ -1792,6 +1792,92 @@ exports.getEngineerAssessments = async (req, res) => {
   }
 };
 
+// @desc    Count engineer's assessments waiting on my action (sidebar badge)
+// @route   GET /api/pre-assessments/engineer/assessment-action-counts
+// @access  Private (Engineer)
+// Counts actionable items (mirrors siteassessment.jsx dashboardStats inProgress + pending):
+// FreeQuote pending/assigned/processing + PreAssessment scheduled/site_visit_ongoing/device_deployed/data_collecting/data_analyzing/report_draft.
+exports.getEngineerAssessmentActionCounts = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const FreeQuote = require('../models/FreeQuote');
+    const [freeQuoteNeeds, preAssessmentNeeds] = await Promise.all([
+      FreeQuote.countDocuments({
+        assignedEngineerId: engineerId,
+        status: { $in: ['pending', 'assigned', 'processing'] }
+      }),
+      PreAssessment.countDocuments({
+        assignedEngineerId: engineerId,
+        assessmentStatus: { $in: ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft'] }
+      })
+    ]);
+    res.json({
+      success: true,
+      total: freeQuoteNeeds + preAssessmentNeeds,
+      breakdown: {
+        freeQuotes: freeQuoteNeeds,
+        preAssessments: preAssessmentNeeds
+      }
+    });
+  } catch (error) {
+    console.error('Get engineer assessment action counts error:', error);
+    res.status(500).json({ message: 'Failed to fetch assessment action counts', error: error.message });
+  }
+};
+
+// @desc    Count engineer's devices waiting on retrieve (sidebar badge — strictly retrievable)
+// @route   GET /api/pre-assessments/engineer/device-action-counts
+// @access  Private (Engineer)
+// Strictly retrievable = assessmentStatus data_collecting + has at least 1 SensorData reading (so Retrieve button enabled)
+exports.getEngineerDeviceActionCounts = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const assessments = await PreAssessment.find({
+      assignedEngineerId: engineerId,
+      assessmentStatus: 'data_collecting',
+      iotDeviceId: { $ne: null }
+    }).populate('iotDeviceId', 'deviceId').lean();
+
+    if (assessments.length === 0) {
+      return res.json({ success: true, total: 0, retrievableIds: [] });
+    }
+
+    const SensorData = require('../models/SensorData');
+    const map = new Map(); // deviceId -> assessmentId
+    const deviceIds = [];
+    assessments.forEach(a => {
+      const devId = a.iotDeviceId?.deviceId;
+      if (devId) {
+        deviceIds.push(devId);
+        map.set(devId, String(a._id));
+      }
+    });
+
+    if (deviceIds.length === 0) {
+      return res.json({ success: true, total: 0, retrievableIds: [] });
+    }
+
+    // Distinct deviceIds that have at least one reading
+    const agg = await SensorData.aggregate([
+      { $match: { deviceId: { $in: deviceIds } } },
+      { $group: { _id: '$deviceId' } }
+    ]);
+
+    const deviceIdsWithData = new Set(agg.map(r => r._id));
+    const retrievableIds = [];
+    deviceIds.forEach(devId => {
+      if (deviceIdsWithData.has(devId)) {
+        retrievableIds.push(map.get(devId));
+      }
+    });
+
+    res.json({ success: true, total: retrievableIds.length, retrievableIds });
+  } catch (error) {
+    console.error('Get engineer device action counts error:', error);
+    res.status(500).json({ message: 'Failed to fetch device action counts', error: error.message });
+  }
+};
+
 // @desc    Start site assessment (Engineer)
 // @route   POST /api/pre-assessments/:id/start-assessment
 // @access  Private (Engineer)

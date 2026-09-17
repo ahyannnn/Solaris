@@ -75,30 +75,89 @@ dns.setServers([
 // MONGODB CONNECTION
 // ======================================================
 
-const connectMongo = async () => {
-  try {
-    await mongoose.connect(
-      process.env.MONGO_URI,
-      {
-        family: 4,
+const maskUri = (uri) => {
+  if (!uri) return 'undefined';
+  try { return uri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:***@'); } catch { return '***'; }
+};
+
+const connectMongo = async (retries = 3) => {
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.error("MONGO_URI is not set in .env — DB will stay disconnected");
+    return;
+  }
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Prevent parallel connect attempts from mongoose buffering queue
+      if (mongoose.connection.readyState === 1) {
+        console.log("MongoDB already connected");
+        return;
       }
-    );
-
-    console.log(
-      "MongoDB connected successfully"
-    );
-  } catch (error) {
-    console.error(
-      "MongoDB connection error:",
-      error.message
-    );
-
-    console.log(
-      "Attempted URI:",
-      process.env.MONGO_URI
-    );
+      if (mongoose.connection.readyState === 2) {
+        console.log("MongoDB already connecting, waiting...");
+        await new Promise(r => setTimeout(r, 2000));
+        if (mongoose.connection.readyState === 1) return;
+      }
+      console.log(`MongoDB connecting... attempt ${attempt}/${retries} to ${maskUri(uri)}`);
+      await mongoose.connect(uri, {
+        family: 4,
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        heartbeatFrequencyMS: 10000,
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        retryWrites: true,
+        retryReads: true,
+        autoCreate: false,
+      });
+      console.log("MongoDB connected successfully");
+      return;
+    } catch (error) {
+      console.error(`MongoDB connection error (attempt ${attempt}/${retries}):`, error.message);
+      if (error.message?.includes('ETIMEDOUT') || error.message?.includes('ENOTFOUND')) {
+        console.error("→ Likely cause: Atlas IP whitelist or firewall blocking 27017.");
+        console.error("  Check Atlas → Network Access → IP Access List → Add 0.0.0.0/0 (dev) or your current IP.");
+        console.error("  Also check Windows Firewall / Antivirus / VPN blocking outbound port 27017, and run: Test-NetConnection -ComputerName solaris.bkcmsks.mongodb.net -Port 27017");
+      }
+      console.log("Masked URI:", maskUri(uri));
+      if (attempt < retries) {
+        const delay = 3000 * attempt;
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        console.error("All MongoDB connection attempts failed — API will return 503/degraded until DB is reachable. /api/health will show db: disconnected");
+      }
+    }
   }
 };
+
+// Immediate listeners for state changes (useful even before connectMongo resolves)
+mongoose.connection.on('connected', () => console.log('Mongoose: connected'));
+mongoose.connection.on('disconnected', () => {
+  console.warn('Mongoose: disconnected — scheduling reconnect in 5s');
+  setTimeout(() => {
+    if (mongoose.connection.readyState === 0) {
+      console.log('Mongoose: reconnect triggered by disconnect event');
+      connectMongo(2).catch(e => console.error('Reconnect after disconnect failed:', e.message));
+    }
+  }, 5000);
+});
+mongoose.connection.on('error', (err) => console.error('Mongoose error:', err.message));
+mongoose.connection.on('reconnected', () => console.log('Mongoose: reconnected'));
+
+// Buffering: keep default 10s but also add fast 503 guard middleware below.
+// 2s was too aggressive and caused login to throw buffering error even during brief blip (2s < reconnect 3s).
+// Instead keep 10s buffer and return 503 immediately via middleware when readyState !==1.
+mongoose.set('bufferTimeoutMS', 10000);
+
+// Auto-retry DB in background if initial 3 attempts failed (e.g. Atlas was paused) — also covers later drops
+setInterval(() => {
+  if (mongoose.connection.readyState === 0) { // disconnected
+    console.log('Mongoose: auto-retry connect (interval)...');
+    connectMongo(1).catch(()=>{});
+  }
+}, 8000);
 
 connectMongo();
 
@@ -238,6 +297,28 @@ app.get(
 const { optionalAuth } = require("./middleware/authMiddleware");
 
 app.use(optionalAuth);
+
+// DB availability guard — fail fast with 503 instead of buffering 10s when Mongo is down.
+// Login and other DB-dependent routes get immediate Retry-After instead of Mongoose buffering timeout.
+app.use((req, res, next) => {
+  // Allow health and maintenance status to answer degraded instead of 503
+  if (req.path === '/api/health' || req.path === '/api/maintenance/status') return next();
+  // Only guard API routes — static assets / pages don't need DB
+  if (!req.path.startsWith('/api/')) return next();
+  if (mongoose.connection.readyState !== 1) {
+    // During transient connecting (readyState=2), let it buffer briefly via mongoose (up to 10s)
+    // Only immediate 503 when fully disconnected/disconnecting.
+    if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database temporarily unavailable — please retry in a few seconds.',
+        db: 'disconnected',
+        retryAfter: 3
+      });
+    }
+  }
+  next();
+});
 
 app.use(
   maintenanceMiddleware

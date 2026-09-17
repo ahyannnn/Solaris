@@ -841,6 +841,17 @@ const MyAssessments = () => {
     cancelled: { label: 'Cancelled', color: 'cancelled-enad' }
   };
 
+  // Engineer: needs-action = items waiting on my action (same as sidebar badge)
+  // Free Quote: pending/assigned/processing | Pre-Assessment: scheduled/site_visit/device/data/report_draft
+  const isAssessmentNeedsAction = (item) => {
+    if (!item) return false;
+    if (item.type === 'free_quote') {
+      return ['pending', 'assigned', 'processing'].includes(item.status);
+    }
+    const s = item.status || item.assessmentStatus;
+    return ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft'].includes(s);
+  };
+
   const ROOF_CONDITIONS = [
     { value: 'excellent', label: 'Excellent' },
     { value: 'good', label: 'Good' },
@@ -1963,6 +1974,16 @@ const MyAssessments = () => {
         return status === activeStatusFilter;
       });
     }
+    // Sort: needs-action first (red dot rows on top), then newest first
+    filtered.sort((a, b) => {
+      const aNeeds = isAssessmentNeedsAction(a) ? 1 : 0;
+      const bNeeds = isAssessmentNeedsAction(b) ? 1 : 0;
+      if (bNeeds !== aNeeds) return bNeeds - aNeeds;
+      const aTime = new Date(a.preferredDate || a.requestedAt || a.createdAt || a.bookedAt || 0).getTime();
+      const bTime = new Date(b.preferredDate || b.requestedAt || b.createdAt || b.bookedAt || 0).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+      return 0;
+    });
     setFilteredAssessments(filtered);
     setCurrentPage(1);
   }, [allAssessments, searchTerm, activeTypeFilter, activeStatusFilter]);
@@ -2272,9 +2293,12 @@ const MyAssessments = () => {
                           </td>
                           <td data-label="Actions" style={{ textAlign: 'center' }}>
                             <div className="actions-cell-enad">
-                              <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>
-                                View
-                              </button>
+                              <span className="manage-btn-wrap-enad">
+                                <button className="view-btn-enad" onClick={(e) => { e.stopPropagation(); handleSelectItem(item); }}>
+                                  Manage
+                                </button>
+                                {isAssessmentNeedsAction(item) && <span className="manage-needs-dot-enad" title="Needs action"></span>}
+                              </span>
                             </div>
                           </td>
                         </tr>

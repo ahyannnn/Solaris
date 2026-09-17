@@ -45,6 +45,7 @@ const IoTDevice = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [hasStats, setHasStats] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
+  const [retrievableIds, setRetrievableIds] = useState(() => new Set());
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -129,10 +130,32 @@ const IoTDevice = () => {
     return null;
   };
 
+  // Strictly retrievable assessmentIds (sidebar badge source — data_collecting + has at least 1 reading)
+  const fetchRetrievableIds = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      const resp = await axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/device-action-counts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRetrievableIds(new Set(resp.data?.retrievableIds || []));
+    } catch (e) {
+      // silent — table still works without dots
+    }
+  };
+
   // ==================== DATA FETCHING ====================
   useEffect(() => {
     fetchMyDevices();
+    fetchRetrievableIds();
   }, [currentPage]);
+
+  // Keep retrievable dots in sync when sensor data lands or device retrieved
+  useEffect(() => {
+    if (!devices.length) return;
+    const t = setInterval(fetchRetrievableIds, 30000);
+    return () => clearInterval(t);
+  }, [devices.length]);
 
   const fetchMyDevices = async () => {
     try {
@@ -325,6 +348,7 @@ const IoTDevice = () => {
       setSensorData([]);
       setHasStats(false);
       fetchMyDevices();
+      fetchRetrievableIds();
 
     } catch (error) {
       console.error('Error retrieving device:', error);
@@ -488,12 +512,17 @@ const IoTDevice = () => {
                           <div className="ref-cell-iotdevicead">{device.bookingReference}</div>
                         </td>
                         <td data-label="Action" style={{ textAlign: 'center' }}>
-                          <button
-                            className="view-btn-iotdevicead"
-                            onClick={() => handleViewDeviceData(device)}
-                          >
-                            <FaEye /> View Data
-                          </button>
+                          <span className="view-data-btn-wrap-iotdevicead">
+                            <button
+                              className="view-btn-iotdevicead"
+                              onClick={() => handleViewDeviceData(device)}
+                            >
+                              <FaEye /> View Data
+                            </button>
+                            {retrievableIds.has(String(device.assessmentId)) && (
+                              <span className="view-data-needs-dot-iotdevicead" title="Ready to retrieve"></span>
+                            )}
+                          </span>
                         </td>
                       </tr>
                     );

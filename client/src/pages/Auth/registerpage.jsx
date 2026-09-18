@@ -290,15 +290,32 @@ const RegisterPage = () => {
   };
 
   const handleCodeChange = (index, value) => {
-    if (value.length <= 1) {
-      const newCode = [...code];
-      newCode[index] = value;
-      setCode(newCode);
-      if (value && index < 5) {
-        const nextInput = document.getElementById(`code-${index + 1}`);
-        if (nextInput) nextInput.focus();
-      }
+    // Digits only — letters/symbols are rejected
+    const digit = value.replace(/\D/g, '').slice(-1);
+    // Allow clearing the box even when input is empty
+    if (!digit && value !== '') return;
+    const newCode = [...code];
+    newCode[index] = digit;
+    setCode(newCode);
+    if (digit && index < 5) {
+      const nextInput = document.getElementById(`code-${index + 1}`);
+      if (nextInput) nextInput.focus();
     }
+  };
+
+  // Paste full 6-digit code from email — fills all boxes from focused box
+  const handleCodePaste = (index, e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    const newCode = [...code];
+    for (let i = 0; i < pasted.length && index + i < 6; i++) {
+      newCode[index + i] = pasted[i];
+    }
+    setCode(newCode);
+    const focusIdx = Math.min(index + pasted.length, 5);
+    const target = document.getElementById(`code-${focusIdx}`);
+    if (target) target.focus();
   };
 
   const handleKeyDown = (index, e) => {
@@ -1038,11 +1055,14 @@ const RegisterPage = () => {
                           key={index}
                           id={`code-${index}`}
                           type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
                           maxLength="1"
                           className={`new-register-code-input ${errors.code ? 'new-register-input-error' : ''}`}
                           value={digit}
                           onChange={(e) => handleCodeChange(index, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(index, e)}
+                          onPaste={(e) => handleCodePaste(index, e)}
                           disabled={isLoading}
                         />
                       ))}

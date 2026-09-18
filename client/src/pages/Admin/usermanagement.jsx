@@ -851,8 +851,7 @@ const UserManagement = () => {
       { label: 'View Details', action: () => handleOpenViewModal(user), color: 'primary' },
       { label: 'Edit User', action: () => handleOpenEditModal(user), color: 'primary' },
       { label: 'Reset Password', action: () => handleOpenPasswordModal(user), color: 'primary' },
-      { label: user.isActive ? 'Deactivate' : 'Activate', action: () => handleOpenStatusModal(user, user.isActive ? 'deactivate' : 'activate'), color: 'primary' },
-      { label: 'Delete User', action: () => handleDeleteClick(user), color: 'primary' }
+      { label: user.isActive ? 'Deactivate' : 'Activate', action: () => handleOpenStatusModal(user, user.isActive ? 'deactivate' : 'activate'), color: 'primary' }
     ];
     return actions;
   };
@@ -1321,8 +1320,8 @@ const UserManagement = () => {
                 )}
                 {(modalMode === 'edit' || modalMode === 'create') && (
                   <form className="user-form-usermanagement">
-                    {/* Photo picker (edit mode — uploads on Update) */}
-                    {modalMode === 'edit' && (
+                    {/* Photo picker (edit mode — uploads on Update; staff only, hidden for customers) */}
+                    {modalMode === 'edit' && selectedUser?.role !== 'user' && (
                       <div className="photo-picker-usermanagement">
                         <div
                           className="photo-avatar-usermanagement"

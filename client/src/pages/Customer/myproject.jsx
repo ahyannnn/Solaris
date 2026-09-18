@@ -657,7 +657,7 @@ const MyProject = () => {
 
                 {/* Next Step */}
                 <div className="cuspro-next-card">
-                  <h3>Next Step</h3>
+                  {selectedProject.status !== 'completed' && <h3>Next Step</h3>}
                   <div className="cuspro-next-content">
                     <h4>{nextStep.message}</h4>
                     <p>{nextStep.action}</p>

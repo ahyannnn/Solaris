@@ -106,9 +106,10 @@ exports.login = async (req, res) => {
     // Search by email only — bounded so it never buffers 10s when Mongo blips
     const user = await User.findOne({ email: email.toLowerCase() }).maxTimeMS(8000);
 
+    // Generic message — never reveal whether the email exists (anti-enumeration)
     if (!user) {
       return res.status(400).json({
-        message: "Email not registered"
+        message: "Invalid email or password"
       });
     }
 
@@ -154,7 +155,7 @@ exports.login = async (req, res) => {
       
       const attemptsRemaining = 5 - user.loginAttempts;
       return res.status(400).json({
-        message: `Invalid password. ${attemptsRemaining} attempt(s) remaining.`,
+        message: `Invalid email or password. ${attemptsRemaining} attempt(s) remaining.`,
         attemptsRemaining: attemptsRemaining,
         isLocked: false
       });
@@ -205,8 +206,13 @@ exports.checkLockStatus = async (req, res) => {
     const { email } = req.params;
     const user = await User.findOne({ email: email.toLowerCase() }).maxTimeMS(5000);
 
+    // Neutral response for unknown emails — never reveal account existence
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.json({
+        isLocked: false,
+        attemptsRemaining: 5,
+        lockMinutesRemaining: 0
+      });
     }
 
     if (user.isLocked()) {
@@ -427,6 +433,14 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found"
+      });
+    }
+
+    // New password must differ from the previous one
+    const isSameAsPrevious = await bcrypt.compare(password, user.passwordHash);
+    if (isSameAsPrevious) {
+      return res.status(400).json({
+        message: "New password must be different from your previous password"
       });
     }
 

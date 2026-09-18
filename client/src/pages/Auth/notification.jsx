@@ -53,6 +53,8 @@ const Notifications = () => {
     return localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
   };
 
+
+
   // Mobile back button target (role dashboard)
   const getDashboardPath = () => {
     const role = getUserRole();
@@ -546,9 +548,9 @@ const Notifications = () => {
               className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
               onClick={() => setFilter('unread')}
             >
-              <FaCircle className="filter-unread-dot" />
+              {unreadCount > 0 && <FaCircle className="filter-unread-dot" />}
               Unread
-              <span className="filter-count unread-count">{unreadCount}</span>
+              <span className={`filter-count ${unreadCount > 0 ? 'unread-count' : ''}`}>{unreadCount}</span>
             </button>
             <button
               className={`filter-tab ${filter === 'read' ? 'active' : ''}`}

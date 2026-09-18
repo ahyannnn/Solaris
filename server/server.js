@@ -48,20 +48,6 @@ app.use((req, res, next) => {
 });
 
 // ======================================================
-// RATE LIMITING
-// ======================================================
-// Global lenient cap so rapid-fire scripts can't exhaust the
-// server. Runs before auth/maintenance so floods are rejected
-// cheaply. Health checks and IoT ingest are skipped here —
-// they have their own rules (see rateLimitMiddleware).
-const {
-  apiLimiter,
-  sensorLimiter,
-} = require("./middleware/rateLimitMiddleware");
-
-app.use(apiLimiter);
-
-// ======================================================
 // DNS
 // ======================================================
 
@@ -346,17 +332,13 @@ app.use(
   jobPortalRoutes
 );
 
-// Generous device cap (mounted before handlers so it takes
-// precedence; apiLimiter skips these paths).
 app.use(
   "/api/sensor",
-  sensorLimiter,
   iotRoutes
 );
 
 app.use(
   "/api/iot-data",
-  sensorLimiter,
   iotDataRoutes
 );
 

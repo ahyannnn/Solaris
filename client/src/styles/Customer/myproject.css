@@ -508,6 +508,25 @@ body.dark-mode {
   margin-bottom: 1rem;
 }
 
+/* Full-width gallery below the two columns — keeps both columns
+   balanced whether the project has photos or not */
+.cuspro-photos-card-full {
+  margin-bottom: 1.5rem;
+}
+
+.cuspro-photos-grid-full {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/* Paid date under the amount in the right-column schedule */
+.cuspro-payment-mini-date {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 .cuspro-photo-item {
   position: relative;
   aspect-ratio: 1;

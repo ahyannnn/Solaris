@@ -78,6 +78,9 @@ const SiteAssessment = () => {
   const [deviceSearch, setDeviceSearch] = useState('');
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
   const [showDeviceDropdown, setShowDeviceDropdown] = useState(false);
+  // In-flight lock: blocks double-clicks within the same frame before
+  // isSubmitting state re-renders and disables the buttons.
+  const assigningRef = useRef(false);
   const [quotationFile, setQuotationFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -387,6 +390,7 @@ const SiteAssessment = () => {
 
   // --- NEW: Handle opening the shared assignment modal ---
   const handleOpenAssignModal = (item) => {
+    if (isSubmitting || assigningRef.current) return;
     setSelectedItem(item);
     setSelectedEngineerId('');
     setSelectedDeviceId('');
@@ -401,6 +405,7 @@ const SiteAssessment = () => {
 
   // --- NEW: Handle moving from engineer step to IoT step — IoT overlay bukas agad, bawal mag-clip
   const handleProceedToIoT = () => {
+    if (isSubmitting || assigningRef.current) return;
     if (!selectedEngineerId) {
       showToast('Please select an engineer first', 'warning');
       return;
@@ -436,8 +441,9 @@ const SiteAssessment = () => {
 
   // --- MODIFIED: Handle final assignment submission ---
   const handleFinalAssign = async () => {
-    if (!selectedItem) return;
-    
+    if (!selectedItem || isSubmitting || assigningRef.current) return;
+    assigningRef.current = true;
+
     // Validate engineer
     if (!selectedEngineerId) {
       showToast('Please select an engineer', 'warning');
@@ -520,6 +526,7 @@ const SiteAssessment = () => {
       showToast(error.response?.data?.message || 'Failed to complete assignment', 'error');
     } finally {
       setIsSubmitting(false);
+      assigningRef.current = false;
     }
   };
 
@@ -1138,6 +1145,7 @@ const SiteAssessment = () => {
                               className="action-dropdown-toggle-adminbills_"
                               data-action-toggle
                               ref={el => buttonRefs.current[item._id] = el}
+                              disabled={isSubmitting}
                               onClick={(e) => handleDropdownClick(e, item._id, idx >= arr.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-adminbills_ ${isOpen ? 'open-adminbills_' : ''}`} />
@@ -1233,7 +1241,8 @@ const SiteAssessment = () => {
                 <h3>
                   {assignmentStep === 'engineer' ? 'Assign Engineer' : 'Assign IoT Device'}
                 </h3>
-                <button className="modal-close-adminbills_" onClick={() => {
+                <button className="modal-close-adminbills_" disabled={isSubmitting} onClick={() => {
+                  if (isSubmitting || assigningRef.current) return;
                   setShowAssignModal(false);
                   setSelectedEngineerId('');
                   setSelectedDeviceId('');
@@ -1443,9 +1452,11 @@ const SiteAssessment = () => {
                 )}
               </div>
               <div className="modal-actions-adminbills_">
-                <button 
-                  className="cancel-btn-adminbills_" 
+                <button
+                  className="cancel-btn-adminbills_"
+                  disabled={isSubmitting}
                   onClick={() => {
+                    if (isSubmitting || assigningRef.current) return;
                     setShowAssignModal(false);
                     setSelectedEngineerId('');
                     setSelectedDeviceId('');

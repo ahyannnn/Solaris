@@ -566,58 +566,35 @@ const MyProject = () => {
                   </div>
                 </div>
 
-                {/* Site Photos */}
-                {sitePhotos.length > 0 && (
-                  <div className="cuspro-photos-card">
-                    <h3><FaImages /> Site Photos ({sitePhotos.length})</h3>
-                    <p className="cuspro-photos-subtitle">Installation progress photos from your engineer</p>
-                    <div className="cuspro-photos-grid">
-                      {sitePhotos.slice(0, 6).map((photo, idx) => (
-                        <div key={idx} className="cuspro-photo-item" onClick={() => openPhotoModal(sitePhotos, idx)}>
-                          <img src={photo} alt={`Site progress ${idx + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
-                          <div className="cuspro-photo-overlay"><FaCamera /></div>
-                        </div>
-                      ))}
-                      {sitePhotos.length > 6 && (
-                        <div className="cuspro-photo-item more-photos" onClick={() => openPhotoModal(sitePhotos, 0)}>
-                          <div className="more-photos-overlay"><FaImages /><span>+{sitePhotos.length - 6} more</span></div>
-                        </div>
-                      )}
+                {/* Payment Schedule */}
+                {selectedProject.paymentSchedule?.length > 0 && (
+                  <div className="cuspro-details-card">
+                    <h3>Payment Schedule</h3>
+                    <div className="cuspro-payment-mini">
+                      {selectedProject.paymentSchedule.filter((payment) => !isStageLocked(selectedProject, payment.type)).map((payment) => {
+                        const status = getPaymentStatus(selectedProject, payment.type);
+                        const paymentLabels = {
+                          'full': 'Full (100%)',
+                          'initial': selectedProject.paymentPreference === 'fifty_fifty' ? 'Initial (50%)' : 'Initial (30%)',
+                          'progress': 'Progress (60%)',
+                          'final': selectedProject.paymentPreference === 'fifty_fifty' ? 'Final (50%)' : 'Final (10%)'
+                        };
+                        return (
+                          <div key={payment.type} className="cuspro-payment-mini-item">
+                            <div>
+                              <span>{paymentLabels[payment.type] || payment.type}</span>
+                              <strong>{formatCurrency(payment.amount)}</strong>
+                              {status.status === 'paid' && payment.paidAt && (
+                                <small className="cuspro-payment-mini-date">Paid {formatDate(payment.paidAt)}</small>
+                              )}
+                            </div>
+                            <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <button className="cuspro-view-all-btn" onClick={() => openPhotoModal(sitePhotos, 0)}>
-                      <FaImages /> View All Photos ({sitePhotos.length})
-                    </button>
                   </div>
                 )}
-
-                {/* Next Step */}
-                <div className="cuspro-next-card">
-                  <h3>Next Step</h3>
-                  <div className="cuspro-next-content">
-                    <h4>{nextStep.message}</h4>
-                    <p>{nextStep.action}</p>
-                  </div>
-                  <div className="cuspro-next-actions">
-                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference !== 'full' && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Initial Payment</button>
-                    )}
-                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference === 'full' && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Full Payment</button>
-                    )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'progress') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
-                    )}
-                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'fifty_fifty') && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
-                    )}
-                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
-                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
-                    )}
-                    {selectedProject.status === 'in_progress' && selectedProject.paymentPreference === 'full' && (
-                      <button className="cuspro-btn-primary" disabled>Installation in Progress</button>
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Right Column */}
@@ -677,8 +654,61 @@ const MyProject = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Next Step */}
+                <div className="cuspro-next-card">
+                  <h3>Next Step</h3>
+                  <div className="cuspro-next-content">
+                    <h4>{nextStep.message}</h4>
+                    <p>{nextStep.action}</p>
+                  </div>
+                  <div className="cuspro-next-actions">
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'initial') && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference !== 'full' && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Initial Payment</button>
+                    )}
+                    {selectedProject.status === 'approved' && !isPaymentPaid(selectedProject, 'full') && selectedProject.paymentPreference === 'full' && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Full Payment</button>
+                    )}
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'progress') && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'progress') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Progress Payment</button>
+                    )}
+                    {(selectedProject.status === 'in_progress' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'fifty_fifty') && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
+                    )}
+                    {(selectedProject.status === 'progress_paid' && !isPaymentPaid(selectedProject, 'final') && !isStageLocked(selectedProject, 'final') && selectedProject.paymentPreference === 'thirty_sixty_ten') && (
+                      <button className="cuspro-btn-primary" onClick={() => navigate('/app/customer/billing')}>Make Final Payment</button>
+                    )}
+                    {selectedProject.status === 'in_progress' && selectedProject.paymentPreference === 'full' && (
+                      <button className="cuspro-btn-primary" disabled>Installation in Progress</button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Site Photos — full width so both columns stay balanced with or without photos */}
+            {sitePhotos.length > 0 && (
+              <div className="cuspro-photos-card cuspro-photos-card-full">
+                <h3><FaImages /> Site Photos ({sitePhotos.length})</h3>
+                <p className="cuspro-photos-subtitle">Installation progress photos from your engineer</p>
+                <div className="cuspro-photos-grid cuspro-photos-grid-full">
+                  {sitePhotos.slice(0, 6).map((photo, idx) => (
+                    <div key={idx} className="cuspro-photo-item" onClick={() => openPhotoModal(sitePhotos, idx)}>
+                      <img src={photo} alt={`Site progress ${idx + 1}`} onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                      <div className="cuspro-photo-overlay"><FaCamera /></div>
+                    </div>
+                  ))}
+                  {sitePhotos.length > 6 && (
+                    <div className="cuspro-photo-item more-photos" onClick={() => openPhotoModal(sitePhotos, 0)}>
+                      <div className="more-photos-overlay"><FaImages /><span>+{sitePhotos.length - 6} more</span></div>
+                    </div>
+                  )}
+                </div>
+                <button className="cuspro-view-all-btn" onClick={() => openPhotoModal(sitePhotos, 0)}>
+                  <FaImages /> View All Photos ({sitePhotos.length})
+                </button>
+              </div>
+            )}
 
             {/* Tabs */}
             <div className="cuspro-tab-nav">
@@ -691,43 +721,18 @@ const MyProject = () => {
             <div className="cuspro-tab-content">
               {activeTab === 'overview' && (
                 <div className="cuspro-overview">
-                  <div className="cuspro-overview-grid">
-                    <div className="cuspro-overview-card">
-                      <h4>Installation Timeline</h4>
-                      <div className="cuspro-timeline-mini">
-                        {getTimelineItems(selectedProject).slice(0, 4).map((item) => (
-                          <div key={item.key} className={`cuspro-timeline-mini-item ${item.completed ? 'completed' : ''}`}>
-                            <span className="cuspro-milestone-dot"></span>
-                            <div>
-                              <p>{item.title}</p>
-                              <small>{item.completed ? formatDate(item.date) : 'Pending'}</small>
-                            </div>
+                  <div className="cuspro-overview-card">
+                    <h4>Installation Timeline</h4>
+                    <div className="cuspro-timeline-mini">
+                      {getTimelineItems(selectedProject).slice(0, 4).map((item) => (
+                        <div key={item.key} className={`cuspro-timeline-mini-item ${item.completed ? 'completed' : ''}`}>
+                          <span className="cuspro-milestone-dot"></span>
+                          <div>
+                            <p>{item.title}</p>
+                            <small>{item.completed ? formatDate(item.date) : 'Pending'}</small>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="cuspro-overview-card">
-                      <h4>Payment Summary</h4>
-                      <div className="cuspro-payment-mini">
-                        {selectedProject.paymentSchedule?.filter((payment) => !isStageLocked(selectedProject, payment.type)).map((payment) => {
-                          const status = getPaymentStatus(selectedProject, payment.type);
-                          const paymentLabels = {
-                            'full': 'Full (100%)',
-                            'initial': selectedProject.paymentPreference === 'fifty_fifty' ? 'Initial (50%)' : 'Initial (30%)',
-                            'progress': 'Progress (60%)',
-                            'final': selectedProject.paymentPreference === 'fifty_fifty' ? 'Final (50%)' : 'Final (10%)'
-                          };
-                          return (
-                            <div key={payment.type} className="cuspro-payment-mini-item">
-                              <div>
-                                <span>{paymentLabels[payment.type] || payment.type}</span>
-                                <strong>{formatCurrency(payment.amount)}</strong>
-                              </div>
-                              <span className={`cuspro-payment-mini-status ${status.status}`}>{status.text}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

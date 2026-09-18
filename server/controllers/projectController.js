@@ -1060,6 +1060,14 @@ const engineerModalLocked = (project) => {
 
   if (status === 'quoted' || status === 'approved') return true;
 
+  // Retention gate (thirty_sixty_ten): final 10% invoice issued but unpaid
+  // → lock until the customer pays it. Only applies after the unlock update
+  // already happened (invoiceNumber set), so no deadlock.
+  if (pref === 'thirty_sixty_ten') {
+    const finalItem = (project.paymentSchedule || []).find(p => p.type === 'final');
+    if (finalItem?.invoiceNumber && !engineerSchedPaid(project, 'final')) return true;
+  }
+
   if (status === 'in_progress') {
     if (pref === 'fifty_fifty') return !engineerSchedPaid(project, 'final');
     // thirty_sixty_ten: locked only while the 60% progress payment is unpaid.

@@ -131,6 +131,9 @@ const AdminBilling = () => {
     projectPayments: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // In-flight lock: blocks double-clicks within the same frame before
+  // isSubmitting state re-renders and disables the buttons.
+  const verifyingRef = useRef(false);
   const [modalMode, setModalMode] = useState('view');
 
   // Debounced search term
@@ -863,7 +866,8 @@ const AdminBilling = () => {
 
   // ============ VERIFICATION HANDLERS ============
   const handleVerifyPayment = async (verified) => {
-    if (!selectedAssessment) return;
+    if (!selectedAssessment || isSubmitting || verifyingRef.current) return;
+    verifyingRef.current = true;
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -890,6 +894,7 @@ const AdminBilling = () => {
       showToast('Failed to verify payment', 'error');
     } finally {
       setIsSubmitting(false);
+      verifyingRef.current = false;
     }
   };
 
@@ -946,7 +951,8 @@ const AdminBilling = () => {
   };
 
   const handleVerifySolarPayment = async (verified, invoice) => {
-    if (!invoice) return;
+    if (!invoice || isSubmitting || verifyingRef.current) return;
+    verifyingRef.current = true;
 
     setIsSubmitting(true);
     try {
@@ -985,6 +991,7 @@ const AdminBilling = () => {
       showToast('Failed to verify payment', 'error');
     } finally {
       setIsSubmitting(false);
+      verifyingRef.current = false;
     }
   };
 
@@ -1752,6 +1759,7 @@ const AdminBilling = () => {
                                     className="action-dropdown-toggle-adminbilling"
                                     data-action-toggle
                                     ref={el => buttonRefs.current[assessment._id] = el}
+                                    disabled={isSubmitting}
                                     onClick={(e) => handleDropdownClick(e, assessment._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
@@ -1893,6 +1901,7 @@ const AdminBilling = () => {
                                     className="action-dropdown-toggle-adminbilling"
                                     data-action-toggle
                                     ref={el => buttonRefs.current[invoice._id] = el}
+                                    disabled={isSubmitting}
                                     onClick={(e) => handleDropdownClick(e, invoice._id, idx >= arr.length - 2)}
                                   >
                                     Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
@@ -2019,6 +2028,7 @@ const AdminBilling = () => {
                                   className="action-dropdown-toggle-adminbilling"
                                   data-action-toggle
                                   ref={el => buttonRefs.current[payment._id] = el}
+                                  disabled={isSubmitting}
                                   onClick={(e) => handleDropdownClick(e, payment._id, idx >= arr.length - 2)}
                                 >
                                   Action <FaChevronDown className={`dropdown-arrow-adminbilling ${isOpen ? 'open' : ''}`} />
@@ -2185,7 +2195,7 @@ const AdminBilling = () => {
 
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
-          <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
+          <div className="modal-overlay-adminbilling" onClick={() => { if (isSubmitting || verifyingRef.current) return; setShowVerifyModal(false); }}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Payment</h3>
               <div className="modal-body-adminbilling">
@@ -2209,9 +2219,9 @@ const AdminBilling = () => {
                 </div>
               </div>
               <div className="modal-actions-adminbilling">
-                <button className="btn-cancel-adminbilling" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="btn-reject-adminbilling" onClick={() => handleVerifyPayment(false)}>Reject</button>
-                <button className="btn-verify-adminbilling" onClick={() => handleVerifyPayment(true)}>Verify</button>
+                <button className="btn-cancel-adminbilling" disabled={isSubmitting} onClick={() => { if (isSubmitting || verifyingRef.current) return; setShowVerifyModal(false); }}>Cancel</button>
+                <button className="btn-reject-adminbilling" disabled={isSubmitting} onClick={() => handleVerifyPayment(false)}>{isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : 'Reject'}</button>
+                <button className="btn-verify-adminbilling" disabled={isSubmitting} onClick={() => handleVerifyPayment(true)}>{isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : 'Verify'}</button>
               </div>
             </div>
           </div>
@@ -2255,7 +2265,7 @@ const AdminBilling = () => {
 
         {/* Solar Verify Modal */}
         {showSolarVerifyModal && selectedInvoice && (
-          <div className="modal-overlay-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>
+          <div className="modal-overlay-adminbilling" onClick={() => { if (isSubmitting || verifyingRef.current) return; setShowSolarVerifyModal(false); }}>
             <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Invoice Payment</h3>
               <div className="modal-body-adminbilling">
@@ -2272,9 +2282,9 @@ const AdminBilling = () => {
                 </div>
               </div>
               <div className="modal-actions-adminbilling">
-                <button className="btn-cancel-adminbilling" onClick={() => setShowSolarVerifyModal(false)}>Cancel</button>
-                <button className="btn-reject-adminbilling" onClick={() => handleVerifySolarPayment(false, selectedInvoice)}>Reject</button>
-                <button className="btn-verify-adminbilling" onClick={() => handleVerifySolarPayment(true, selectedInvoice)}>Verify</button>
+                <button className="btn-cancel-adminbilling" disabled={isSubmitting} onClick={() => { if (isSubmitting || verifyingRef.current) return; setShowSolarVerifyModal(false); }}>Cancel</button>
+                <button className="btn-reject-adminbilling" disabled={isSubmitting} onClick={() => handleVerifySolarPayment(false, selectedInvoice)}>{isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : 'Reject'}</button>
+                <button className="btn-verify-adminbilling" disabled={isSubmitting} onClick={() => handleVerifySolarPayment(true, selectedInvoice)}>{isSubmitting ? <FaSpinner className="spinning-adminbilling" /> : 'Verify'}</button>
               </div>
             </div>
           </div>

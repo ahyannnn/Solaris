@@ -842,14 +842,14 @@ const MyAssessments = () => {
   };
 
   // Engineer: needs-action = items waiting on my action (same as sidebar badge)
-  // Free Quote: pending/assigned/processing | Pre-Assessment: scheduled/site_visit/device/data/report_draft
+  // Free Quote: pending/assigned/processing | Pre-Assessment: scheduled/site_visit/device/data (report_draft excluded — no action left)
   const isAssessmentNeedsAction = (item) => {
     if (!item) return false;
     if (item.type === 'free_quote') {
       return ['pending', 'assigned', 'processing'].includes(item.status);
     }
     const s = item.status || item.assessmentStatus;
-    return ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft'].includes(s);
+    return ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(s);
   };
 
   const ROOF_CONDITIONS = [

@@ -1004,7 +1004,7 @@ const Quotation = () => {
 
   const handlePaymentReferenceChange = (e) => {
     saveScrollPosition();
-    setPaymentReference(e.target.value);
+    setPaymentReference(e.target.value.replace(/\D/g, '').slice(0, 13));
     setTimeout(restoreScrollPosition, 0);
   };
 
@@ -2180,13 +2180,16 @@ const Quotation = () => {
                           <div className="billing-customer-action-cell">
                             {isPending ? (
                               !isPayNowButtonDisabled ? (
-                                <button
-                                  className="billing-customer-paynow-btn"
-                                  onClick={() => handlePayNowClick(item)}
-                                  disabled={isSubmitting}
-                                >
-                                  Pay Now
-                                </button>
+                                <span className="billing-customer-paynow-wrap">
+                                  <button
+                                    className="billing-customer-paynow-btn"
+                                    onClick={() => handlePayNowClick(item)}
+                                    disabled={isSubmitting}
+                                  >
+                                    Pay Now
+                                  </button>
+                                  <span className="billing-customer-paynow-dot" title="Payment due"></span>
+                                </span>
                               ) : (
                                 <span className="billing-customer-no-action">—</span>
                               )
@@ -2429,13 +2432,16 @@ const Quotation = () => {
                       <div className="billing-customer-mobile-card-footer">
                         {isPending && !isPayNowButtonDisabled ? (
                           <>
-                            <button
-                              className="billing-customer-paynow-btn"
-                              onClick={() => handlePayNowClick(item)}
-                              disabled={isSubmitting}
-                            >
-                              <FaWallet className="billing-customer-btn-icon" /> Pay Now
-                            </button>
+                            <span className="billing-customer-paynow-wrap">
+                              <button
+                                className="billing-customer-paynow-btn"
+                                onClick={() => handlePayNowClick(item)}
+                                disabled={isSubmitting}
+                              >
+                                <FaWallet className="billing-customer-btn-icon" /> Pay Now
+                              </button>
+                              <span className="billing-customer-paynow-dot" title="Payment due"></span>
+                            </span>
                             <button
                               className="billing-customer-mobile-secondary-btn"
                               onClick={() => handleViewDetails(item)}
@@ -2553,9 +2559,11 @@ const Quotation = () => {
                       <label>Reference Number</label>
                       <input
                         type="text"
+                        inputMode="numeric"
+                        maxLength={13}
                         value={paymentReference}
                         onChange={handlePaymentReferenceChange}
-                        placeholder="Enter reference"
+                        placeholder="Enter 13-digit reference"
                       />
                     </div>
                     <div className="billing-customer-form-group">
@@ -2732,8 +2740,11 @@ const Quotation = () => {
                       <label>Reference</label>
                       <input
                         type="text"
+                        inputMode="numeric"
+                        maxLength={13}
                         value={paymentReference}
                         onChange={handlePaymentReferenceChange}
+                        placeholder="Enter 13-digit reference"
                       />
                     </div>
                     <div className="billing-customer-form-group">

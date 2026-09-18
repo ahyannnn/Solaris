@@ -95,6 +95,9 @@ const ProjectManagement = () => {
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [engineerSearch, setEngineerSearch] = useState('');
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
+  // In-flight lock: blocks double-clicks within the same frame before
+  // isSubmitting state re-renders and disables the buttons.
+  const assigningRef = useRef(false);
   const [stats, setStats] = useState({
     total: 0, quoted: 0, approved: 0, inProgress: 0, completed: 0, cancelled: 0, totalRevenue: 0
   });
@@ -345,7 +348,8 @@ const ProjectManagement = () => {
   };
 
   const updateProjectStatus = async () => {
-    if (!selectedProject || !formData.newStatus) return;
+    if (!selectedProject || !formData.newStatus || isSubmitting || assigningRef.current) return;
+    assigningRef.current = true;
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -385,11 +389,13 @@ const ProjectManagement = () => {
       showToast('Failed to update status', 'error');
     } finally {
       setIsSubmitting(false);
+      assigningRef.current = false;
     }
   };
 
   const assignEngineer = async () => {
-    if (!selectedProject || !formData.engineerId) return;
+    if (!selectedProject || !formData.engineerId || isSubmitting || assigningRef.current) return;
+    assigningRef.current = true;
 
     if (selectedProject.assignedEngineerId) {
       showToast('This project already has an assigned engineer', 'error');
@@ -398,6 +404,7 @@ const ProjectManagement = () => {
       setFormData({ ...formData, engineerId: '', assignNotes: '' });
       setEngineerSearch('');
       setOpenDropdownId(null);
+      assigningRef.current = false;
       return;
     }
 
@@ -422,6 +429,7 @@ const ProjectManagement = () => {
       showToast('Failed to assign engineer', 'error');
     } finally {
       setIsSubmitting(false);
+      assigningRef.current = false;
     }
   };
 
@@ -894,6 +902,7 @@ const ProjectManagement = () => {
                               className="action-dropdown-toggle-projectmanagement"
                               data-action-toggle
                               ref={el => buttonRefs.current[project._id] = el}
+                              disabled={isSubmitting}
                               onClick={(e) => handleDropdownClick(e, project._id, idx >= pagedProjects.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-projectmanagement ${isOpen ? 'open' : ''}`} />
@@ -1142,7 +1151,7 @@ const ProjectManagement = () => {
 
         {/* Assign Engineer Modal */}
         {showAssignModal && selectedProject && (
-          <div className="modal-overlay-projectmanagement" onClick={() => setShowAssignModal(false)}>
+          <div className="modal-overlay-projectmanagement" onClick={() => { if (isSubmitting || assigningRef.current) return; setShowAssignModal(false); }}>
             <div className="modal-projectmanagement assign-engineer-modal-projectmanagement" onClick={e => e.stopPropagation()}>
               <div className="modal-header-projectmanagement">
                 <h3>Assign Engineer</h3>
@@ -1237,7 +1246,9 @@ const ProjectManagement = () => {
               <div className="modal-actions-projectmanagement">
                 <button
                   className="cancel-btn-projectmanagement"
+                  disabled={isSubmitting}
                   onClick={() => {
+                    if (isSubmitting || assigningRef.current) return;
                     setShowAssignModal(false);
                     setSelectedProject(null);
                     setAutoOpenAssignModal(false);
@@ -1259,7 +1270,7 @@ const ProjectManagement = () => {
 
         {/* Status Modal - FIXED */}
         {showStatusModal && selectedProject && (
-          <div className="modal-overlay-projectmanagement" onClick={() => setShowStatusModal(false)}>
+          <div className="modal-overlay-projectmanagement" onClick={() => { if (isSubmitting || assigningRef.current) return; setShowStatusModal(false); }}>
             <div className="modal-projectmanagement" onClick={e => e.stopPropagation()}>
               <div className="modal-header-projectmanagement">
                 <h3>Update Status</h3>
@@ -1301,7 +1312,13 @@ const ProjectManagement = () => {
                 </div>
               </div>
               <div className="modal-actions-projectmanagement">
-                <button className="cancel-btn-projectmanagement" onClick={() => setShowStatusModal(false)}>Cancel</button>
+                <button
+                  className="cancel-btn-projectmanagement"
+                  disabled={isSubmitting}
+                  onClick={() => { if (isSubmitting || assigningRef.current) return; setShowStatusModal(false); }}
+                >
+                  Cancel
+                </button>
                 <button
                   className="approve-btn-projectmanagement"
                   onClick={updateProjectStatus}

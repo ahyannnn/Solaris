@@ -1795,8 +1795,8 @@ exports.getEngineerAssessments = async (req, res) => {
 // @desc    Count engineer's assessments waiting on my action (sidebar badge)
 // @route   GET /api/pre-assessments/engineer/assessment-action-counts
 // @access  Private (Engineer)
-// Counts actionable items (mirrors siteassessment.jsx dashboardStats inProgress + pending):
-// FreeQuote pending/assigned/processing + PreAssessment scheduled/site_visit_ongoing/device_deployed/data_collecting/data_analyzing/report_draft.
+// Counts actionable items (mirrors siteassessment.jsx isAssessmentNeedsAction):
+// FreeQuote pending/assigned/processing + PreAssessment scheduled/site_visit_ongoing/device_deployed/data_collecting/data_analyzing (report_draft excluded).
 exports.getEngineerAssessmentActionCounts = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -1808,7 +1808,7 @@ exports.getEngineerAssessmentActionCounts = async (req, res) => {
       }),
       PreAssessment.countDocuments({
         assignedEngineerId: engineerId,
-        assessmentStatus: { $in: ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft'] }
+        assessmentStatus: { $in: ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing'] }
       })
     ]);
     res.json({

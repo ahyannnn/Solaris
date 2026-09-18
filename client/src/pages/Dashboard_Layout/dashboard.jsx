@@ -100,7 +100,7 @@ const Dashboard = () => {
   const [projectActionCount, setProjectActionCount] = useState(0);
   // Engineer sidebar badge: my projects waiting on my update (start/update).
   const [engineerProjectCount, setEngineerProjectCount] = useState(0);
-  // Engineer sidebar badge: my assessments waiting on my action (scheduled/site_visit/report_draft + pending/assigned/processing).
+  // Engineer sidebar badge: my assessments waiting on my action (scheduled/site_visit/device/data + pending/assigned/processing, report_draft excluded).
   const [engineerAssessmentCount, setEngineerAssessmentCount] = useState(0);
   // Engineer sidebar badge: device data strictly retrievable (data_collecting + has readings)
   const [engineerDeviceCount, setEngineerDeviceCount] = useState(0);
@@ -335,7 +335,7 @@ const Dashboard = () => {
   }, []);
 
   // Fetch engineer assessment action counts (engineer only):
-  // my assessments waiting on my action (scheduled/site_visit/report_draft + pending/assigned/processing).
+  // my assessments waiting on my action (scheduled/site_visit/device/data + pending/assigned/processing, report_draft excluded).
   const fetchEngineerAssessmentCounts = useCallback(async () => {
     if (userRoleRef.current !== 'engineer') return;
     try {

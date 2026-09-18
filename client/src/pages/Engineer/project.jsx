@@ -307,6 +307,21 @@ const EngineerProject = () => {
   };
 
   /**
+   * Retention gate (thirty_sixty_ten): once the final 10% invoice is issued
+   * (item.invoiceNumber set by ensureNextInvoice on the post-progress update)
+   * but still unpaid, lock further updates until the customer pays it.
+   * Checked BEFORE other rules so it can't be bypassed. No deadlock: the
+   * lock only applies after the unlock update already happened (invoice
+   * exists), so the final payment can always be opened first.
+   */
+  const isRetentionPending = (project) => {
+    if (!project || project.paymentPreference !== 'thirty_sixty_ten') return false;
+    const finalItem = project.paymentSchedule?.find(p => p.type === 'final');
+    if (!finalItem || !finalItem.invoiceNumber) return false;
+    return finalItem.status !== 'paid';
+  };
+
+  /**
    * Check if project is waiting for payment (used in modal to lock the submit button)
    *
    * RULE: locked only while waiting for the CURRENT-stage payment.
@@ -314,11 +329,17 @@ const EngineerProject = () => {
    * upload 60%-completion photos + update WITHOUT waiting for the final 10%.
    * (Before, the back-to-back 60 -> 10 steps deadlocked: proof photos needed
    * for the final payment couldn't be uploaded until the final was paid.)
+   * EXCEPTION: once the final 10% (retention) invoice is issued but unpaid,
+   * lock again until the customer pays it (see isRetentionPending).
    */
   const isWaitingForPayment = (project) => {
     const { status, paymentPreference } = project;
 
     if (status === 'quoted' || status === 'approved') {
+      return true;
+    }
+
+    if (isRetentionPending(project)) {
       return true;
     }
 

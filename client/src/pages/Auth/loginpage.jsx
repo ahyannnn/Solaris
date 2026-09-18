@@ -1,6 +1,6 @@
 // pages/Auth/LoginPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaClock } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaClock, FaArrowLeft } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
@@ -267,10 +267,25 @@ const LoginPage = () => {
       }
 
     } catch (err) {
-      setErrors({ general: err.message });
+      setErrors({ general: getFriendlyErrorMessage(err) });
       setIsLoading(false);
       setIsNavigating(false);
     }
+  };
+
+  // Network errors surface raw browser text (e.g. "Failed to fetch") —
+  // too technical for customers. On localhost keep it (useful for devs);
+  // when deployed, show a friendly message instead.
+  const getFriendlyErrorMessage = (err) => {
+    const raw = err?.message || 'Login failed';
+    const isNetworkError =
+      err instanceof TypeError ||
+      /failed to fetch|network|load failed/i.test(raw);
+    if (!isNetworkError) return raw;
+    const hostname = window.location?.hostname || '';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocalhost) return raw;
+    return 'Unable to connect. Please check your internet connection and try again.';
   };
 
   const togglePasswordVisibility = () => {
@@ -287,7 +302,7 @@ const LoginPage = () => {
     } else if (error.code === 'auth/network-request-failed') {
       setErrors({ general: 'Network error. Please check your connection.' });
     } else {
-      setErrors({ general: error.message || 'Login failed' });
+      setErrors({ general: getFriendlyErrorMessage(error) });
     }
     setSocialLoading('');
     setIsNavigating(false);
@@ -407,6 +422,16 @@ const LoginPage = () => {
       <div className={`new-login-page ${showSplit ? 'split-active' : ''}`}>
         {/* FORM SECTION - Always on LEFT */}
         <div className={`new-login-form-container ${isFormLeft ? 'form-left' : 'form-right'} ${showSplit ? 'split-slide-left' : ''}`}>
+          <button
+            type="button"
+            className="new-login-back-btn"
+            onClick={() => navigate('/')}
+            disabled={isNavigating}
+            aria-label="Back to home"
+          >
+            <FaArrowLeft className="new-login-back-icon" />
+            <span>Back</span>
+          </button>
           <div className="new-login-form-wrapper">
             {/* Mobile-app look only (mirrors mobile login_screen.dart) */}
             <img src={logo} alt="Salfer Engineering" className="new-login-mobile-logo" />

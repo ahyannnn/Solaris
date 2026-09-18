@@ -3,12 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import './termsModal.css';
 
-const TermsModal = ({ 
-  isOpen, 
-  onClose, 
+const TermsModal = ({
+  isOpen,
+  onClose,
   mode = 'simple',  // 'simple' or 'registration'
-  onAccept, 
-  title = "Terms and Conditions" 
+  onAccept,
+  title = "Terms and Conditions",
+  initialAccepted = false  // previously-accepted state, preserved across re-opens
 }) => {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -16,10 +17,11 @@ const TermsModal = ({
 
   useEffect(() => {
     if (isOpen && mode === 'registration') {
-      setHasScrolledToBottom(false);
-      setTermsAccepted(false);
+      // Preserve prior acceptance instead of always resetting to unchecked
+      setHasScrolledToBottom(!!initialAccepted);
+      setTermsAccepted(!!initialAccepted);
     }
-  }, [isOpen, mode]);
+  }, [isOpen, mode, initialAccepted]);
 
   const handleScroll = () => {
     if (scrollRef.current) {

@@ -804,6 +804,15 @@ const RegisterPage = () => {
           key={currentStep} // Force re-render when step changes
           className={`new-register-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
         >
+          <button
+            type="button"
+            className="new-register-back-btn"
+            onClick={() => navigate('/')}
+            aria-label="Back to home"
+          >
+            <FaArrowLeft className="new-register-back-icon" />
+            <span>Back</span>
+          </button>
           <div className="new-register-form-wrapper">
             {/* Mobile-app look only (mirrors mobile register_screen.dart) */}
             <img src={logo} alt="Salfer Engineering" className="new-register-mobile-logo" />
@@ -1126,6 +1135,7 @@ const RegisterPage = () => {
           onAccept={handleTermsAccept}
           mode="registration"
           title="Terms and Conditions"
+          initialAccepted={termsAccepted}
         />
       </div>
     </>

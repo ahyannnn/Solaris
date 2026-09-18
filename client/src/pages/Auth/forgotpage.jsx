@@ -1,6 +1,6 @@
 // pages/Auth/ForgotPasswordPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/Salfare_Logo.png';
 import { Helmet } from 'react-helmet-async';
@@ -523,6 +523,15 @@ const ForgotPasswordPage = () => {
           key={step} // Force re-render when step changes
           className={`new-forgot-form-container ${isStep2 ? 'form-left' : 'form-right'}`}
         >
+          <button
+            type="button"
+            className="new-forgot-back-btn"
+            onClick={() => navigate('/')}
+            aria-label="Back to home"
+          >
+            <FaArrowLeft className="new-forgot-back-icon" />
+            <span>Back</span>
+          </button>
           <div className="new-forgot-form-wrapper">
             {/* Mobile-app look only (mirrors mobile forgot_screen.dart logo) */}
             {step !== 4 && (

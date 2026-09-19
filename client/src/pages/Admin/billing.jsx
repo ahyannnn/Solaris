@@ -93,8 +93,7 @@ const AdminBilling = () => {
   const [bankTransferTotalItems, setBankTransferTotalItems] = useState(0);
   const [bankTransferStats, setBankTransferStats] = useState(null);
 
-  // Transaction history state
-  const [allTransactions, setAllTransactions] = useState([]);
+  // Transaction history state (page rows; totals below are server-driven)
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [transactionPage, setTransactionPage] = useState(1);
@@ -105,13 +104,18 @@ const AdminBilling = () => {
   const [revenueTrendData, setRevenueTrendData] = useState([]);
   const [revenueChartData, setRevenueChartData] = useState([]);
 
-  // Filter and pagination
+  // Filter and pagination (server-side: 10 rows per page, totals from the API)
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
+  // Server-side ordering: 'priority' default; Date/Status/Payment headers cycle.
+  const [sortBy, setSortBy] = useState('priority');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const firstListRunRef = useRef(null);
+  const firstBankRunRef = useRef(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
   const dropdownRef = useRef(null);
@@ -126,6 +130,8 @@ const AdminBilling = () => {
     totalSolarInvoices: 0,
     paidSolar: 0,
     partial: 0,
+    solarForVerification: 0,
+    solarDraft: 0,
     totalRevenue: 0,
     pendingAmount: 0,
     projectPayments: 0
@@ -163,32 +169,50 @@ const AdminBilling = () => {
     setBankTransferPage(1);
   }, [bankTransferFilter, debouncedBankSearch]);
 
+  // Server-side lists: one 10-row page per tab/filter/page/search/sort.
+  // (Local apply*Filters below are deleted — the APIs filter/rank/slice.)
   useEffect(() => {
-    if (activeTab === 'pre-assessments') {
-      applyPreAssessmentFilters();
-    } else if (activeTab === 'solar-invoices') {
-      applySolarInvoiceFilters();
-    } else if (activeTab === 'bank-transfers') {
-      applyBankTransferFilters();
-    } else {
-      applyTransactionFilters();
+    if (firstListRunRef.current) {
+      firstListRunRef.current = false;
+      return;
     }
-  }, [allAssessments, allSolarInvoices, allBankTransfers, allTransactions, filter, debouncedSearchTerm, bankTransferFilter, debouncedBankSearch]);
+    if (activeTab === 'pre-assessments' || activeTab === 'solar-invoices' || activeTab === 'transactions') {
+      fetchActiveTabList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, currentPage, transactionPage, debouncedSearchTerm, sortBy, sortOrder]);
+
+  useEffect(() => {
+    if (firstBankRunRef.current) {
+      firstBankRunRef.current = false;
+      return;
+    }
+    if (activeTab === 'bank-transfers') {
+      fetchBankTransfers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bankTransferFilter, bankTransferPage, debouncedBankSearch, sortBy, sortOrder]);
+
+  const fetchActiveTabList = async () => {
+    if (activeTab === 'pre-assessments') {
+      await fetchPreAssessments();
+    } else if (activeTab === 'solar-invoices') {
+      await fetchSolarInvoices();
+    } else if (activeTab === 'transactions') {
+      await fetchTransactions();
+    }
+  };
 
   // Real-time table updates (no page refresh): refetch on socket event and
   // render only the complete server response, so rows never flash partial
   // (N/A) data from the raw payload. Cleaned up on unmount.
-  useRealtimeTable(['pre-assessments', 'solar-invoices', 'bank-transfers', 'projects'], (payload) => {
-    if (payload.entity === 'pre-assessments') {
-      fetchPreAssessments();
-    } else if (payload.entity === 'solar-invoices') {
-      fetchSolarInvoices();
-    } else if (payload.entity === 'bank-transfers') {
+  useRealtimeTable(['pre-assessments', 'solar-invoices', 'bank-transfers', 'projects'], () => {
+    // Refresh the visible tab page + stats (10 rows, no full-list refetch).
+    if (activeTab === 'bank-transfers') {
       fetchBankTransfers();
-    } else if (payload.entity === 'projects') {
-      fetchProjects();
+    } else {
+      fetchActiveTabList();
     }
-    fetchTransactions();
     fetchStats();
   });
 
@@ -204,6 +228,7 @@ const AdminBilling = () => {
       fetchTransactions();
     }
     fetchStats();
+    fetchProjects();
 
     const handleClickOutside = (event) => {
       // Ignore taps on toggles/menus — their onClick owns open/close.
@@ -252,8 +277,10 @@ const AdminBilling = () => {
   const fetchProjects = useCallback(async () => {
     try {
       const token = sessionStorage.getItem('token');
+      // Bounded at the API max so the invoice project dropdown isn't cut at 10.
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 50 }
       });
       setProjects(response.data.projects || []);
     } catch (error) {
@@ -262,29 +289,49 @@ const AdminBilling = () => {
   }, []);
 
   // ============================================
-  // FILTER FUNCTIONS (needs-action rows first, mirrors page actions
-  // and the sidebar badge counts; newest kept within each group)
+  // ROW DOT HELPERS (priority ranking itself now runs server-side —
+  // see billingPreRank / billingInvoiceRank / billingBankRank on the API)
   // ============================================
 
-  const timeOf = (value) => {
-    const t = new Date(value).getTime();
-    return Number.isNaN(t) ? 0 : t;
+  // Header sort cycles: Date newest -> oldest -> priority (default);
+  // other fields asc -> desc -> priority. Third click restores default order.
+  const resetPageForActiveTab = () => {
+    if (activeTab === 'bank-transfers') {
+      setBankTransferPage(1);
+    } else if (activeTab === 'transactions') {
+      setTransactionPage(1);
+    } else {
+      setCurrentPage(1);
+    }
   };
 
-  const getBillingPrePriority = (a) => {
-    if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification') return 1;
-    if (a.paymentMethod === 'cash' && a.paymentStatus === 'for_verification') return 2;
-    return 3;
+  const cycleDateSort = (dateField) => {
+    if (sortBy !== dateField) {
+      setSortBy(dateField);
+      setSortOrder('desc');
+    } else if (sortOrder === 'desc') {
+      setSortOrder('asc');
+    } else {
+      setSortBy('priority');
+      setSortOrder('desc');
+    }
+    resetPageForActiveTab();
   };
 
-  const getBillingInvoicePriority = (inv) => {
-    if (inv.paymentStatus === 'for_verification') return 1;
-    if (inv.status === 'draft') return 2;
-    if (inv.paymentStatus === 'pending' || inv.paymentStatus === 'partial') return 3;
-    return 4;
+  const cycleFieldSort = (field) => {
+    if (sortBy !== field) {
+      setSortBy(field);
+      setSortOrder('asc');
+    } else if (sortOrder === 'asc') {
+      setSortOrder('desc');
+    } else {
+      setSortBy('priority');
+      setSortOrder('desc');
+    }
+    resetPageForActiveTab();
   };
 
-  const getBillingBankPriority = (p) => (p.status === 'waiting_verification' ? 1 : 2);
+  const sortArrow = (field) => (sortBy === field ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '');
 
   // Toggle/tab red dots: true only when admin has something to act on.
   const hasBillingPreNeedsAction = (a) => {
@@ -299,108 +346,10 @@ const AdminBilling = () => {
   };
   const hasBankNeedsAction = (p) => p?.status === 'waiting_verification';
 
-  const applyPreAssessmentFilters = () => {
-    let filtered = [...allAssessments];
-
-    if (filter !== 'all') {
-      filtered = filtered.filter(a => a.paymentStatus === filter);
-    }
-
-    if (debouncedSearchTerm) {
-      const term = debouncedSearchTerm.toLowerCase();
-      filtered = filtered.filter(a => {
-        const clientName = `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.toLowerCase();
-        const reference = (a.bookingReference || '').toLowerCase();
-        const invoice = (a.invoiceNumber || '').toLowerCase();
-        return clientName.includes(term) || reference.includes(term) || invoice.includes(term);
-      });
-    }
-
-    filtered.sort((a, b) =>
-      getBillingPrePriority(a) - getBillingPrePriority(b) ||
-      timeOf(b.bookedAt || b.createdAt) - timeOf(a.bookedAt || a.createdAt)
-    );
-
-    setFilteredAssessments(filtered);
-    setTotalItems(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  };
-
-  const applySolarInvoiceFilters = () => {
-    let filtered = [...allSolarInvoices];
-
-    if (filter !== 'all') {
-      filtered = filtered.filter(inv => inv.paymentStatus === filter);
-    }
-
-    if (debouncedSearchTerm) {
-      const term = debouncedSearchTerm.toLowerCase();
-      filtered = filtered.filter(inv => {
-        const clientName = `${inv.clientId?.contactFirstName || ''} ${inv.clientId?.contactLastName || ''}`.toLowerCase();
-        const invoiceNumber = (inv.invoiceNumber || '').toLowerCase();
-        const projectName = (inv.projectId?.projectName || '').toLowerCase();
-        return clientName.includes(term) || invoiceNumber.includes(term) || projectName.includes(term);
-      });
-    }
-
-    filtered.sort((a, b) =>
-      getBillingInvoicePriority(a) - getBillingInvoicePriority(b) ||
-      timeOf(b.createdAt) - timeOf(a.createdAt)
-    );
-
-    setFilteredSolarInvoices(filtered);
-    setTotalItems(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  };
-
-  const applyBankTransferFilters = () => {
-    let filtered = [...allBankTransfers];
-
-    if (bankTransferFilter !== 'all') {
-      filtered = filtered.filter(p => p.status === bankTransferFilter);
-    }
-
-    if (debouncedBankSearch) {
-      const term = debouncedBankSearch.toLowerCase();
-      filtered = filtered.filter(p => {
-        const clientName = `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.toLowerCase();
-        const reference = (p.transactionReference || '').toLowerCase();
-        const invoiceNumber = (p.invoiceId?.invoiceNumber || '').toLowerCase();
-        return clientName.includes(term) || reference.includes(term) || invoiceNumber.includes(term);
-      });
-    }
-
-    filtered.sort((a, b) =>
-      getBillingBankPriority(a) - getBillingBankPriority(b) ||
-      timeOf(b.createdAt) - timeOf(a.createdAt)
-    );
-
-    setFilteredBankTransfers(filtered);
-    setBankTransferTotalItems(filtered.length);
-    setBankTransferTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  };
-
-  const applyTransactionFilters = () => {
-    let filtered = [...allTransactions];
-
-    if (filter !== 'all') {
-      filtered = filtered.filter(t => t.status === filter);
-    }
-
-    if (debouncedSearchTerm) {
-      const term = debouncedSearchTerm.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.reference?.toLowerCase().includes(term) ||
-        t.invoiceNumber?.toLowerCase().includes(term) ||
-        t.client?.toLowerCase().includes(term) ||
-        t.projectName?.toLowerCase().includes(term)
-      );
-    }
-
-    setFilteredTransactions(filtered);
-    setTransactionTotalItems(filtered.length);
-    setTransactionTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  };
+  // NOTE: filter/search/rank/slice now happen server-side (status/search/sort
+  // params on each list endpoint + the transactions union). The fetchers above
+  // already store exactly ONE page into all*/filtered* states + server totals,
+  // so the tables and pagers below render them directly with no local work.
 
   // ============================================
   // BANK TRANSFER FUNCTIONS
@@ -411,10 +360,15 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
+      // Server-side: ONE page of 10 rows, priority-ranked by the API.
       const params = {
-        page: 1,
-        limit: 999
+        page: bankTransferPage,
+        limit: itemsPerPage,
+        search: debouncedBankSearch || undefined,
+        sortBy,
+        order: sortOrder
       };
+      if (bankTransferFilter !== 'all') params.status = bankTransferFilter;
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/pending`,
@@ -422,7 +376,12 @@ const AdminBilling = () => {
       );
 
       setAllBankTransfers(response.data.data || []);
+      setFilteredBankTransfers(response.data.data || []);
+      setBankTransferTotalItems(response.data.pagination?.total || 0);
       setBankTransferTotalPages(response.data.pagination?.totalPages || 1);
+      if (response.data.pagination?.page && response.data.pagination.page !== bankTransferPage) {
+        setBankTransferPage(response.data.pagination.page);
+      }
     } catch (error) {
       console.error('Error fetching bank transfers:', error);
       showToast('Failed to fetch bank transfers', 'error');
@@ -523,15 +482,28 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
+      // Server-side: ONE page of 10 invoiced rows, priority-ranked by the API.
+      const params = {
+        hasInvoice: true,
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearchTerm || undefined,
+        sortBy,
+        order: sortOrder
+      };
+      if (filter !== 'all') params.paymentStatus = filter;
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params
       });
 
-      const assessmentsWithInvoice = (response.data.assessments || []).filter(
-        assessment => assessment.invoiceNumber && assessment.invoiceNumber !== null && assessment.invoiceNumber !== ''
-      );
-
-      setAllAssessments(assessmentsWithInvoice);
+      setAllAssessments(response.data.assessments || []);
+      setFilteredAssessments(response.data.assessments || []);
+      setTotalItems(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
     } catch (error) {
       console.error('Error fetching pre-assessments:', error);
       showToast('Failed to fetch pre-assessments', 'error');
@@ -545,11 +517,27 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
+      // Server-side: ONE page of 10 rows, priority-ranked by the API.
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearchTerm || undefined,
+        sortBy,
+        order: sortOrder
+      };
+      if (filter !== 'all') params.paymentStatus = filter;
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params
       });
 
       setAllSolarInvoices(response.data.invoices || []);
+      setFilteredSolarInvoices(response.data.invoices || []);
+      setTotalItems(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
     } catch (error) {
       console.error('Error fetching solar invoices:', error);
       showToast('Failed to fetch solar invoices', 'error');
@@ -563,59 +551,26 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      const [preRes, solarRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
+      // Server-side union: ONE page of 10 merged transactions.
+      const params = {
+        page: transactionPage,
+        limit: itemsPerPage,
+        search: debouncedSearchTerm || undefined,
+        sortBy: sortBy === 'status' ? 'status' : 'date',
+        order: sortOrder
+      };
+      if (filter !== 'all') params.status = filter;
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/billing/transactions`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params
+      });
 
-      const prePayments = (preRes.data.assessments || [])
-        .filter(a => a.invoiceNumber && (a.paymentStatus === 'paid' || a.paymentStatus === 'for_verification'))
-        .map(a => ({
-          id: a._id,
-          type: 'Pre-Assessment',
-          reference: a.bookingReference,
-          invoiceNumber: a.invoiceNumber,
-          amount: a.assessmentFee,
-          method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
-          status: a.paymentStatus,
-          date: a.confirmedAt || a.bookedAt,
-          client: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim() || 'N/A',
-          clientFirstName: a.clientId?.contactFirstName || '',
-          clientLastName: a.clientId?.contactLastName || '',
-          clientPhotoURL: typeof a.clientId?.userId === 'object' ? (a.clientId?.userId?.photoURL || null) : null,
-          gateway: a.paymentGateway,
-          receiptUrl: a.receiptUrl,
-          receiptNumber: a.receiptNumber
-        }));
-
-      const solarPayments = solarRes.data.invoices
-        .filter(i => i.paymentStatus === 'paid' || i.paymentStatus === 'partial')
-        .flatMap(i => (i.payments || []).map(p => ({
-          id: p._id,
-          type: 'Project Payment',
-          reference: i.invoiceNumber,
-          invoiceNumber: i.invoiceNumber,
-          amount: p.amount,
-          method: p.method,
-          status: i.paymentStatus,
-          date: p.date,
-          client: `${i.clientId?.contactFirstName || ''} ${i.clientId?.contactLastName || ''}`.trim() || 'N/A',
-          clientFirstName: i.clientId?.contactFirstName || '',
-          clientLastName: i.clientId?.contactLastName || '',
-          clientPhotoURL: typeof i.clientId?.userId === 'object' ? (i.clientId?.userId?.photoURL || null) : null,
-          gateway: 'manual',
-          projectName: i.projectId?.projectName,
-          projectId: i.projectId?._id,
-          receiptUrl: i.receiptUrl,
-          receiptNumber: i.receiptNumber
-        })));
-
-      const allTransactions = [...prePayments, ...solarPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
-      setAllTransactions(allTransactions);
+      setFilteredTransactions(response.data.transactions || []);
+      setTransactionTotalItems(response.data.total || 0);
+      setTransactionTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== transactionPage) {
+        setTransactionPage(response.data.page);
+      }
     } catch (error) {
       console.error('Error fetching transactions:', error);
       showToast('Failed to fetch transactions', 'error');
@@ -628,103 +583,51 @@ const AdminBilling = () => {
     try {
       const token = sessionStorage.getItem('token');
 
-      const [preStatsRes, solarStatsRes, allAssessmentsRes, projectsRes] = await Promise.all([
+      // Stats endpoints only — no row dumps (revenue + trend come pre-aggregated).
+      const [preStatsRes, solarStatsRes, bankStatsRes, projectStatsRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: {} })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({ data: { stats: {} } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
+        axios.get(
+          `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).catch(() => ({ data: { stats: {} } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { assessments: [] } })),
-        axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { projects: [] } }))
+        }).catch(() => ({ data: { stats: {} } }))
       ]);
 
-      const assessments = allAssessmentsRes.data.assessments || [];
-      const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
-      const pendingCash = assessments.filter(a => a.paymentMethod === 'cash' && a.paymentStatus === 'pending').length;
-
-      const projectsList = projectsRes.data.projects || [];
-      const projectPayments = projectsList.reduce((sum, p) => sum + (p.amountPaid || 0), 0);
+      const preStats = preStatsRes.data || {};
+      const solarStats = solarStatsRes.data.stats || {};
+      const bankStats = bankStatsRes.data.stats || {};
 
       setStats({
-        totalPreAssessments: preStatsRes.data.total || 0,
-        pending: preStatsRes.data.pending || 0,
-        forVerification: preStatsRes.data.forVerification || 0,
-        paidPre: preStatsRes.data.paid || 0,
-        autoVerified: autoVerified,
-        pendingCash: pendingCash,
-        totalSolarInvoices: solarStatsRes.data.stats?.total || 0,
-        paidSolar: solarStatsRes.data.stats?.paid || 0,
-        partial: solarStatsRes.data.stats?.partial || 0,
-        totalRevenue: (preStatsRes.data.totalRevenue || 0) + (solarStatsRes.data.stats?.totalRevenue || 0),
-        pendingAmount: (preStatsRes.data.pendingRevenue || 0) + (solarStatsRes.data.stats?.pendingAmount || 0),
-        projectPayments: projectPayments
+        totalPreAssessments: preStats.total || 0,
+        pending: preStats.pending || 0,
+        forVerification: preStats.forVerification || 0,
+        paidPre: preStats.paid || 0,
+        autoVerified: preStats.autoVerified || 0,
+        pendingCash: preStats.pendingCash || 0,
+        totalSolarInvoices: solarStats.total || 0,
+        paidSolar: solarStats.paid || 0,
+        partial: solarStats.partial || 0,
+        solarForVerification: solarStats.forVerification || 0,
+        solarDraft: solarStats.draft || 0,
+        totalRevenue: (preStats.totalRevenue || 0) + (solarStats.totalRevenue || 0),
+        pendingAmount: (preStats.pendingRevenue || 0) + (solarStats.pendingAmount || 0),
+        projectPayments: projectStatsRes.data.stats?.totalAmountPaid || 0
       });
 
-      // --- FETCH VERIFIED BANK TRANSFERS (used by revenue + trend charts) ---
-      const bankTransfersRes = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/payments/bank-transfer/stats`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const bankTransfersData = bankTransfersRes.data.data || [];
-      const verifiedBankTransfers = bankTransfersData.filter(bt => bt.status === 'verified');
-
-      // --- PROCESS REVENUE CHART DATA (Revenue by Payment Method - AMOUNTS) ---
-      let cashRevenue = 0;
-      let gcashRevenue = 0;
-      let bankRevenue = 0;
-      let paymongoRevenue = 0;
-
-      // 1. Pre-assessment payments (exclude cancelled/refunded)
-      assessments.forEach(a => {
-        if (a.assessmentStatus === 'cancelled') return;
-        if (['cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a.paymentStatus)) return;
-        if (a.paymentMethod === 'cash' && a.paymentStatus === 'paid') {
-          cashRevenue += (a.assessmentFee || 0);
-        } else if (a.paymentMethod === 'gcash' && a.paymentStatus === 'paid') {
-          gcashRevenue += (a.assessmentFee || 0);
-        } else if (a.paymentGateway === 'paymongo' && a.paymentStatus === 'paid') {
-          paymongoRevenue += (a.assessmentFee || 0);
-        }
-      });
-
-      // 2. Bank transfers (only VERIFIED ones)
-      verifiedBankTransfers.forEach(bt => {
-        bankRevenue += (bt.amount || 0);
-      });
-
-      // 3. Solar invoice payments (only PAID or PARTIAL with actual payments)
-      const solarRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).catch(() => ({ data: { invoices: [] } }));
-
-      const solarInvoices = solarRes.data.invoices || [];
-      solarInvoices.forEach(invoice => {
-        if (invoice.payments && invoice.payments.length > 0) {
-          invoice.payments.forEach(payment => {
-            // Only include actual paid payments
-            if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
-              const method = payment.method || 'cash';
-              const amount = payment.amount || 0;
-
-              if (method === 'cash') {
-                cashRevenue += amount;
-              } else if (method === 'gcash') {
-                gcashRevenue += amount;
-              } else if (method === 'paymongo') {
-                paymongoRevenue += amount;
-              } else if (method === 'bank' || method === 'bank_transfer') {
-                bankRevenue += amount;
-              }
-            }
-          });
-        }
-      });
+      // --- REVENUE CHART DATA (Revenue by Payment Method - AMOUNTS) ---
+      const preRev = preStats.revenueByMethod || {};
+      const solarRev = solarStats.revenueByMethod || {};
+      const cashRevenue = (preRev.cash || 0) + (solarRev.cash || 0);
+      const gcashRevenue = (preRev.gcash || 0) + (solarRev.gcash || 0);
+      const bankRevenue = (bankStats.verifiedAmount || 0) + (solarRev.bank || 0);
+      const paymongoRevenue = (preRev.paymongo || 0) + (solarRev.paymongo || 0);
 
       setRevenueChartData([
         { name: 'Cash', revenue: cashRevenue },
@@ -734,9 +637,7 @@ const AdminBilling = () => {
       ]);
 
       // --- MONTHLY COLLECTION TREND (Collected vs Pending, last 6 months) ---
-      // Collected = money received in that month. Pending = still-outstanding
-      // amounts from items created in that month (mirrors the pendingAmount
-      // definition above: no cancelled / refund-flow / draft).
+      // Merged from the pre-aggregated stats series (same keys/buckets as before).
       const trendBuckets = [];
       const trendKeys = [];
       const trendNow = new Date();
@@ -745,44 +646,17 @@ const AdminBilling = () => {
         trendKeys.push(`${d.getFullYear()}-${d.getMonth()}`);
         trendBuckets.push({ name: d.toLocaleString('en-US', { month: 'short' }), collected: 0, pending: 0 });
       }
-      const trendIndex = (dateVal) => {
-        const d = new Date(dateVal);
-        if (isNaN(d.getTime())) return -1;
-        return trendKeys.indexOf(`${d.getFullYear()}-${d.getMonth()}`);
-      };
-      const addTrend = (dateVal, field, amount) => {
-        const idx = trendIndex(dateVal);
-        if (idx >= 0 && amount > 0) trendBuckets[idx][field] += amount;
-      };
-
-      const isDeadFlow = (a) =>
-        a.assessmentStatus === 'cancelled' ||
-        ['cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a.paymentStatus);
-
-      assessments.forEach(a => {
-        if (isDeadFlow(a)) return;
-        if (a.paymentStatus === 'paid') {
-          addTrend(a.paymentCompletedAt || a.confirmedAt || a.bookedAt, 'collected', a.assessmentFee || 0);
-        } else if (a.paymentStatus === 'pending' || a.paymentStatus === 'for_verification') {
-          addTrend(a.bookedAt, 'pending', a.assessmentFee || 0);
-        }
-      });
-
-      verifiedBankTransfers.forEach(bt => {
-        addTrend(bt.verifiedAt || bt.updatedAt || bt.createdAt, 'collected', bt.amount || 0);
-      });
-
-      solarInvoices.forEach(invoice => {
-        if (invoice.status === 'cancelled') return;
-        (invoice.payments || []).forEach(p => {
-          if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
-            addTrend(p.date || invoice.createdAt, 'collected', p.amount || 0);
-          }
+      const addSeries = (series, field) => {
+        (series || []).forEach(({ key, amount }) => {
+          const idx = trendKeys.indexOf(key);
+          if (idx >= 0 && amount > 0) trendBuckets[idx][field] += amount;
         });
-        if ((invoice.balance || 0) > 0 && ['pending', 'partial', 'for_verification', 'overdue'].includes(invoice.paymentStatus)) {
-          addTrend(invoice.createdAt, 'pending', invoice.balance || 0);
-        }
-      });
+      };
+      addSeries(preStats.trendCollected, 'collected');
+      addSeries(preStats.trendPending, 'pending');
+      addSeries(solarStats.trendCollected, 'collected');
+      addSeries(solarStats.trendPending, 'pending');
+      addSeries(bankStats.verifiedTrend, 'collected');
 
       setRevenueTrendData(trendBuckets);
 
@@ -1587,28 +1461,28 @@ const AdminBilling = () => {
           <div className={`billing-tabs-adminbilling ${isMobileMenuOpen ? 'open' : ''}`}>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'pre-assessments' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
+              onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setSortBy('priority'); setSortOrder('desc'); setIsMobileMenuOpen(false); }}
             >
               <span>Pre-Assessments</span>
-              {allAssessments.some(hasBillingPreNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
+              {stats.forVerification > 0 && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); setIsMobileMenuOpen(false); }}
+              onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); setSortBy('priority'); setSortOrder('desc'); setIsMobileMenuOpen(false); }}
             >
               <span>Solar Invoices</span>
-              {allSolarInvoices.some(hasInvoiceNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
+              {(stats.solarForVerification > 0 || stats.solarDraft > 0) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'bank-transfers' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); setIsMobileMenuOpen(false); }}
+              onClick={() => { setActiveTab('bank-transfers'); setBankTransferFilter('waiting_verification'); setBankTransferPage(1); setSortBy('priority'); setSortOrder('desc'); setIsMobileMenuOpen(false); }}
             >
               <span>Bank Transfers</span>
-              {allBankTransfers.some(hasBankNeedsAction) && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
+              {bankTransferStats?.waiting_verification > 0 && <span className="tab-needs-dot-adminbilling" title="Needs action"></span>}
             </button>
             <button
               className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); setIsMobileMenuOpen(false); }}
+              onClick={() => { setActiveTab('transactions'); setFilter('all'); setCurrentPage(1); setTransactionPage(1); setSortBy('priority'); setSortOrder('desc'); setIsMobileMenuOpen(false); }}
             >
               <span>Transactions</span>
             </button>
@@ -1695,10 +1569,14 @@ const AdminBilling = () => {
                       <th>Client</th>
                       <th>Booking Ref</th>
                       <th>Invoice</th>
-                      <th>Date</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleDateSort('bookedAt')} title="Sort by date (third click restores priority order)">
+                        Date{sortArrow('bookedAt')}
+                      </th>
                       <th>Amount</th>
                       <th>Gateway</th>
-                      <th>Payment</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleFieldSort('paymentStatus')} title="Sort by payment status (third click restores priority order)">
+                        Payment{sortArrow('paymentStatus')}
+                      </th>
                       <th>Receipt</th>
                       <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
@@ -1838,11 +1716,15 @@ const AdminBilling = () => {
                       <th>Invoice #</th>
                       <th>Project ID</th>
                       <th>Type</th>
-                      <th>Due Date</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleDateSort('dueDate')} title="Sort by due date (third click restores priority order)">
+                        Due Date{sortArrow('dueDate')}
+                      </th>
                       <th>Amount</th>
                       <th>Paid</th>
                       <th>Balance</th>
-                      <th>Status</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleFieldSort('paymentStatus')} title="Sort by payment status (third click restores priority order)">
+                        Status{sortArrow('paymentStatus')}
+                      </th>
                       <th>Receipt</th>
                       <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
@@ -1977,11 +1859,15 @@ const AdminBilling = () => {
                   <thead>
                     <tr>
                       <th>Customer</th>
-                      <th>Date</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleDateSort('createdAt')} title="Sort by date (third click restores priority order)">
+                        Date{sortArrow('createdAt')}
+                      </th>
                       <th>Bank</th>
                       <th>Amount</th>
                       <th>Reference</th>
-                      <th>Status</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleFieldSort('status')} title="Sort by status (third click restores priority order)">
+                        Status{sortArrow('status')}
+                      </th>
                       <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
@@ -2102,14 +1988,18 @@ const AdminBilling = () => {
                 <table className="payments-table-adminbilling">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleDateSort('date')} title="Sort by date (third click restores default order)">
+                        Date{sortArrow('date')}
+                      </th>
                       <th>Type</th>
                       <th>Reference</th>
                       <th>Invoice</th>
                       <th>Client</th>
                       <th>Amount</th>
                       <th>Method</th>
-                      <th>Status</th>
+                      <th className="sortable-th-adminbilling" onClick={() => cycleFieldSort('status')} title="Sort by status (third click restores default order)">
+                        Status{sortArrow('status')}
+                      </th>
                       <th>Receipt</th>
                     </tr>
                   </thead>

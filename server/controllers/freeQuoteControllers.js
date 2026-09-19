@@ -320,49 +320,139 @@ exports.createFreeQuote = async (req, res) => {
 // @desc    Get all free quotes (Admin only)
 // @route   GET /api/free-quotes
 // @access  Private (Admin)
+// Admin site-assessment rank mirror (FREE_QUOTE_PRIORITY + needs-action first):
+// pending/processing (needs action) first, then status groups 1-6, newest first.
+const FREE_QUOTE_RANK = { pending: 1, assigned: 2, processing: 3, accepted: 4, completed: 5, cancelled: 6 };
+const freeQuoteNeedsAction = (q) => ['pending', 'processing'].includes(q.status);
+
 exports.getAllFreeQuotes = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, search, sortBy = 'priority', order = 'desc', page = 1, limit = 10 } = req.query;
 
     const query = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
 
-      const quotes = await FreeQuote.find(query)
-        .populate('clientId', 'contactFirstName contactLastName contactNumber')
-        .populate('addressId')
-        .populate('assignedEngineerId', 'fullName email')
-        .populate({
-          path: 'clientId',
-          populate: { path: 'userId', select: 'email photoURL' }
-        })
-      .sort({ requestedAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+    // Server-side search: client name + quotation reference.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [{ quotationReference: rx }];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      const Client = require('../models/Clients');
+      const clients = await Client.find({
+        $or: [{ contactFirstName: rx }, { contactLastName: rx }]
+      }).select('_id').lean();
+      if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+      query.$or = or;
+    }
 
-    const total = await FreeQuote.countDocuments(query);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
 
-    // ✅ NEW: Format quotes with calculated fields
-    const formattedQuotes = quotes.map(quote => ({
-      ...quote.toObject(),
-      estimatedAnnualProduction: quote.estimatedAnnualProduction,
-      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
-      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
-      co2Offset: quote.co2Offset,
-      co2OffsetMin: quote.co2OffsetMin,
-      co2OffsetMax: quote.co2OffsetMax
-    }));
+    const populateList = (findQuery) => findQuery
+      .populate('clientId', 'contactFirstName contactLastName contactNumber')
+      .populate('addressId')
+      .populate('assignedEngineerId', 'fullName email')
+      .populate({
+        path: 'clientId',
+        populate: { path: 'userId', select: 'email photoURL' }
+      });
+
+    const formatQuotes = (quotes) => quotes.map((quote) => {
+      const obj = typeof quote.toObject === 'function' ? quote.toObject() : quote;
+      return {
+        ...obj,
+        estimatedAnnualProduction: quote.estimatedAnnualProduction,
+        estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+        estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+        co2Offset: quote.co2Offset,
+        co2OffsetMin: quote.co2OffsetMin,
+        co2OffsetMax: quote.co2OffsetMax
+      };
+    });
+
+    let quotes;
+    let total;
+
+    if (sortBy === 'priority') {
+      const light = await FreeQuote.find(query)
+        .select('status requestedAt createdAt')
+        .lean();
+      const ranked = light
+        .map((q) => ({
+          id: q._id,
+          needs: freeQuoteNeedsAction(q) ? 0 : 1,
+          rank: FREE_QUOTE_RANK[q.status] ?? 9,
+          time: new Date(q.requestedAt || q.createdAt || 0).getTime() || 0
+        }))
+        .sort((a, b) => a.needs - b.needs || a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked
+        .slice((pageNum - 1) * limitNum, pageNum * limitNum)
+        .map((r) => r.id);
+      const rows = pageIds.length
+        ? await populateList(FreeQuote.find({ _id: { $in: pageIds } }))
+        : [];
+      const orderMap = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      rows.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+      quotes = formatQuotes(rows);
+    } else {
+      const SORTABLE = ['requestedAt', 'createdAt', 'status'];
+      const sortField = SORTABLE.includes(sortBy) ? sortBy : 'requestedAt';
+      const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+      const rows = await populateList(
+        FreeQuote.find(query).sort({ [sortField]: sortDir }).skip((pageNum - 1) * limitNum).limit(limitNum)
+      );
+      quotes = formatQuotes(rows);
+      total = await FreeQuote.countDocuments(query);
+    }
 
     res.json({
       success: true,
-      quotes: formattedQuotes,
+      quotes,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
     console.error('Get free quotes error:', error);
     res.status(500).json({ message: 'Failed to fetch quotes', error: error.message });
+  }
+};
+
+// @desc    Get free quote statistics (Admin site-assessment charts/KPIs/dots)
+// @route   GET /api/free-quotes/stats
+// @access  Private (Admin)
+exports.getFreeQuoteStats = async (req, res) => {
+  try {
+    const total = await FreeQuote.countDocuments();
+    const pending = await FreeQuote.countDocuments({ status: 'pending' });
+    const assigned = await FreeQuote.countDocuments({ status: 'assigned' });
+    const processing = await FreeQuote.countDocuments({ status: 'processing' });
+    const completed = await FreeQuote.countDocuments({ status: 'completed' });
+    const needsAction = await FreeQuote.countDocuments({ status: { $in: ['pending', 'processing'] } });
+
+    const rows = await FreeQuote.find({})
+      .select('requestedAt')
+      .lean();
+    const monthly = Array.from({ length: 12 }, (_, m) => ({ month: m, count: 0 }));
+    rows.forEach((q) => {
+      const d = new Date(q.requestedAt);
+      if (!isNaN(d.getTime())) monthly[d.getMonth()].count += 1;
+    });
+
+    res.json({
+      success: true,
+      stats: { total, pending, assigned, processing, completed, needsAction, monthly }
+    });
+
+  } catch (error) {
+    console.error('Get free quotes stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };
 
@@ -818,11 +908,12 @@ exports.getEngineerFreeQuotes = async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
 
     const query = {
-      assignedEngineerId: engineerId,
-      status: { $nin: ['cancelled'] }
+      assignedEngineerId: engineerId
     };
 
-    if (status) query.status = status;
+    // Explicit status wins; otherwise keep the default exclusion.
+    if (status && status !== 'all') query.status = status;
+    else query.status = { $nin: ['cancelled'] };
 
     const quotes = await FreeQuote.find(query)
       .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')

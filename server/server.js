@@ -180,6 +180,7 @@ const applicationRoutes = require("./routes/applicationRoutes");
 const auditRoutes = require("./routes/auditRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const serviceRequestRoutes = require("./routes/serviceRequestRoutes");
+const billingRoutes = require("./routes/billingRoutes");
 
 // ======================================================
 // ROUTES
@@ -405,6 +406,11 @@ app.use(
 app.use(
   "/api/service-requests",
   serviceRequestRoutes
+);
+
+app.use(
+  "/api/billing",
+  billingRoutes
 );
 
 app.use(

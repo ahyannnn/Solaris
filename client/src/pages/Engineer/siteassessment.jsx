@@ -106,9 +106,18 @@ const MyAssessments = () => {
   const [showApplianceModal, setShowApplianceModal] = useState(false);
   const [applianceErrors, setApplianceErrors] = useState({});
 
-  // Pagination states
+  // Pagination states (server-side: 10 rows per page, totals from the API)
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(6);
+  const [rowsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  // Row ordering: 'action' (needs-action-first, default), 'newest', 'oldest'.
+  const [sortMode, setSortMode] = useState('action');
+  // Charts from the stats endpoint (no bulk fetch).
+  const [statsPipeline, setStatsPipeline] = useState(null);
+  const [statsMonthly, setStatsMonthly] = useState(null);
+  const searchTimeoutRef = useRef(null);
+  const firstRunRef = useRef(true);
 
   const [laborCostPercentage, setLaborCostPercentage] = useState(20);
   const [overheadContingencyPercentage, setOverheadContingencyPercentage] = useState(15);
@@ -921,7 +930,7 @@ const MyAssessments = () => {
     }
   };
 
-  // API Calls
+  // API Calls (server-side union paging: ONE page of 10 merged rows)
   const fetchAllAssessments = async () => {
     try {
       setLoading(true);
@@ -932,12 +941,20 @@ const MyAssessments = () => {
         return;
       }
 
-      const [freeQuotesRes, preAssessmentsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/free-quotes/engineer/my-quotes`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/my-assessments`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
+      const response = await axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/my-items`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          type: activeTypeFilter === 'all' ? undefined : activeTypeFilter,
+          status: activeStatusFilter === 'all' ? undefined : activeStatusFilter,
+          page: currentPage,
+          limit: rowsPerPage,
+          search: appliedSearch || undefined,
+          sort: sortMode
+        }
+      });
 
-      const formattedFreeQuotes = (freeQuotesRes.data.quotes || []).map(quote => ({
+      const items = response.data.items || [];
+      const formattedFreeQuotes = items.filter(i => i.itemType === 'free_quote').map(quote => ({
         ...quote,
         type: 'free_quote',
         id: quote._id,
@@ -974,7 +991,7 @@ const MyAssessments = () => {
         co2OffsetMax: quote.co2OffsetMax || null
       }));
 
-      const formattedPreAssessments = (preAssessmentsRes.data.assessments || []).map(assessment => ({
+      const formattedPreAssessments = items.filter(i => i.itemType === 'pre_assessment').map(assessment => ({
         ...assessment,
         type: 'pre_assessment',
         id: assessment._id,
@@ -1014,11 +1031,21 @@ const MyAssessments = () => {
 
       setFreeQuotes(formattedFreeQuotes);
       setPreAssessments(formattedPreAssessments);
-      const sortedPreAssessments = formattedPreAssessments.sort((a, b) =>
-        new Date(b.createdAt || b.requestedAt) - new Date(a.createdAt || a.requestedAt)
+
+      // Backend already returns the page in global rank order — restore it
+      // after the per-type normalize split (no local merge/sort).
+      const order = {};
+      items.forEach((it, idx) => { order[`${it.itemType}-${it._id}`] = idx; });
+      const pageRows = [...formattedFreeQuotes, ...formattedPreAssessments].sort((a, b) =>
+        (order[`${a.type}-${a.id}`] ?? 0) - (order[`${b.type}-${b.id}`] ?? 0)
       );
 
-      setAllAssessments([...formattedFreeQuotes, ...sortedPreAssessments]);
+      setAllAssessments(pageRows);
+      setFilteredAssessments(pageRows);
+      setTotalItems(response.data.total || 0);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
       setError(null);
     } catch (err) {
       console.error('Error fetching assessments:', err);
@@ -1034,90 +1061,54 @@ const MyAssessments = () => {
     }
   };
 
-  // Realtime: new assignments or admin/customer updates refresh without reload.
+  // Charts + KPIs from the lightweight stats endpoint (no row dumps).
+  const fetchAssessmentStats = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      const response = await axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/assessment-stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const stats = response.data.stats || {};
+      setDashboardStats({
+        total: stats.totals?.total || 0,
+        pending: stats.totals?.pending || 0,
+        inProgress: stats.totals?.inProgress || 0,
+        completed: stats.totals?.completed || 0
+      });
+      const p = stats.pipeline || {};
+      setStatsPipeline([
+        { name: 'Pending', value: p.pending || 0, fill: '#F39C12' },
+        { name: 'Scheduled', value: p.scheduled || 0, fill: '#3B82F6' },
+        { name: 'Field Work', value: p.field || 0, fill: '#8B5CF6' },
+        { name: 'Data Phase', value: p.data || 0, fill: '#A78BFA' },
+        { name: 'Report Draft', value: p.draft || 0, fill: '#F59E0B' },
+        { name: 'Completed', value: p.completed || 0, fill: '#10B981' },
+      ]);
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const byMonth = {};
+      (stats.monthly || []).forEach((m) => { byMonth[m.month] = m; });
+      setStatsMonthly(MONTHS.map((name, i) => ({
+        name,
+        quotes: byMonth[i]?.quotes || 0,
+        assessments: byMonth[i]?.assessments || 0
+      })));
+    } catch (err) {
+      console.error('Error fetching assessment stats:', err);
+    }
+  };
+
+  // Realtime: new assignments or admin/customer updates refresh the current
+  // page + stats without reload.
   useRealtimeTable(
     ['pre-assessments', 'free-quotes', 'schedules'],
-    () => { fetchAllAssessments(); },
+    () => { fetchAllAssessments(); fetchAssessmentStats(); },
     { debounceMs: 600 }
   );
 
-  // Calculate dashboard stats
-  useEffect(() => {
-    const total = allAssessments.length;
-
-    // Pending statuses: pending, pending_payment, pending_review
-    const pending = allAssessments.filter(item => {
-      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-      return status === 'pending' || status === 'pending_payment' || status === 'pending_review';
-    }).length;
-
-    // In Progress statuses: assigned, processing, scheduled, site_visit_ongoing, device_deployed, data_collecting, data_analyzing, report_draft, in_progress
-    const inProgress = allAssessments.filter(item => {
-      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-      return status === 'assigned' ||
-        status === 'processing' ||
-        status === 'scheduled' ||
-        status === 'site_visit_ongoing' ||
-        status === 'device_deployed' ||
-        status === 'data_collecting' ||
-        status === 'data_analyzing' ||
-        status === 'report_draft' ||
-        status === 'in_progress';
-    }).length;
-
-    // Completed statuses: completed, accepted
-    const completed = allAssessments.filter(item => {
-      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-      return status === 'completed' || status === 'accepted';
-    }).length;
-
-    setDashboardStats({ total, pending, inProgress, completed });
-  }, [allAssessments]);
-
-  // ====== CHART DATA: derived from allAssessments (no new API) ======
-  const pipelineData = React.useMemo(() => {
-    const getStatus = (item) => item.type === 'free_quote' ? item.status : item.assessmentStatus;
-    const isPending = (s) => s === 'pending' || s === 'pending_payment' || s === 'pending_review';
-    const isScheduled = (s) => s === 'scheduled' || s === 'assigned' || s === 'processing';
-    const isFieldWork = (s) => s === 'site_visit_ongoing' || s === 'device_deployed';
-    const isDataPhase = (s) => s === 'data_collecting' || s === 'data_analyzing';
-    const isReportDraft = (s) => s === 'report_draft';
-    const isCompleted = (s) => s === 'completed' || s === 'accepted' || s === 'quotation_generated' || s === 'quotation_accepted';
-    const buckets = [
-      { key: 'pending', name: 'Pending', fill: '#F39C12', count: 0 },
-      { key: 'scheduled', name: 'Scheduled', fill: '#3B82F6', count: 0 },
-      { key: 'field', name: 'Field Work', fill: '#8B5CF6', count: 0 },
-      { key: 'data', name: 'Data Phase', fill: '#A78BFA', count: 0 },
-      { key: 'draft', name: 'Report Draft', fill: '#F59E0B', count: 0 },
-      { key: 'completed', name: 'Completed', fill: '#10B981', count: 0 },
-    ];
-    allAssessments.forEach((item) => {
-      const s = getStatus(item);
-      if (isPending(s)) buckets[0].count += 1;
-      else if (isScheduled(s)) buckets[1].count += 1;
-      else if (isFieldWork(s)) buckets[2].count += 1;
-      else if (isDataPhase(s)) buckets[3].count += 1;
-      else if (isReportDraft(s)) buckets[4].count += 1;
-      else if (isCompleted(s)) buckets[5].count += 1;
-    });
-    return buckets.map((b) => ({ name: b.name, value: b.count, fill: b.fill }));
-  }, [allAssessments]);
-
-  const monthlyChartData = React.useMemo(() => {
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const quotes = Array(12).fill(0);
-    const assessments = Array(12).fill(0);
-    allAssessments.forEach((a) => {
-      const raw = a.type === 'free_quote' ? (a.requestedAt || a.createdAt || a.preferredDate) : (a.bookedAt || a.createdAt || a.preferredDate || a.requestedAt);
-      const d = new Date(raw);
-      if (!isNaN(d.getTime())) {
-        const m = d.getMonth();
-        if (a.type === 'free_quote') quotes[m] += 1;
-        else assessments[m] += 1;
-      }
-    });
-    return MONTHS.map((name, i) => ({ name, quotes: quotes[i], assessments: assessments[i] }));
-  }, [allAssessments]);
+  // ====== CHART DATA: from fetchAssessmentStats (stats endpoint state) ======
+  const pipelineData = statsPipeline || [];
+  const monthlyChartData = statsMonthly || [];
 
   const PipelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -1754,6 +1745,7 @@ const MyAssessments = () => {
     setSelectedItem(null);
     setSelectedType(null);
     fetchAllAssessments();
+    fetchAssessmentStats();
   };
 
   const handleFreeQuoteFormChange = (field, value) => {
@@ -1936,7 +1928,9 @@ const MyAssessments = () => {
   // useEffect hooks
   useEffect(() => {
     fetchAllAssessments();
+    fetchAssessmentStats();
     fetchSystemConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Close the "More" tabs menu on outside tap or Escape
@@ -1958,35 +1952,33 @@ const MyAssessments = () => {
     };
   }, [showMoreTabs]);
 
+  // Server-side union paging: one 10-row page per type/status/page/search/sort.
+  // (Filter/search/rank/slice all run on the API — see fetchAllAssessments.)
   useEffect(() => {
-    let filtered = [...allAssessments];
-    if (searchTerm) {
-      filtered = filtered.filter(item => {
-        const name = `${item.clientName || ''} ${item.clientLastName || ''}`.toLowerCase();
-        const ref = (item.bookingReference || item.quotationReference || '').toLowerCase();
-        return name.includes(searchTerm.toLowerCase()) || ref.includes(searchTerm.toLowerCase());
-      });
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
     }
-    if (activeTypeFilter !== 'all') filtered = filtered.filter(item => item.type === activeTypeFilter);
-    if (activeStatusFilter !== 'all') {
-      filtered = filtered.filter(item => {
-        const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-        return status === activeStatusFilter;
-      });
+    fetchAllAssessments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTypeFilter, activeStatusFilter, currentPage, appliedSearch, sortMode]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
-    // Sort: needs-action first (red dot rows on top), then newest first
-    filtered.sort((a, b) => {
-      const aNeeds = isAssessmentNeedsAction(a) ? 1 : 0;
-      const bNeeds = isAssessmentNeedsAction(b) ? 1 : 0;
-      if (bNeeds !== aNeeds) return bNeeds - aNeeds;
-      const aTime = new Date(a.preferredDate || a.requestedAt || a.createdAt || a.bookedAt || 0).getTime();
-      const bTime = new Date(b.preferredDate || b.requestedAt || b.createdAt || b.bookedAt || 0).getTime();
-      if (bTime !== aTime) return bTime - aTime;
-      return 0;
-    });
-    setFilteredAssessments(filtered);
-    setCurrentPage(1);
-  }, [allAssessments, searchTerm, activeTypeFilter, activeStatusFilter]);
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     const total = (quotationForm.installationCost || 0) + (quotationForm.equipmentCost || 0);
@@ -2024,11 +2016,11 @@ const MyAssessments = () => {
     freeQuoteForm.systemSize, config
   ]);
 
-  // Pagination calculations
+  // Pagination calculations (server-driven: rows + totals from the API).
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredAssessments.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredAssessments.length / rowsPerPage);
+  const currentRows = filteredAssessments;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const nextPage = () => {
@@ -2042,15 +2034,18 @@ const MyAssessments = () => {
     }
   };
 
-  // Get unique statuses for dropdown
-  // NEW CODE - Gets statuses from ALL assessments
+  // Static status options per type tab (server filters across ALL pages now,
+  // so the dropdown no longer depends on loaded rows).
+  const FREE_QUOTE_STATUSES = ['pending', 'assigned', 'processing', 'completed', 'accepted', 'cancelled'];
+  const PRE_ASSESSMENT_STATUSES = [
+    'pending_review', 'pending_payment', 'scheduled', 'site_visit_ongoing',
+    'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft',
+    'quotation_generated', 'quotation_accepted', 'completed', 'cancelled'
+  ];
   const getUniqueStatuses = () => {
-    const statuses = new Set();
-    allAssessments.forEach(item => {
-      const status = item.type === 'free_quote' ? item.status : item.assessmentStatus;
-      if (status) statuses.add(status);
-    });
-    return Array.from(statuses);
+    if (activeTypeFilter === 'free_quote') return FREE_QUOTE_STATUSES;
+    if (activeTypeFilter === 'pre_assessment') return PRE_ASSESSMENT_STATUSES;
+    return Array.from(new Set([...FREE_QUOTE_STATUSES, ...PRE_ASSESSMENT_STATUSES]));
   };
 
   // Skeleton Loader Components
@@ -2128,7 +2123,7 @@ const MyAssessments = () => {
                 <span className="assessment-chart-period-enad">By status • Total {dashboardStats.total}</span>
               </div>
               <div className="assessment-chart-wrapper-enad">
-                {allAssessments.length === 0 ? (
+                {dashboardStats.total === 0 ? (
                   <div className="assessment-chart-empty-enad">No assessments yet — charts will appear once you have assignments.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -2184,7 +2179,7 @@ const MyAssessments = () => {
               <FaSearch className="search-icon-enad" />
               <input
                 type="text"
-                placeholder="Search by reference or client name..."
+                placeholder="Search by reference, client, status, address, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="assessment-search-input-enad"
@@ -2196,7 +2191,7 @@ const MyAssessments = () => {
                 <select
                   className="status-filter-select-enad"
                   value={activeTypeFilter}
-                  onChange={(e) => setActiveTypeFilter(e.target.value)}
+                  onChange={(e) => { setActiveTypeFilter(e.target.value); setActiveStatusFilter('all'); setCurrentPage(1); }}
                 >
                   <option value="all">All Types</option>
                   <option value="free_quote">Free Quotes</option>
@@ -2208,7 +2203,7 @@ const MyAssessments = () => {
                 <select
                   className="status-filter-select-enad"
                   value={activeStatusFilter}
-                onChange={(e) => setActiveStatusFilter(e.target.value)}
+                onChange={(e) => { setActiveStatusFilter(e.target.value); setCurrentPage(1); }}
               >
                 <option value="all">All Status</option>
                 {getUniqueStatuses().map(status => {
@@ -2229,7 +2224,7 @@ const MyAssessments = () => {
           {filteredAssessments.length === 0 ? (
             <div className="empty-state-enad">
               <h3>No assessments found</h3>
-              <p>{allAssessments.length === 0 ? "You don't have any assessments assigned yet." : "No assessments match your search criteria."}</p>
+              <p>{totalItems === 0 ? "You don't have any assessments assigned yet." : "No assessments match your search criteria."}</p>
             </div>
           ) : (
             <>
@@ -2241,7 +2236,13 @@ const MyAssessments = () => {
                       <th>Reference</th>
                       <th>Status</th>
                       <th>Address</th>
-                      <th>Date</th>
+                      <th
+                        className="sortable-th-enad"
+                        onClick={() => { setSortMode((m) => (m === 'newest' ? 'oldest' : 'newest')); setCurrentPage(1); }}
+                        title="Toggle newest / oldest first"
+                      >
+                        Date{sortMode === 'newest' ? ' ▼' : sortMode === 'oldest' ? ' ▲' : ''}
+                      </th>
                       <th style={{ width: '130px', textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
@@ -2335,7 +2336,7 @@ const MyAssessments = () => {
               )}
 
               <div className="pagination-info-enad">
-                Showing {indexOfFirstRow + 1} to {Math.min(indexOfLastRow, filteredAssessments.length)} of {filteredAssessments.length} assessments
+                Showing {totalItems === 0 ? 0 : indexOfFirstRow + 1} to {Math.min(indexOfLastRow, totalItems)} of {totalItems} assessments
               </div>
             </>
           )}

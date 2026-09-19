@@ -30,4 +30,10 @@ const auditLogSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for server-side paging/search/sort
+auditLogSchema.index({ createdAt: -1 });
+auditLogSchema.index({ module: 1 });
+auditLogSchema.index({ action: 1 });
+auditLogSchema.index({ role: 1 });
+
 module.exports = mongoose.model("AuditLog", auditLogSchema);

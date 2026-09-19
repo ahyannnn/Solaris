@@ -115,9 +115,20 @@ const CustomerSignupChart = React.memo(({ signupData, totalCustomers, newThisMon
 const UserManagement = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
+  // Server-side paging: `users` holds ONE page (10 rows). Totals come from the API.
   const [users, setUsers] = useState([]);
-  // Customer-only dataset for the charts (independent of table role filter/search).
-  const [chartCustomers, setChartCustomers] = useState([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+  // Server-side search term (debounced) + per-table sort state.
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [usersSortBy, setUsersSortBy] = useState('createdAt');
+  const [usersSortOrder, setUsersSortOrder] = useState('desc');
+  const [auditSortBy, setAuditSortBy] = useState('createdAt');
+  const [auditSortOrder, setAuditSortOrder] = useState('desc');
+  const searchTimeoutRef = useRef(null);
+  // Mount loads via the activeTab effect — watchers skip their first run.
+  const firstUsersRunRef = useRef(true);
+  const firstAuditRunRef = useRef(true);
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
@@ -330,16 +341,24 @@ const UserManagement = () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
+      // Server-side paging: ONE page of 10 rows (search/sort by the API).
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           role: filterRole === 'all' ? undefined : filterRole,
-          // Fetch the whole role list: search + pagination run client-side
-          // so search spans ALL pages, not just the visible one.
-          limit: 1000
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined,
+          sortBy: usersSortBy,
+          order: usersSortOrder
         }
       });
       setUsers(response.data.users || []);
+      setUsersTotal(response.data.total || 0);
+      setUsersTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       showToast('Failed to load users', 'error');
@@ -360,35 +379,27 @@ const UserManagement = () => {
     }
   };
 
-  // Customer-only fetch for charts — always role=user so table filters never blank the charts.
-  const fetchChartCustomers = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { role: 'user', limit: 1000 }
-      });
-      const list = response.data.users || [];
-      setChartCustomers(list.filter((u) => u.role === 'user'));
-    } catch (error) {
-      console.error('Error fetching chart customers:', error);
-    }
-  };
-
   const fetchAuditLogs = async () => {
     try {
       setAuditLoading(true);
       const token = sessionStorage.getItem('token');
+      // Server-side paging + search + sort (10 rows per page).
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/audit`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           page: auditCurrentPage,
-          limit: auditItemsPerPage
+          limit: auditItemsPerPage,
+          search: appliedSearch || undefined,
+          sortBy: auditSortBy,
+          order: auditSortOrder
         }
       });
-      
+
       setAuditLogs(response.data.data || []);
       setAuditTotalItems(response.data.total || 0);
+      if (response.data.page && response.data.page !== auditCurrentPage) {
+        setAuditCurrentPage(response.data.page);
+      }
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       showToast('Failed to load audit logs', 'error');
@@ -408,7 +419,6 @@ const UserManagement = () => {
     if (activeTab === 'users') {
       fetchUsers();
       fetchStats();
-      fetchChartCustomers();
     } else if (activeTab === 'audit') {
       fetchAuditLogs();
     }
@@ -422,7 +432,6 @@ const UserManagement = () => {
     if (activeTab === 'users') {
       fetchUsers();
       fetchStats();
-      fetchChartCustomers();
     } else if (activeTab === 'audit') {
       fetchAuditLogs();
     }
@@ -447,17 +456,47 @@ const UserManagement = () => {
     };
   }, [activeTab]);
 
+  // Server-side users paging: refetch ONE page on role/page/search/sort change.
   useEffect(() => {
+    if (firstUsersRunRef.current) {
+      firstUsersRunRef.current = false;
+      return;
+    }
     if (activeTab === 'users') {
       fetchUsers();
     }
-  }, [filterRole]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterRole, currentPage, appliedSearch, usersSortBy, usersSortOrder]);
 
+  // Server-side audit paging: refetch ONE page on page/search/sort change.
   useEffect(() => {
+    if (firstAuditRunRef.current) {
+      firstAuditRunRef.current = false;
+      return;
+    }
     if (activeTab === 'audit') {
       fetchAuditLogs();
     }
-  }, [auditCurrentPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auditCurrentPage, appliedSearch, auditSortBy, auditSortOrder]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+      setAuditCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
 
   // ============================================
   // HANDLERS
@@ -482,45 +521,41 @@ const UserManagement = () => {
   };
 
   const handleSearch = (e) => {
+    // Applied debounced (see search effect): instant input, single server fetch.
     setSearchTerm(e.target.value);
-    if (activeTab === 'users') {
-      setCurrentPage(1);
-    } else {
-      setAuditCurrentPage(1);
-    }
   };
+
+  // Server-side sort toggles: same field flips direction, new field starts asc.
+  const toggleUsersSort = (field) => {
+    if (usersSortBy === field) {
+      setUsersSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setUsersSortBy(field);
+      setUsersSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const toggleAuditSort = (field) => {
+    if (auditSortBy === field) {
+      setAuditSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setAuditSortBy(field);
+      setAuditSortOrder('asc');
+    }
+    setAuditCurrentPage(1);
+  };
+
+  const sortArrow = (activeField, currentField, order) =>
+    activeField === currentField ? (order === 'asc' ? ' ▲' : ' ▼') : '';
 
   const getContactNumber = (user) => user?.contactNumber || user?.clientInfo?.contactNumber || '';
 
-  const filteredUsers = users.filter(user => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return user.fullName?.toLowerCase().includes(searchLower) ||
-      user.email?.toLowerCase().includes(searchLower) ||
-      getContactNumber(user)?.includes(searchTerm);
-  });
-
-  // Client-side pagination over the full filtered list (search already
-  // spans every page since the whole role list is fetched above).
-  const totalFilteredUsers = filteredUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalFilteredUsers / itemsPerPage));
+  // NOTE: search/filter/slice now happen server-side (page/limit/search/sort
+  // params). `users` / `auditLogs` already hold exactly ONE page of rows;
+  // totals below come from the API responses.
+  const totalPages = usersTotalPages;
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const paginatedUsers = filteredUsers.slice(
-    (safeCurrentPage - 1) * itemsPerPage,
-    safeCurrentPage * itemsPerPage
-  );
-
-  const filteredAuditLogs = auditLogs.filter(log => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      log.user?.fullName?.toLowerCase().includes(searchLower) ||
-      log.user?.email?.toLowerCase().includes(searchLower) ||
-      log.module?.toLowerCase().includes(searchLower) ||
-      log.action?.toLowerCase().includes(searchLower) ||
-      log.role?.toLowerCase().includes(searchLower)
-    );
-  });
 
   const auditTotalPages = Math.max(1, Math.ceil(auditTotalItems / auditItemsPerPage));
   const auditStartItem = (auditCurrentPage - 1) * auditItemsPerPage + 1;
@@ -622,7 +657,8 @@ const UserManagement = () => {
     setOpenDropdownId(null);
   };
 
-  const handleDeleteClick = (user) => {
+  // Unused delete entry-point (delete flow currently goes through the actions menu).
+  const _handleDeleteClick = (user) => {
     setSelectedUser(user);
     setShowDeleteConfirm(true);
     setOpenDropdownId(null);
@@ -856,8 +892,8 @@ const UserManagement = () => {
     return actions;
   };
 
-  const startItem = totalFilteredUsers === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalFilteredUsers);
+  const startItem = usersTotal === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(safeCurrentPage * itemsPerPage, usersTotal);
 
   const getPageNumbers = (total, current, maxVisible = 5) => {
     const pages = [];
@@ -877,12 +913,7 @@ const UserManagement = () => {
   const pageNumbers = getPageNumbers(totalPages, safeCurrentPage);
   const auditPageNumbers = getPageNumbers(auditTotalPages, auditCurrentPage);
 
-  // --- Customer-only chart data (memoized at parent level so typing/search never remounts charts) ---
-  const chartCustomerList = useMemo(
-    () => (chartCustomers || []).filter((u) => u.role === 'user'),
-    [chartCustomers]
-  );
-
+  // --- Customer chart data from the stats endpoint (no customer row dump) ---
   // Last 12 months (inclusive of current month), zero-filled.
   const signupData = useMemo(() => {
     const now = new Date();
@@ -898,17 +929,13 @@ const UserManagement = () => {
       });
     }
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
-    chartCustomerList.forEach((u) => {
-      if (!u.createdAt) return;
-      const d = new Date(u.createdAt);
-      if (Number.isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      if (byKey[key]) byKey[key].value += 1;
+    (stats.monthlySignups || []).forEach((m) => {
+      if (byKey[m.key]) byKey[m.key].value += m.value;
     });
     return buckets;
-  }, [chartCustomerList]);
+  }, [stats.monthlySignups]);
 
-  const totalChartCustomers = chartCustomerList.length;
+  const totalChartCustomers = stats.byRole?.user || 0;
   const newChartCustomersThisMonth = signupData.length ? signupData[signupData.length - 1].value : 0;
   const hasChartCustomers = totalChartCustomers > 0;
 
@@ -967,11 +994,15 @@ const UserManagement = () => {
           <div className="user-tabs-usermanagement">
             <button
               className={`tab-btn-usermanagement ${activeTab === 'users' ? 'active-usermanagement' : ''}`}
-              onClick={() => { 
-                setActiveTab('users'); 
-                setSearchTerm(''); 
-                setCurrentPage(1); 
-                setAuditCurrentPage(1); 
+              onClick={() => {
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
+                setActiveTab('users');
+                setSearchTerm('');
+                setAppliedSearch('');
+                setCurrentPage(1);
+                setAuditCurrentPage(1);
               }}
             >
               <FaUsers /> Users
@@ -979,11 +1010,15 @@ const UserManagement = () => {
             </button>
             <button
               className={`tab-btn-usermanagement ${activeTab === 'audit' ? 'active-usermanagement' : ''}`}
-              onClick={() => { 
-                setActiveTab('audit'); 
-                setSearchTerm(''); 
-                setCurrentPage(1); 
-                setAuditCurrentPage(1); 
+              onClick={() => {
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
+                setActiveTab('audit');
+                setSearchTerm('');
+                setAppliedSearch('');
+                setCurrentPage(1);
+                setAuditCurrentPage(1);
               }}
             >
               <FaHistory /> Audit Logs
@@ -1034,24 +1069,34 @@ const UserManagement = () => {
             <table className="users-table-usermanagement">
               <thead>
                 <tr>
-                  <th style={{ width: '22%' }}>User</th>
-                  <th style={{ width: '22%' }}>Email</th>
+                  <th style={{ width: '22%' }} className="sortable-th-usermanagement" onClick={() => toggleUsersSort('fullName')} title="Sort by name">
+                    User{sortArrow(usersSortBy, 'fullName', usersSortOrder)}
+                  </th>
+                  <th style={{ width: '22%' }} className="sortable-th-usermanagement" onClick={() => toggleUsersSort('email')} title="Sort by email">
+                    Email{sortArrow(usersSortBy, 'email', usersSortOrder)}
+                  </th>
                   <th style={{ width: '14%' }}>Contact Number</th>
-                  <th style={{ width: '9%' }}>Role</th>
-                  <th style={{ width: '10%' }}>Status</th>
-                  <th style={{ width: '13%' }}>Created</th>
+                  <th style={{ width: '9%' }} className="sortable-th-usermanagement" onClick={() => toggleUsersSort('role')} title="Sort by role">
+                    Role{sortArrow(usersSortBy, 'role', usersSortOrder)}
+                  </th>
+                  <th style={{ width: '10%' }} className="sortable-th-usermanagement" onClick={() => toggleUsersSort('isActive')} title="Sort by status">
+                    Status{sortArrow(usersSortBy, 'isActive', usersSortOrder)}
+                  </th>
+                  <th style={{ width: '13%' }} className="sortable-th-usermanagement" onClick={() => toggleUsersSort('createdAt')} title="Sort by date created">
+                    Created{sortArrow(usersSortBy, 'createdAt', usersSortOrder)}
+                  </th>
                   <th style={{ width: '10%', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <tr>
                     <td colSpan="7" data-label="" className="empty-state-usermanagement">
                       <p>No users found</p>
                     </td>
                   </tr>
                 ) : (
-                  paginatedUsers.map((user, idx) => {
+                  users.map((user, idx) => {
                     const actions = getAvailableActions(user);
                     const isOpen = openDropdownId === user._id;
 
@@ -1092,7 +1137,7 @@ const UserManagement = () => {
                               className="action-dropdown-toggle-usermanagement"
                               data-action-toggle
                               ref={el => buttonRefs.current[user._id] = el}
-                              onClick={(e) => handleDropdownClick(e, user._id, idx >= paginatedUsers.length - 2)}
+                              onClick={(e) => handleDropdownClick(e, user._id, idx >= users.length - 2)}
                             >
                               Action <FaChevronDown className={`dropdown-arrow-usermanagement ${isOpen ? 'open-usermanagement' : ''}`} />
                             </button>
@@ -1135,10 +1180,10 @@ const UserManagement = () => {
         )}
 
         {/* Users Pagination */}
-        {activeTab === 'users' && totalFilteredUsers > itemsPerPage && (
+        {activeTab === 'users' && usersTotal > itemsPerPage && (
           <div className="pagination-usermanagement">
             <div className="pagination-info-usermanagement">
-              Showing {startItem} to {endItem} of {totalFilteredUsers} entries
+              Showing {startItem} to {endItem} of {usersTotal} entries
             </div>
             <div className="pagination-controls-usermanagement">
               <button
@@ -1177,21 +1222,29 @@ const UserManagement = () => {
               <thead>
                 <tr>
                   <th style={{ width: '18%' }}>User</th>
-                  <th style={{ width: '12%' }}>Role</th>
-                  <th style={{ width: '15%' }}>Module</th>
-                  <th style={{ width: '18%' }}>Action</th>
-                  <th style={{ width: '22%' }}>Timestamp</th>
+                  <th style={{ width: '12%' }} className="sortable-th-usermanagement" onClick={() => toggleAuditSort('role')} title="Sort by role">
+                    Role{sortArrow(auditSortBy, 'role', auditSortOrder)}
+                  </th>
+                  <th style={{ width: '15%' }} className="sortable-th-usermanagement" onClick={() => toggleAuditSort('module')} title="Sort by module">
+                    Module{sortArrow(auditSortBy, 'module', auditSortOrder)}
+                  </th>
+                  <th style={{ width: '18%' }} className="sortable-th-usermanagement" onClick={() => toggleAuditSort('action')} title="Sort by action">
+                    Action{sortArrow(auditSortBy, 'action', auditSortOrder)}
+                  </th>
+                  <th style={{ width: '22%' }} className="sortable-th-usermanagement" onClick={() => toggleAuditSort('createdAt')} title="Sort by timestamp">
+                    Timestamp{sortArrow(auditSortBy, 'createdAt', auditSortOrder)}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredAuditLogs.length === 0 ? (
+                {auditLogs.length === 0 ? (
                   <tr>
                     <td colSpan="5" data-label="" className="empty-state-usermanagement">
                       <p>No audit logs found</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredAuditLogs.map(log => {
+                  auditLogs.map(log => {
                     let userDisplayName = 'Unknown User';
                     let userInitials = '?';
 

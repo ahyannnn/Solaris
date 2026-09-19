@@ -13,12 +13,18 @@ const { getIO } = require('../socket');
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { page = 1, limit = 50 } = req.query;
+    const { page = 1, limit = 10 } = req.query;
 
-    const skip =
-      (parseInt(page) - 1) * parseInt(limit);
+    // Validate as positive integers, clamp limit to avoid huge fetches.
+    // Page size is 10 by default; max 50 keeps popover + full page safe.
+    const MAX_LIMIT = 50;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(
+      MAX_LIMIT,
+      Math.max(1, parseInt(limit, 10) || 10)
+    );
 
-    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const notifications = await Notification.find({
       userId,
@@ -42,10 +48,8 @@ exports.getNotifications = async (req, res) => {
       unreadCount,
 
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(
-          total / limitNum
-        ),
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
         totalItems: total,
         itemsPerPage: limitNum,
       },

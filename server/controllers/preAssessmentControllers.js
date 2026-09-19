@@ -1,4 +1,5 @@
 const PreAssessment = require('../models/PreAssessment');
+const FreeQuote = require('../models/FreeQuote');
 const Client = require('../models/Clients');
 const Address = require('../models/Address');
 const IoTDevice = require('../models/IoTDevice');
@@ -1745,11 +1746,12 @@ exports.getEngineerAssessments = async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
 
     const query = {
-      assignedEngineerId: engineerId,
-      assessmentStatus: { $nin: ['cancelled', 'pending_payment'] }
+      assignedEngineerId: engineerId
     };
 
-    if (status) query.assessmentStatus = status;
+    // Explicit status wins; otherwise keep the default exclusions.
+    if (status && status !== 'all') query.assessmentStatus = status;
+    else query.assessmentStatus = { $nin: ['cancelled', 'pending_payment'] };
 
     const assessments = await PreAssessment.find(query)
       .populate({
@@ -1789,6 +1791,282 @@ exports.getEngineerAssessments = async (req, res) => {
       message: 'Failed to fetch assessments',
       error: error.message
     });
+  }
+};
+
+// ============ ENGINEER UNIFIED LIST (server-side union paging: 10 per page) ============
+
+const ENGINEER_ITEMS_PAGE_SIZE = 10;
+const ENGINEER_ITEMS_MAX_LIMIT = 50;
+
+// Needs-action rank mirror of siteassessment.jsx isAssessmentNeedsAction:
+// free quotes pending/assigned/processing; assessments scheduled/site_visit/
+// device/data phases (report_draft excluded — no action left).
+const QUOTE_NEEDS_ACTION = ['pending', 'assigned', 'processing'];
+const ASSESSMENT_NEEDS_ACTION = [
+  'scheduled',
+  'site_visit_ongoing',
+  'device_deployed',
+  'data_collecting',
+  'data_analyzing'
+];
+
+const escapeItemRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const itemDateKey = (kind, doc) => {
+  const t = kind === 'free_quote'
+    ? doc.requestedAt || doc.createdAt || doc.preferredDate
+    : doc.preferredDate || doc.requestedAt || doc.createdAt || doc.bookedAt;
+  return new Date(t || 0).getTime() || 0;
+};
+
+const itemNeedsAction = (kind, doc) => {
+  if (kind === 'free_quote') return QUOTE_NEEDS_ACTION.includes(doc.status);
+  const s = doc.status || doc.assessmentStatus;
+  return ASSESSMENT_NEEDS_ACTION.includes(s);
+};
+
+// Resolve cross-collection search IDs once (client names, emails, addresses).
+const resolveItemSearchIds = async (rx) => {
+  const [clientsByName, usersByEmail, addresses] = await Promise.all([
+    Client.find({ $or: [{ contactFirstName: rx }, { contactLastName: rx }] }).select('_id userId').lean(),
+    User.find({ email: rx }).select('_id').lean(),
+    Address.find({
+      $or: [{ street: rx }, { barangay: rx }, { cityMunicipality: rx }, { province: rx }]
+    }).select('_id').lean()
+  ]);
+  const emailUserIds = usersByEmail.map((u) => u._id);
+  let emailClientIds = [];
+  if (emailUserIds.length) {
+    const emailClients = await Client.find({ userId: { $in: emailUserIds } }).select('_id').lean();
+    emailClientIds = emailClients.map((c) => c._id);
+  }
+  const clientIds = [
+    ...clientsByName.map((c) => c._id),
+    ...emailClientIds
+  ];
+  return {
+    clientIds,
+    addressIds: addresses.map((a) => a._id)
+  };
+};
+
+// @desc    Get engineer's quotes + assessments merged, globally ordered + paged
+// @route   GET /api/pre-assessments/engineer/my-items
+// @access  Private (Engineer)
+exports.getEngineerItems = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const {
+      type = 'all',
+      status,
+      search,
+      sort = 'action',
+      page = 1,
+      limit = ENGINEER_ITEMS_PAGE_SIZE
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(
+      ENGINEER_ITEMS_MAX_LIMIT,
+      Math.max(1, parseInt(limit, 10) || ENGINEER_ITEMS_PAGE_SIZE)
+    );
+
+    const term = (search || '').trim();
+    const rx = term ? new RegExp(escapeItemRegex(term), 'i') : null;
+    const searchIds = rx ? await resolveItemSearchIds(rx) : { clientIds: [], addressIds: [] };
+    const objectId = term && mongoose.Types.ObjectId.isValid(term)
+      ? new mongoose.Types.ObjectId(term)
+      : null;
+
+    const wantQuotes = type === 'all' || type === 'free_quote';
+    const wantAssessments = type === 'all' || type === 'pre_assessment';
+
+    // ---- Phase 1: lightweight rank keys across ALL matches ----
+    let quoteKeys = [];
+    let assessmentKeys = [];
+
+    if (wantQuotes) {
+      const q = { assignedEngineerId: engineerId };
+      if (status && status !== 'all') q.status = status;
+      else q.status = { $nin: ['cancelled'] };
+      if (rx) {
+        const or = [{ quotationReference: rx }, { status: rx }];
+        if (objectId) or.push({ _id: objectId });
+        if (searchIds.clientIds.length) or.push({ clientId: { $in: searchIds.clientIds } });
+        if (searchIds.addressIds.length) or.push({ addressId: { $in: searchIds.addressIds } });
+        q.$or = or;
+      }
+      const rows = await FreeQuote.find(q)
+        .select('status requestedAt createdAt clientId addressId')
+        .lean();
+      quoteKeys = rows.map((r) => ({
+        kind: 'free_quote',
+        id: r._id,
+        needs: itemNeedsAction('free_quote', r),
+        time: itemDateKey('free_quote', r)
+      }));
+    }
+
+    if (wantAssessments) {
+      const q = { assignedEngineerId: engineerId };
+      if (status && status !== 'all') q.assessmentStatus = status;
+      else q.assessmentStatus = { $nin: ['cancelled', 'pending_payment'] };
+      if (rx) {
+        const or = [{ bookingReference: rx }, { assessmentStatus: rx }];
+        if (objectId) or.push({ _id: objectId });
+        if (searchIds.clientIds.length) or.push({ clientId: { $in: searchIds.clientIds } });
+        if (searchIds.addressIds.length) or.push({ addressId: { $in: searchIds.addressIds } });
+        q.$or = or;
+      }
+      const rows = await PreAssessment.find(q)
+        .select('assessmentStatus preferredDate requestedAt createdAt bookedAt clientId addressId')
+        .lean();
+      assessmentKeys = rows.map((r) => ({
+        kind: 'pre_assessment',
+        id: r._id,
+        needs: itemNeedsAction('pre_assessment', { status: r.assessmentStatus }),
+        time: itemDateKey('pre_assessment', r)
+      }));
+    }
+
+    // Comparator returns >0 => b first: (b - a) is newest-first.
+    const dir = sort === 'oldest' ? -1 : 1;
+    const ranked = [...quoteKeys, ...assessmentKeys].sort((a, b) => {
+      if (sort === 'action' && b.needs !== a.needs) return b.needs - a.needs;
+      if (b.time !== a.time) return (b.time - a.time) * dir;
+      return 0;
+    });
+
+    const total = ranked.length;
+    const pageKeys = ranked.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+    const quoteIds = pageKeys.filter((k) => k.kind === 'free_quote').map((k) => k.id);
+    const assessmentIds = pageKeys.filter((k) => k.kind === 'pre_assessment').map((k) => k.id);
+
+    // ---- Phase 2: full populated docs for the 10 page rows only ----
+    const [quotes, assessments] = await Promise.all([
+      quoteIds.length ? FreeQuote.find({ _id: { $in: quoteIds } })
+        .populate('clientId', 'contactFirstName contactLastName contactNumber userId.email')
+        .populate('addressId')
+        .populate('assignedEngineerId', 'fullName email')
+        .populate({ path: 'clientId', populate: { path: 'userId', select: 'email photoURL' } })
+        .lean() : [],
+      assessmentIds.length ? PreAssessment.find({ _id: { $in: assessmentIds } })
+        .populate({
+          path: 'clientId',
+          select: 'contactFirstName contactLastName contactNumber userId',
+          populate: { path: 'userId', select: 'email photoURL' }
+        })
+        .populate('addressId')
+        .populate('iotDeviceId')
+        .lean() : []
+    ]);
+
+    // Keep the calculated quote fields the old endpoint attached.
+    const formattedQuotes = quotes.map((quote) => ({
+      ...quote,
+      estimatedAnnualProduction: quote.estimatedAnnualProduction,
+      estimatedAnnualProductionMin: quote.estimatedAnnualProductionMin,
+      estimatedAnnualProductionMax: quote.estimatedAnnualProductionMax,
+      co2Offset: quote.co2Offset,
+      co2OffsetMin: quote.co2OffsetMin,
+      co2OffsetMax: quote.co2OffsetMax,
+      itemType: 'free_quote'
+    }));
+    const formattedAssessments = assessments.map((a) => ({ ...a, itemType: 'pre_assessment' }));
+
+    // Restore global rank order (Mongo returns $in matches unordered).
+    const byId = {};
+    [...formattedQuotes, ...formattedAssessments].forEach((doc) => {
+      byId[doc._id.toString()] = doc;
+    });
+    const items = pageKeys.map((k) => byId[k.id.toString()]).filter(Boolean);
+
+    res.json({
+      success: true,
+      items,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
+    });
+
+  } catch (error) {
+    console.error('Get engineer items error:', error);
+    res.status(500).json({ message: 'Failed to fetch items', error: error.message });
+  }
+};
+
+// @desc    Engineer assessment dashboard stats (charts/KPIs, no row dumps)
+// @route   GET /api/pre-assessments/engineer/assessment-stats
+// @access  Private (Engineer)
+exports.getEngineerAssessmentStats = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+
+    // Same default scope as the list endpoint (cancelled / pending_payment out).
+    const [quotes, assessments] = await Promise.all([
+      FreeQuote.find({ assignedEngineerId: engineerId, status: { $nin: ['cancelled'] } })
+        .select('status requestedAt createdAt')
+        .lean(),
+      PreAssessment.find({ assignedEngineerId: engineerId, assessmentStatus: { $nin: ['cancelled', 'pending_payment'] } })
+        .select('assessmentStatus bookedAt createdAt preferredDate requestedAt')
+        .lean()
+    ]);
+
+    const getStatus = (kind, doc) => (kind === 'free_quote' ? doc.status : doc.assessmentStatus);
+    // Bucket mapping mirrors the client pipeline memo exactly (incl. its
+    // quirk: 'in_progress' has no chart bucket but counts in KPI inProgress).
+    const isPending = (s) => s === 'pending' || s === 'pending_payment' || s === 'pending_review';
+    const isScheduled = (s) => s === 'scheduled' || s === 'assigned' || s === 'processing';
+    const isFieldWork = (s) => s === 'site_visit_ongoing' || s === 'device_deployed';
+    const isDataPhase = (s) => s === 'data_collecting' || s === 'data_analyzing';
+    const isReportDraft = (s) => s === 'report_draft';
+    const isCompleted = (s) =>
+      s === 'completed' || s === 'accepted' || s === 'quotation_generated' || s === 'quotation_accepted';
+    const isKpiInProgress = (s) =>
+      isScheduled(s) || isFieldWork(s) || isDataPhase(s) || isReportDraft(s) || s === 'in_progress';
+    const isKpiCompleted = (s) => s === 'completed' || s === 'accepted';
+
+    const pipeline = { pending: 0, scheduled: 0, field: 0, data: 0, draft: 0, completed: 0 };
+    const totals = { total: 0, pending: 0, inProgress: 0, completed: 0 };
+    const monthly = Array.from({ length: 12 }, (_, m) => ({ month: m, quotes: 0, assessments: 0 }));
+
+    const bumpMonth = (kind, raw) => {
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      if (kind === 'free_quote') monthly[d.getMonth()].quotes += 1;
+      else monthly[d.getMonth()].assessments += 1;
+    };
+
+    const tally = (kind, s, monthRaw) => {
+      // Chart buckets (client pipeline memo mapping).
+      if (isPending(s)) pipeline.pending += 1;
+      else if (isScheduled(s)) pipeline.scheduled += 1;
+      else if (isFieldWork(s)) pipeline.field += 1;
+      else if (isDataPhase(s)) pipeline.data += 1;
+      else if (isReportDraft(s)) pipeline.draft += 1;
+      else if (isCompleted(s)) pipeline.completed += 1;
+      // KPI totals follow the dashboard effect (wider than chart buckets).
+      if (isPending(s)) totals.pending += 1;
+      if (isKpiInProgress(s)) totals.inProgress += 1;
+      if (isKpiCompleted(s)) totals.completed += 1;
+      totals.total += 1;
+      bumpMonth(kind, monthRaw);
+    };
+
+    quotes.forEach((q) => tally('free_quote', getStatus('free_quote', q), q.requestedAt || q.createdAt));
+    assessments.forEach((a) => tally(
+      'pre_assessment',
+      getStatus('pre_assessment', a),
+      a.bookedAt || a.createdAt || a.preferredDate || a.requestedAt
+    ));
+
+    res.json({ success: true, stats: { totals, pipeline, monthly } });
+
+  } catch (error) {
+    console.error('Get engineer assessment stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };
 
@@ -2557,6 +2835,74 @@ exports.getPreAssessmentStats = async (req, res) => {
     ]);
     const pendingRevenue = pendingResult[0]?.total || 0;
 
+    // Billing-chart source (mirrors Admin/billing.jsx revenue + trend logic):
+    // revenue by method (paid, live flows only), auto-verified / pending-cash
+    // counts, and 6-month collected/pending trend keyed 'YYYY-M' (getMonth).
+    const billingRows = await PreAssessment.find({})
+      .select('assessmentFee paymentMethod paymentGateway paymentStatus assessmentStatus autoVerified bookedAt confirmedAt paymentCompletedAt')
+      .lean();
+
+    const isDeadFlow = (a) =>
+      a.assessmentStatus === 'cancelled' ||
+      ['cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a.paymentStatus);
+
+    let autoVerified = 0;
+    let pendingCash = 0;
+    const revenueByMethod = { cash: 0, gcash: 0, paymongo: 0 };
+    const trendCollected = {};
+    const trendPending = {};
+    const trendAdd = (map, dateVal, amount) => {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime()) || !(amount > 0)) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      map[key] = (map[key] || 0) + amount;
+    };
+
+    billingRows.forEach((a) => {
+      if (a.autoVerified === true || a.paymentGateway === 'paymongo') autoVerified += 1;
+      if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') pendingCash += 1;
+      if (isDeadFlow(a)) return;
+      if (a.paymentStatus === 'paid') {
+        if (a.paymentMethod === 'cash') revenueByMethod.cash += a.assessmentFee || 0;
+        else if (a.paymentMethod === 'gcash') revenueByMethod.gcash += a.assessmentFee || 0;
+        else if (a.paymentGateway === 'paymongo') revenueByMethod.paymongo += a.assessmentFee || 0;
+        trendAdd(trendCollected, a.paymentCompletedAt || a.confirmedAt || a.bookedAt, a.assessmentFee || 0);
+      } else if (a.paymentStatus === 'pending' || a.paymentStatus === 'for_verification') {
+        trendAdd(trendPending, a.bookedAt, a.assessmentFee || 0);
+      }
+    });
+
+    const trendMap = (map) => Object.entries(map).map(([key, amount]) => ({ key, amount }));
+
+    // Admin site-assessment page section (KPIs, dots, monthly chart):
+    // status counts + needsAction + monthly by bookedAt. Same predicates as
+    // the client derivations (no row dumps needed by the page anymore).
+    const pageRows = await PreAssessment.find({})
+      .select('assessmentStatus paymentStatus paymentMethod paymentGateway cancellation assignedEngineerId assignedDeviceId iotDeviceId assignedDevice bookedAt')
+      .lean();
+    const page = {
+      total: pageRows.length,
+      pendingReview: 0,
+      pendingPayment: 0,
+      forVerification: 0,
+      paid: 0,
+      scheduled: 0,
+      completed: 0,
+      needsAction: 0,
+      monthly: Array.from({ length: 12 }, (_, m) => ({ month: m, count: 0 }))
+    };
+    pageRows.forEach((a) => {
+      if (a.assessmentStatus === 'pending_review') page.pendingReview += 1;
+      if (a.assessmentStatus === 'pending_payment') page.pendingPayment += 1;
+      if (a.paymentStatus === 'for_verification') page.forVerification += 1;
+      if (a.paymentStatus === 'paid') page.paid += 1;
+      if (a.assessmentStatus === 'scheduled') page.scheduled += 1;
+      if (a.assessmentStatus === 'completed') page.completed += 1;
+      if (siteAssessmentNeedsAction(a)) page.needsAction += 1;
+      const d = new Date(a.bookedAt);
+      if (!isNaN(d.getTime())) page.monthly[d.getMonth()].count += 1;
+    });
+
     res.json({
       success: true,
       total,
@@ -2566,7 +2912,13 @@ exports.getPreAssessmentStats = async (req, res) => {
       failed,
       totalRevenue,
       pendingRevenue,
-      monthlyStats
+      monthlyStats,
+      autoVerified,
+      pendingCash,
+      revenueByMethod,
+      trendCollected: trendMap(trendCollected),
+      trendPending: trendMap(trendPending),
+      page
     });
 
   } catch (error) {
@@ -2578,14 +2930,74 @@ exports.getPreAssessmentStats = async (req, res) => {
 // @desc    Get all pre-assessments (Admin/Engineer)
 // @route   GET /api/pre-assessments
 // @access  Private (Admin, Engineer)
+// Billing-list priority mirror (Admin/billing.jsx getBillingPrePriority):
+// gcash verifying(1) > cash verifying(2) > rest(3), newest bookedAt first.
+const billingPreRank = (a) => {
+  if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification') return 1;
+  if (a.paymentMethod === 'cash' && a.paymentStatus === 'for_verification') return 2;
+  return 3;
+};
+
+// Admin site-assessment rank mirror (getPreAssessmentPriority + hasNeedsAction):
+// needs-action rows first (0), then groups 1-6, newest bookedAt first.
+const siteAssessmentNeedsAction = (a) => {
+  if (!a) return false;
+  if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(a.assessmentStatus)) return false;
+  if (a.assessmentStatus === 'pending_review') return true;
+  if (a.assessmentStatus === 'cancelled' && a.cancellation && ['pending', 'processing'].includes(a.cancellation.refundStatus)) return true;
+  if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') return true;
+  if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification' && !a.paymentGateway) return true;
+  if (a.paymentStatus === 'paid' && a.assessmentStatus === 'scheduled' && !a.assignedEngineerId) return true;
+  const hasDevice = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
+  if (a.assignedEngineerId && !hasDevice) return false;
+  return false;
+};
+
+const siteAssessmentPriority = (a) => {
+  if (a.assessmentStatus === 'pending_review') return 1;
+  if (a.assessmentStatus === 'cancelled' && a.cancellation && ['pending', 'processing'].includes(a.cancellation.refundStatus)) return 2;
+  if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') return 3;
+  if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification' && !a.paymentGateway) return 3;
+  if (a.paymentStatus === 'paid' && a.assessmentStatus === 'scheduled' && !a.assignedEngineerId) return 4;
+  const hasDevice = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
+  if (a.assignedEngineerId && !hasDevice) return 5;
+  return 6;
+};
+
 exports.getAllPreAssessments = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const {
+      status, assessmentStatus, paymentStatus, hasInvoice, search,
+      sortBy = 'priority', order = 'desc', page = 1, limit = 10
+    } = req.query;
 
     const query = {};
-    if (status) query.assessmentStatus = status;
+    if (status && status !== 'all') query.assessmentStatus = status;
+    // Explicit assessmentStatus wins over legacy `status` (site-assessment
+    // page sends payment-status values via `paymentStatus` instead).
+    if (assessmentStatus && assessmentStatus !== 'all') query.assessmentStatus = assessmentStatus;
+    if (paymentStatus && paymentStatus !== 'all') query.paymentStatus = paymentStatus;
+    if (hasInvoice === 'true') query.invoiceNumber = { $exists: true, $ne: null };
 
-    const assessments = await PreAssessment.find(query)
+    // Server-side search: client name (lookup) + booking ref + invoice no.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [{ bookingReference: rx }, { invoiceNumber: rx }];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      const clients = await Client.find({
+        $or: [{ contactFirstName: rx }, { contactLastName: rx }]
+      }).select('_id').lean();
+      if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+      query.$or = or;
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+
+    const populateList = (findQuery) => findQuery
       .populate({
         path: 'clientId',
         select: 'contactFirstName contactLastName contactNumber userId',
@@ -2596,19 +3008,66 @@ exports.getAllPreAssessments = async (req, res) => {
       })
       .populate('addressId')
       .populate('iotDeviceId')
-      .populate('assignedEngineerId', 'email firstName lastName')
-      .sort({ bookedAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .populate('assignedEngineerId', 'email firstName lastName');
 
-    const total = await PreAssessment.countDocuments(query);
+    let assessments;
+    let total;
+
+    if (sortBy === 'priority' || sortBy === 'adminPriority') {
+      // Rank across ALL matches first (lightweight pass), then fetch the page.
+      const light = await PreAssessment.find(query)
+        .select('assessmentStatus cancellation paymentMethod paymentStatus paymentGateway assignedEngineerId assignedDeviceId iotDeviceId assignedDevice bookedAt createdAt')
+        .lean();
+      // Mirror populate-nulling: a dangling iotDeviceId reads as "no device"
+      // on the client (populate yields null), so resolve live device IDs once.
+      const iotIds = [...new Set(light.map((a) => a.iotDeviceId?.toString()).filter(Boolean))];
+      const liveDevices = iotIds.length
+        ? await IoTDevice.find({ _id: { $in: iotIds } }).select('_id').lean()
+        : [];
+      const liveDeviceIds = new Set(liveDevices.map((d) => d._id.toString()));
+      const withLiveDevice = (a) => ({
+        ...a,
+        iotDeviceId: a.iotDeviceId && liveDeviceIds.has(a.iotDeviceId.toString()) ? a.iotDeviceId : null
+      });
+      const useAdminRank = sortBy === 'adminPriority';
+      const ranked = light
+        .map((a) => {
+          const row = withLiveDevice(a);
+          return {
+            id: a._id,
+            rank: useAdminRank
+              ? (siteAssessmentNeedsAction(row) ? 0 : siteAssessmentPriority(row))
+              : billingPreRank(a),
+            time: new Date(a.bookedAt || a.createdAt || 0).getTime() || 0
+          };
+        })
+        .sort((a, b) => a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked
+        .slice((pageNum - 1) * limitNum, pageNum * limitNum)
+        .map((r) => r.id);
+      assessments = pageIds.length
+        ? await populateList(PreAssessment.find({ _id: { $in: pageIds } }))
+        : [];
+      const orderMap = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      assessments.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+    } else {
+      const SORTABLE = ['bookedAt', 'createdAt', 'paymentStatus', 'assessmentStatus'];
+      const sortField = SORTABLE.includes(sortBy) ? sortBy : 'bookedAt';
+      const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+      assessments = await populateList(
+        PreAssessment.find(query).sort({ [sortField]: sortDir }).skip((pageNum - 1) * limitNum).limit(limitNum)
+      );
+      total = await PreAssessment.countDocuments(query);
+    }
 
     res.json({
       success: true,
       assessments,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {

@@ -1,5 +1,6 @@
 // controllers/serviceRequestController.js
 // Simple additional-services booking: customer avails, admin views + contacts.
+const mongoose = require('mongoose');
 const ServiceRequest = require('../models/ServiceRequest');
 const Client = require('../models/Clients');
 const User = require('../models/Users');
@@ -193,28 +194,89 @@ exports.getMyServiceRequests = async (req, res) => {
 // @access  Private (Admin)
 exports.getAllServiceRequests = async (req, res) => {
   try {
-    const { status, serviceType, page = 1, limit = 20 } = req.query;
+    const { status, serviceType, search, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
     const query = {};
-    if (status) query.status = status;
-    if (serviceType) query.serviceType = serviceType;
+    if (status && status !== 'all') query.status = status;
+    if (serviceType && serviceType !== 'all') query.serviceType = serviceType;
 
+    // Server-side search: reference / name / email / phone / service / status.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [
+        { referenceNo: rx },
+        { fullName: rx },
+        { email: rx },
+        { phone: rx },
+        { serviceType: rx },
+        { status: rx }
+      ];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      query.$or = or;
+    }
+
+    // Whitelisted sortable fields (default newest-first).
+    const SORTABLE = ['createdAt', 'status', 'serviceType', 'preferredDate'];
+    const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+
+    // Validate paging: 10 per page default, max 50.
     const pg = Math.max(parseInt(page, 10) || 1, 1);
-    const lim = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const lim = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
 
     const [requests, total] = await Promise.all([
       ServiceRequest.find(query)
         .populate('clientId', 'contactFirstName contactLastName contactNumber')
         .populate({ path: 'clientId', populate: { path: 'userId', select: 'email photoURL' } })
-        .sort({ createdAt: -1 })
+        .sort({ [sortField]: sortDir })
         .skip((pg - 1) * lim)
         .limit(lim),
       ServiceRequest.countDocuments(query)
     ]);
 
-    return res.json({ success: true, requests, total, page: pg, totalPages: Math.ceil(total / lim) });
+    return res.json({
+      success: true,
+      requests,
+      total,
+      page: pg,
+      totalPages: Math.ceil(total / lim) || 1,
+      itemsPerPage: lim
+    });
   } catch (error) {
     console.error('Get all service requests error:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch requests', error: error.message });
+  }
+};
+
+// @desc    Get service request statistics (Admin charts, no row dumps)
+// @route   GET /api/service-requests/stats
+// @access  Private (Admin)
+exports.getServiceRequestStats = async (req, res) => {
+  try {
+    const STATUSES = ['pending', 'contacted', 'scheduled', 'completed'];
+    const byStatus = {};
+    await Promise.all(STATUSES.map(async (s) => {
+      byStatus[s] = await ServiceRequest.countDocuments({ status: s });
+    }));
+    const byService = await ServiceRequest.aggregate([
+      { $group: { _id: '$serviceType', count: { $sum: 1 } } }
+    ]);
+
+    return res.json({
+      success: true,
+      stats: {
+        byStatus,
+        byService: byService.reduce((acc, curr) => {
+          acc[curr._id || 'Unknown'] = curr.count;
+          return acc;
+        }, {})
+      }
+    });
+  } catch (error) {
+    console.error('Get service request stats error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch stats', error: error.message });
   }
 };
 

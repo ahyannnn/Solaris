@@ -447,6 +447,17 @@ body.dark-mode {
   transition: color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Clickable server-side sort headers (third click restores priority order) */
+.project-table-projectmanagement thead th.sortable-th-projectmanagement {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.project-table-projectmanagement thead th.sortable-th-projectmanagement:hover {
+  color: var(--text-primary);
+}
+
 .project-table-projectmanagement tbody tr {
   border-bottom: 1px solid var(--border-color);
   transition: background 200ms ease, border-color 0.3s ease;

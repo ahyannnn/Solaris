@@ -23,6 +23,119 @@ const { getUnlockState } = require('../utils/paymentGates');
 const hasIssuedInvoice = (project, type) =>
   (project.paymentSchedule || []).some((p) => p.type === type && p.invoiceNumber);
 
+// ============ SHARED HELPERS (server-side paging: 10 per page) ============
+const PROJECT_PAGE_SIZE = 10;
+const PROJECT_MAX_LIMIT = 50;
+
+const escapeProjectRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Server-side search matching the schedule installation-tab search fields:
+// projectName, projectReference, status, _id + client names + engineer names.
+const buildProjectSearchFilter = async (search) => {
+  const term = (search || '').trim();
+  if (!term) return null;
+  const rx = new RegExp(escapeProjectRegex(term), 'i');
+  const or = [{ projectName: rx }, { projectReference: rx }, { status: rx }];
+  if (mongoose.Types.ObjectId.isValid(term)) {
+    or.push({ _id: new mongoose.Types.ObjectId(term) });
+  }
+  const [clients, users] = await Promise.all([
+    Client.find({ $or: [{ contactFirstName: rx }, { contactLastName: rx }] }).select('_id').lean(),
+    User.find({ $or: [{ fullName: rx }, { firstName: rx }, { lastName: rx }] }).select('_id').lean()
+  ]);
+  if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+  if (users.length) or.push({ assignedEngineerId: { $in: users.map((u) => u._id) } });
+  return { $or: or };
+};
+
+const applyProjectListFilters = async (baseQuery, { status, statuses, search }) => {
+  const query = { ...baseQuery };
+  if (status && status !== 'all') query.status = status;
+  if (statuses) {
+    const list = String(statuses).split(',').map((s) => s.trim()).filter(Boolean);
+    if (list.length) query.status = { $in: list };
+  }
+  const searchFilter = await buildProjectSearchFilter(search);
+  return searchFilter ? { $and: [query, searchFilter] } : query;
+};
+
+const parseProjectPaging = (page, limit) => {
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(
+    PROJECT_MAX_LIMIT,
+    Math.max(1, parseInt(limit, 10) || PROJECT_PAGE_SIZE)
+  );
+  return { pageNum, limitNum };
+};
+
+// ============ ENGINEER ACTION RANK (mirrors client getSortRank) ============
+// Rank order: Start(0) > Update-now(1) > Waiting/Check(2) > Approved-Check(3)
+// > Completed-View(4) > quoted/none(5); newest first within a rank.
+// Reads status/paymentPreference/paymentSchedule/fullPaymentCompleted only.
+const projectSchedulePaid = (p, paymentType) => {
+  const item = (p.paymentSchedule || []).find((i) => i.type === paymentType);
+  if (item && item.status === 'paid') return true;
+  if (paymentType === 'full' && p.fullPaymentCompleted) return true;
+  return false;
+};
+
+const projectRequiredPaymentPaid = (p) => {
+  if (p.paymentPreference === 'full') return projectSchedulePaid(p, 'full');
+  if (p.paymentPreference === 'fifty_fifty') return projectSchedulePaid(p, 'initial');
+  if (p.paymentPreference === 'thirty_sixty_ten') return projectSchedulePaid(p, 'initial');
+  return false;
+};
+
+const projectRetentionPending = (p) => {
+  if (!p || p.paymentPreference !== 'thirty_sixty_ten') return false;
+  const finalItem = (p.paymentSchedule || []).find((i) => i.type === 'final');
+  if (!finalItem || !finalItem.invoiceNumber) return false;
+  return finalItem.status !== 'paid';
+};
+
+const projectWaitingForPayment = (p) => {
+  const { status, paymentPreference } = p;
+  if (status === 'quoted' || status === 'approved') return true;
+  if (projectRetentionPending(p)) return true;
+  if (status === 'in_progress') {
+    if (paymentPreference === 'fifty_fifty') return !projectSchedulePaid(p, 'final');
+    if (paymentPreference === 'thirty_sixty_ten') return !projectSchedulePaid(p, 'progress');
+    if (paymentPreference === 'full') return !projectSchedulePaid(p, 'full');
+  }
+  if (status === 'progress_paid') {
+    if (paymentPreference === 'fifty_fifty') return !projectSchedulePaid(p, 'final');
+    if (paymentPreference === 'thirty_sixty_ten') return false;
+  }
+  return false;
+};
+
+// Admin list priority mirror of getAdminProjectPriority (Admin/project.jsx):
+// quoted(1) > approved/initial_paid without engineer(2) > initial_paid(3) > rest(4).
+const projectAdminPriority = (p) => {
+  const s = (p.status || '').toLowerCase();
+  const hasEng = !!p.assignedEngineerId;
+  if (s === 'quoted') return 1;
+  if ((s === 'approved' || s === 'initial_paid') && !hasEng) return 2;
+  if (s === 'initial_paid') return 3;
+  return 4;
+};
+
+const projectActionRank = (p) => {
+  const { status, paymentPreference } = p;
+  if (status === 'completed') return 4;
+  if (status === 'quoted') return 5;
+  if (status === 'approved') return 3;
+  if (status === 'initial_paid' && projectRequiredPaymentPaid(p)) return 0;
+  if (status === 'full_paid' && paymentPreference === 'full' && projectRequiredPaymentPaid(p)) return 0;
+  if (status === 'full_paid' && paymentPreference !== 'full') {
+    return projectWaitingForPayment(p) ? 2 : 1;
+  }
+  if (status === 'in_progress' || status === 'progress_paid') {
+    return projectWaitingForPayment(p) ? 2 : 1;
+  }
+  return 5;
+};
+
 const ensureNextInvoice = async (project, actorId) => {
   const unlocked = [];
   try {
@@ -990,13 +1103,15 @@ exports.recordPayment = async (req, res) => {
 exports.getEngineerProjects = async (req, res) => {
   try {
     const engineerId = req.user.id;
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, statuses, search, sort = 'action', page = 1, limit = 10 } = req.query;
+    const { pageNum, limitNum } = parseProjectPaging(page, limit);
 
-    const query = { assignedEngineerId: engineerId };
-    if (status && status !== 'all') query.status = status;
+    const query = await applyProjectListFilters(
+      { assignedEngineerId: engineerId },
+      { status, statuses, search }
+    );
 
-    // Fetch projects with population
-    const projects = await Project.find(query)
+    const populatePage = (findQuery) => findQuery
       .populate({
         path: 'clientId',
         populate: {
@@ -1007,29 +1122,63 @@ exports.getEngineerProjects = async (req, res) => {
       .populate('addressId')
       .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate('preAssessmentId')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
       .lean(); // Convert to plain objects for manual population
 
-    // ✅ Manually populate sourceId for free-quote projects
-    const FreeQuote = mongoose.model('FreeQuote');
-    for (let i = 0; i < projects.length; i++) {
-      const project = projects[i];
-      if (project.sourceType === 'free-quote' && project.sourceId) {
-        const freeQuote = await FreeQuote.findById(project.sourceId).lean();
-        project.sourceId = freeQuote;
+    const populateFreeQuote = async (projects) => {
+      // ✅ Manually populate sourceId for free-quote projects (page rows only)
+      const FreeQuote = mongoose.model('FreeQuote');
+      for (let i = 0; i < projects.length; i++) {
+        const project = projects[i];
+        if (project.sourceType === 'free-quote' && project.sourceId) {
+          const freeQuote = await FreeQuote.findById(project.sourceId).lean();
+          project.sourceId = freeQuote;
+        }
       }
-    }
+    };
 
-    const total = await Project.countDocuments(query);
+    let projects;
+    let total;
+
+    if (sort === 'newest') {
+      // Plain newest-first paging (no rank computation).
+      projects = await populatePage(
+        Project.find(query).sort({ createdAt: -1 }).skip((pageNum - 1) * limitNum).limit(limitNum)
+      );
+      await populateFreeQuote(projects);
+      total = await Project.countDocuments(query);
+    } else {
+      // Default: needs-action-first ordering. Rank must be computed across ALL
+      // matching rows before paging, so phase 1 reads lightweight fields only.
+      const light = await Project.find(query)
+        .select('status paymentPreference paymentSchedule fullPaymentCompleted createdAt updatedAt')
+        .lean();
+      const ranked = light
+        .map((p) => ({
+          id: p._id,
+          rank: projectActionRank(p),
+          time: new Date(p.createdAt || p.updatedAt || 0).getTime() || 0
+        }))
+        .sort((a, b) => a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked
+        .slice((pageNum - 1) * limitNum, pageNum * limitNum)
+        .map((r) => r.id);
+      projects = pageIds.length
+        ? await populatePage(Project.find({ _id: { $in: pageIds } }))
+        : [];
+      await populateFreeQuote(projects);
+      // Restore rank order (Mongo returns $in matches unordered).
+      const order = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      projects.sort((a, b) => order.get(a._id.toString()) - order.get(b._id.toString()));
+    }
 
     res.json({
       success: true,
       projects,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
@@ -1300,12 +1449,12 @@ exports.updateProjectProgress = async (req, res) => {
 // @access  Private (Admin)
 exports.getAllProjects = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, statuses, search, sortBy = 'priority', order = 'desc', page = 1, limit = 10 } = req.query;
+    const { pageNum, limitNum } = parseProjectPaging(page, limit);
 
-    const query = {};
-    if (status && status !== 'all') query.status = status;
+    const query = await applyProjectListFilters({}, { status, statuses, search });
 
-    const projects = await Project.find(query)
+    const populatePage = (findQuery) => findQuery
       .populate({
         path: 'clientId',
         select: 'contactFirstName contactLastName contactNumber userId',
@@ -1319,21 +1468,53 @@ exports.getAllProjects = async (req, res) => {
       .populate({
         path: 'preAssessmentId',
       })
-      .populate('sourceId')  // ✅ Get ALL FreeQuote fields
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .populate('sourceId');  // ✅ Get ALL FreeQuote fields
 
-    
+    let projects;
+    let total;
 
-    const total = await Project.countDocuments(query);
+    if (sortBy === 'priority') {
+      // Default: admin priority groups first (quoted > needs-engineer >
+      // initial_paid > rest), newest within each group. Rank must be computed
+      // across ALL matches before paging, so phase 1 reads light fields only.
+      const light = await Project.find(query)
+        .select('status assignedEngineerId createdAt')
+        .lean();
+      const ranked = light
+        .map((p) => ({
+          id: p._id,
+          rank: projectAdminPriority(p),
+          time: new Date(p.createdAt || 0).getTime() || 0
+        }))
+        .sort((a, b) => a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked
+        .slice((pageNum - 1) * limitNum, pageNum * limitNum)
+        .map((r) => r.id);
+      projects = pageIds.length
+        ? await populatePage(Project.find({ _id: { $in: pageIds } }))
+        : [];
+      // Restore rank order (Mongo returns $in matches unordered).
+      const orderMap = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      projects.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+    } else {
+      // Scalar sorts: Requested (createdAt) or Status, asc/desc.
+      const SORTABLE = ['createdAt', 'status'];
+      const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+      const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+      projects = await populatePage(
+        Project.find(query).sort({ [sortField]: sortDir }).skip((pageNum - 1) * limitNum).limit(limitNum)
+      );
+      total = await Project.countDocuments(query);
+    }
 
     res.json({
       success: true,
       projects,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
@@ -1901,6 +2082,15 @@ exports.getProjectStats = async (req, res) => {
       { $limit: 12 }
     ]);
 
+    const installation = await computeInstallationSection({});
+    const workload = await computeWorkloadSection();
+
+    // Billing page: sum of all collected project payments.
+    const paidResult = await Project.aggregate([
+      { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+    ]);
+    const totalAmountPaid = paidResult[0]?.total || 0;
+
     res.json({
       success: true,
       stats: {
@@ -1919,7 +2109,10 @@ exports.getProjectStats = async (req, res) => {
           freeQuote: fromFreeQuote,
           admin: fromAdmin
         },
-        monthlyStats
+        monthlyStats,
+        installation,
+        workload,
+        totalAmountPaid
       }
     });
 
@@ -1927,6 +2120,135 @@ exports.getProjectStats = async (req, res) => {
     console.error('Get project stats error:', error);
     res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
+};
+
+// Installation-tab chart source (replaces full 10k-row client dumps):
+// status distribution + monthly scheduled/completed for installation statuses.
+// Uses an unpopulated select only.
+const INSTALLATION_STATUSES = ['in_progress', 'completed', 'full_paid', 'progress_paid'];
+
+const computeInstallationSection = async (baseQuery) => {
+  const rows = await Project.find({ ...baseQuery, status: { $in: INSTALLATION_STATUSES } })
+    .select('status startDate createdAt')
+    .lean();
+  const byStatus = {};
+  const monthly = Array.from({ length: 12 }, (_, m) => ({ month: m, scheduled: 0, completed: 0 }));
+  rows.forEach((p) => {
+    byStatus[p.status] = (byStatus[p.status] || 0) + 1;
+    const d = new Date(p.startDate || p.createdAt);
+    if (!isNaN(d.getTime())) {
+      const m = d.getMonth();
+      monthly[m].scheduled += 1;
+      if (p.status === 'completed') monthly[m].completed += 1;
+    }
+  });
+  return { total: rows.length, byStatus, monthly };
+};
+
+// Workload chart source for the admin project page (replaces the duplicate
+// full-list fetch): active (non-completed/cancelled) counts per engineer +
+// unassigned bucket. Unpopulated lightweight selects only.
+const computeWorkloadSection = async () => {
+  const rows = await Project.find({ status: { $nin: ['completed', 'cancelled'] } })
+    .select('assignedEngineerId')
+    .lean();
+
+  const counts = {};
+  let unassigned = 0;
+  rows.forEach((p) => {
+    const eng = p.assignedEngineerId;
+    const id = eng && typeof eng === 'object' ? eng.toString() : eng;
+    if (!id) {
+      unassigned += 1;
+      return;
+    }
+    const key = id.toString();
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  const ids = Object.keys(counts);
+  let names = {};
+  if (ids.length) {
+    const users = await User.find({ _id: { $in: ids } })
+      .select('fullName firstName lastName email')
+      .lean();
+    users.forEach((u) => {
+      names[u._id.toString()] =
+        u.fullName || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Engineer';
+    });
+  }
+
+  const entries = ids
+    .map((id) => ({ engineerId: id, name: names[id] || 'Unknown', active: counts[id] }))
+    .sort((a, b) => b.active - a.active);
+
+  return { entries, unassigned, totalActive: rows.length };
+};
+
+// @desc    Get project statistics (Engineer, own projects only)
+// @route   GET /api/projects/engineer/stats
+// @access  Private (Engineer)
+exports.getEngineerProjectStats = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const baseQuery = { assignedEngineerId: engineerId };
+    const total = await Project.countDocuments(baseQuery);
+    const completed = await Project.countDocuments({ ...baseQuery, status: 'completed' });
+    const inProgress = await Project.countDocuments({ ...baseQuery, status: 'in_progress' });
+    const installation = await computeInstallationSection(baseQuery);
+    const pipeline = await computeEngineerPipelineSection(baseQuery);
+
+    res.json({
+      success: true,
+      stats: { total, completed, inProgress, installation, pipeline }
+    });
+  } catch (error) {
+    console.error('Get engineer project stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
+  }
+};
+
+// Project-page chart source (replaces the full client-side list derivation):
+// pipeline buckets + monthly created/completed + KPI totals. Unpopulated
+// lightweight select only — no heavy documents cross the wire.
+const computeEngineerPipelineSection = async (baseQuery) => {
+  const rows = await Project.find(baseQuery)
+    .select('status paymentPreference paymentSchedule fullPaymentCompleted createdAt actualCompletionDate')
+    .lean();
+
+  const byStatus = {};
+  let ready = 0;
+  // Monthly buckets mirror the old client chart: created by createdAt month,
+  // completed by actualCompletionDate month.
+  const monthly = Array.from({ length: 12 }, (_, m) => ({ month: m, created: 0, completed: 0 }));
+
+  rows.forEach((p) => {
+    byStatus[p.status] = (byStatus[p.status] || 0) + 1;
+    if (projectActionRank(p) === 0) ready += 1;
+    const c = new Date(p.createdAt);
+    if (!isNaN(c.getTime())) monthly[c.getMonth()].created += 1;
+    if (p.status === 'completed' && p.actualCompletionDate) {
+      const f = new Date(p.actualCompletionDate);
+      if (!isNaN(f.getTime())) monthly[f.getMonth()].completed += 1;
+    }
+  });
+
+  const pending = (byStatus.quoted || 0) + (byStatus.approved || 0);
+  return {
+    total: rows.length,
+    readyToStart: ready,
+    inProgress: byStatus.in_progress || 0,
+    completed: byStatus.completed || 0,
+    byStatus,
+    pipeline: {
+      pending,
+      ready,
+      inProgress: byStatus.in_progress || 0,
+      progressPaid: byStatus.progress_paid || 0,
+      completed: byStatus.completed || 0
+    },
+    monthly
+  };
 };
 
 // @desc    Get project by ID

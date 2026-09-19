@@ -1,5 +1,6 @@
 // controllers/admin/deviceControllers.js
 
+const mongoose = require('mongoose');
 const IoTDevice = require('../models/IoTDevice');
 const PreAssessment = require('../models/PreAssessment');
 const User = require('../models/Users');
@@ -40,10 +41,35 @@ const generateDeviceId = async () => {
 // @access  Private (Admin)
 exports.getAllDevices = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
-    
+    const { status, search, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
+
     const query = {};
     if (status && status !== 'all') query.status = status;
+
+    // Server-side search: device ID / name / model / serial number.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [
+        { deviceId: rx },
+        { deviceName: rx },
+        { model: rx },
+        { serialNumber: rx }
+      ];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      query.$or = or;
+    }
+
+    // Whitelisted sortable fields (default newest-first).
+    const SORTABLE = ['createdAt', 'status', 'deviceName', 'model'];
+    const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+
+    // Validate paging: 10 per page default (matches frontend), max 50.
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
 
     const devices = await IoTDevice.find(query)
       .populate('assignedToEngineerId', 'name email')
@@ -51,18 +77,20 @@ exports.getAllDevices = async (req, res) => {
       .populate('deployedBy', 'name email')
       .populate('retrievedBy', 'name email')
       .populate('assignedBy', 'name email')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .sort({ [sortField]: sortDir })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
 
+    // Filtered total so pagination stays correct while searching.
     const total = await IoTDevice.countDocuments(query);
 
     res.json({
       success: true,
       devices,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {

@@ -1,8 +1,128 @@
+const mongoose = require('mongoose');
 const Schedule = require('../models/Schedule');
 const Project = require('../models/Project');
 const PreAssessment = require('../models/PreAssessment');
 const Client = require('../models/Clients');
 const User = require('../models/Users');
+
+// ============ SHARED HELPERS (server-side paging: 10 per page) ============
+
+const SCHEDULE_PAGE_SIZE = 10;
+const SCHEDULE_MAX_LIMIT = 50;
+
+// Assessment statuses that count as report-draft/completed (mirrors frontend enrichment)
+const REPORT_LIKE_STATUSES = [
+  'report_draft',
+  'report_drafted',
+  'completed',
+  'quoted',
+  'quotation_generated'
+];
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const parsePaging = (page, limit) => {
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(
+    SCHEDULE_MAX_LIMIT,
+    Math.max(1, parseInt(limit, 10) || SCHEDULE_PAGE_SIZE)
+  );
+  return { pageNum, limitNum };
+};
+
+// Derive the display status from a schedule + its linked assessment.
+// Same priority as the old client enrichment: report-draft -> completed,
+// device deployed -> device_deployed, else the schedule's own status.
+const deriveEnrichedStatus = (scheduleStatus, assessment) => {
+  if (!assessment) {
+    return {
+      status: scheduleStatus,
+      isDeployed: false,
+      deployedAt: null,
+      isReportDraft: false
+    };
+  }
+  const isReportDraft = REPORT_LIKE_STATUSES.includes(assessment.assessmentStatus);
+  const isDeployed = !!assessment.deviceDeployedAt;
+  return {
+    status: isReportDraft ? 'completed' : (isDeployed ? 'device_deployed' : scheduleStatus),
+    isDeployed,
+    deployedAt: assessment.deviceDeployedAt || null,
+    isReportDraft
+  };
+};
+
+// Attach _enrichedStatus/_isDeviceDeployed/_deviceDeployedAt/_assessmentId/_isReportDraft
+// to lean schedule rows. Covers the legacy fallback where the assessment shares
+// the schedule's _id (single bounded batch query, max = page size).
+const attachAssessmentEnrichment = async (schedules) => {
+  const byId = {};
+  const missingIds = [];
+  schedules.forEach((s) => {
+    let assessment = null;
+    let assessmentId = null;
+    const ref = s.preAssessmentId;
+    if (ref && typeof ref === 'object' && ref._id) {
+      assessment = ref;
+      assessmentId = ref._id.toString();
+    } else if (typeof ref === 'string' && ref) {
+      assessmentId = ref;
+    }
+    if (!assessmentId) {
+      assessmentId = s._id.toString();
+    }
+    if (!assessment) missingIds.push(assessmentId);
+    byId[assessmentId] = byId[assessmentId] || [];
+    byId[assessmentId].push({ row: s, assessment });
+  });
+
+  if (missingIds.length) {
+    const found = await PreAssessment.find({ _id: { $in: missingIds } })
+      .select('assessmentStatus deviceDeployedAt')
+      .lean();
+    found.forEach((a) => {
+      (byId[a._id.toString()] || []).forEach((entry) => {
+        if (!entry.assessment) entry.assessment = a;
+      });
+    });
+  }
+
+  Object.entries(byId).forEach(([assessmentId, entries]) => {
+    entries.forEach(({ row, assessment }) => {
+      const enriched = deriveEnrichedStatus(row.status, assessment);
+      row._enrichedStatus = enriched.status;
+      row._isDeviceDeployed = enriched.isDeployed;
+      row._deviceDeployedAt = enriched.deployedAt;
+      row._assessmentId = assessmentId;
+      row._isReportDraft = enriched.isReportDraft;
+    });
+  });
+  return schedules;
+};
+
+// Build a server-side search filter matching the old client search fields:
+// title, clientName, status, _id + projectName/projectReference (Project),
+// bookingReference (PreAssessment), engineer names (User).
+const buildScheduleSearchFilter = async (search) => {
+  const term = (search || '').trim();
+  if (!term) return null;
+  const rx = new RegExp(escapeRegex(term), 'i');
+  const or = [{ title: rx }, { clientName: rx }, { status: rx }];
+  if (mongoose.Types.ObjectId.isValid(term)) {
+    or.push({ _id: new mongoose.Types.ObjectId(term) });
+  }
+  const [projects, assessments, users, clients] = await Promise.all([
+    Project.find({ $or: [{ projectName: rx }, { projectReference: rx }] }).select('_id').lean(),
+    PreAssessment.find({ bookingReference: rx }).select('_id').lean(),
+    User.find({ $or: [{ fullName: rx }, { firstName: rx }, { lastName: rx }] }).select('_id').lean(),
+    Client.find({ $or: [{ contactFirstName: rx }, { contactLastName: rx }] }).select('_id').lean()
+  ]);
+  if (projects.length) or.push({ projectId: { $in: projects.map((p) => p._id) } });
+  if (assessments.length) or.push({ preAssessmentId: { $in: assessments.map((a) => a._id) } });
+  if (users.length) or.push({ assignedEngineerId: { $in: users.map((u) => u._id) } });
+  if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+  return { $or: or };
+};
 
 // ============ ADMIN FUNCTIONS ============
 
@@ -11,13 +131,14 @@ const User = require('../models/Users');
 // @access  Private (Admin)
 exports.getAllSchedules = async (req, res) => {
   try {
-    const { type, status, startDate, endDate, engineerId, page = 1, limit = 20 } = req.query;
-    
+    const { type, status, startDate, endDate, engineerId, search, page = 1, limit = SCHEDULE_PAGE_SIZE, sort } = req.query;
+    const { pageNum, limitNum } = parsePaging(page, limit);
+
     const query = {};
     if (type && type !== 'all') query.type = type;
     if (status && status !== 'all') query.status = status;
     if (engineerId) query.assignedEngineerId = engineerId;
-    
+
     // Date range filter
     if (startDate || endDate) {
       query.scheduledDate = {};
@@ -25,7 +146,12 @@ exports.getAllSchedules = async (req, res) => {
       if (endDate) query.scheduledDate.$lte = new Date(endDate);
     }
 
-    const schedules = await Schedule.find(query)
+    const searchFilter = await buildScheduleSearchFilter(search);
+    const finalQuery = searchFilter ? { $and: [query, searchFilter] } : query;
+
+    const sortOrder = sort === 'desc' ? -1 : 1;
+
+    const schedules = await Schedule.find(finalQuery)
       .populate({
         path: 'clientId',
         select: 'contactFirstName contactLastName contactNumber userId',
@@ -33,19 +159,23 @@ exports.getAllSchedules = async (req, res) => {
       })
       .populate('assignedEngineerId', 'fullName firstName lastName email photoURL')
       .populate('projectId', 'projectName projectReference')
-      .populate('preAssessmentId', 'bookingReference')
-      .sort({ scheduledDate: 1, scheduledTime: 1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .populate('preAssessmentId', 'bookingReference assessmentStatus deviceDeployedAt')
+      .sort({ scheduledDate: sortOrder, scheduledTime: sortOrder })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean();
 
-    const total = await Schedule.countDocuments(query);
+    await attachAssessmentEnrichment(schedules);
+
+    const total = await Schedule.countDocuments(finalQuery);
 
     res.json({
       success: true,
       schedules,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
@@ -270,6 +400,8 @@ exports.getScheduleStats = async (req, res) => {
     const installationSchedules = await Schedule.countDocuments({ type: 'installation' });
     const inspectionSchedules = await Schedule.countDocuments({ type: 'inspection' });
 
+    const preAssessment = await computePreAssessmentSection({});
+
     res.json({
       success: true,
       stats: {
@@ -285,12 +417,72 @@ exports.getScheduleStats = async (req, res) => {
           siteVisit: siteVisitSchedules,
           installation: installationSchedules,
           inspection: inspectionSchedules
-        }
+        },
+        preAssessment
       }
     });
 
   } catch (error) {
     console.error('Get schedule stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
+  }
+};
+
+// Lightweight chart source for the pre-assessment tab (replaces full 10k-row
+// client dumps): enriched status distribution + monthly scheduled/completed.
+// Uses unpopulated selects only — no heavy documents cross the wire.
+const computePreAssessmentSection = async (baseQuery) => {
+  const rows = await Schedule.find({ ...baseQuery, type: 'pre_assessment' })
+    .select('status scheduledDate preAssessmentId')
+    .lean();
+  const assessments = await PreAssessment.find({})
+    .select('assessmentStatus deviceDeployedAt')
+    .lean();
+  const assessmentById = {};
+  assessments.forEach((a) => { assessmentById[a._id.toString()] = a; });
+
+  const byStatus = {};
+  const monthly = Array.from({ length: 12 }, (_, m) => ({ month: m, scheduled: 0, completed: 0 }));
+
+  rows.forEach((s) => {
+    let ref = s.preAssessmentId;
+    const key = ref ? ref.toString() : s._id.toString();
+    const enriched = deriveEnrichedStatus(s.status, assessmentById[key] || null);
+    byStatus[enriched.status] = (byStatus[enriched.status] || 0) + 1;
+    const d = new Date(s.scheduledDate);
+    if (!isNaN(d.getTime())) {
+      const m = d.getMonth();
+      monthly[m].scheduled += 1;
+      if (enriched.status === 'completed') monthly[m].completed += 1;
+    }
+  });
+
+  return { total: rows.length, byStatus, monthly };
+};
+
+// @desc    Get schedule statistics (Engineer, own schedules only)
+// @route   GET /api/schedules/engineer/stats
+// @access  Private (Engineer)
+exports.getEngineerScheduleStats = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const baseQuery = { assignedEngineerId: engineerId };
+    const total = await Schedule.countDocuments(baseQuery);
+    const upcoming = await Schedule.countDocuments({
+      ...baseQuery,
+      scheduledDate: { $gte: new Date() },
+      status: { $in: ['scheduled', 'confirmed', 'pending'] }
+    });
+    const confirmed = await Schedule.countDocuments({ ...baseQuery, status: 'confirmed' });
+    const completed = await Schedule.countDocuments({ ...baseQuery, status: 'completed' });
+    const preAssessment = await computePreAssessmentSection(baseQuery);
+
+    res.json({
+      success: true,
+      stats: { total, upcoming, confirmed, completed, preAssessment }
+    });
+  } catch (error) {
+    console.error('Get engineer schedule stats error:', error);
     res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };
@@ -350,32 +542,42 @@ exports.getCalendarSchedules = async (req, res) => {
 exports.getMySchedules = async (req, res) => {
   try {
     const engineerId = req.user.id;
-    const { status, startDate, endDate, page = 1, limit = 20 } = req.query;
-    
+    const { type, status, startDate, endDate, search, page = 1, limit = SCHEDULE_PAGE_SIZE, sort } = req.query;
+    const { pageNum, limitNum } = parsePaging(page, limit);
+
     const query = { assignedEngineerId: engineerId };
+    if (type && type !== 'all') query.type = type;
     if (status && status !== 'all') query.status = status;
-    
+
     if (startDate || endDate) {
       query.scheduledDate = {};
       if (startDate) query.scheduledDate.$gte = new Date(startDate);
       if (endDate) query.scheduledDate.$lte = new Date(endDate);
     }
 
-    const schedules = await Schedule.find(query)
+    const searchFilter = await buildScheduleSearchFilter(search);
+    const finalQuery = searchFilter ? { $and: [query, searchFilter] } : query;
+
+    const sortOrder = sort === 'desc' ? -1 : 1;
+
+    const schedules = await Schedule.find(finalQuery)
       .populate({
         path: 'clientId',
         select: 'contactFirstName contactLastName contactNumber userId',
         populate: { path: 'userId', select: 'email photoURL' }
       })
       .populate('projectId', 'projectName projectReference')
-      .populate('preAssessmentId', 'bookingReference')
-      .sort({ scheduledDate: 1, scheduledTime: 1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .populate('preAssessmentId', 'bookingReference assessmentStatus deviceDeployedAt')
+      .sort({ scheduledDate: sortOrder, scheduledTime: sortOrder })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean();
 
-    const total = await Schedule.countDocuments(query);
+    await attachAssessmentEnrichment(schedules);
 
-    // Separate upcoming and past schedules
+    const total = await Schedule.countDocuments(finalQuery);
+
+    // Separate upcoming and past schedules (current page only)
     const now = new Date();
     const upcoming = schedules.filter(s => new Date(s.scheduledDate) >= now);
     const past = schedules.filter(s => new Date(s.scheduledDate) < now);
@@ -386,8 +588,9 @@ exports.getMySchedules = async (req, res) => {
       upcoming,
       past,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {

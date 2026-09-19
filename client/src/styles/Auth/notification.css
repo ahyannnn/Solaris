@@ -1054,6 +1054,83 @@ body {
   transition: color 0.3s ease;
 }
 
+/* Pagination: same design as schedule module */
+.notif-footer-stats .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.notif-footer-stats .pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.notif-footer-stats .pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.notif-footer-stats .page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.notif-footer-stats .page-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.notif-footer-stats .page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.notif-footer-stats .page-number {
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.notif-footer-stats .page-number:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.notif-footer-stats .page-number.active {
+  background: var(--icon-color);
+  color: #FFFFFF;
+  border-color: var(--icon-color);
+}
+
 /* ============================================
    MODAL - Same as Billing
    ============================================ */
@@ -1385,6 +1462,26 @@ body {
 
   .notif-stats {
     font-size: 0.75rem;
+  }
+
+  .notif-footer-stats .pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .notif-footer-stats .pagination-controls {
+    justify-content: center;
+  }
+
+  .notif-footer-stats .page-btn,
+  .notif-footer-stats .page-number {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .notif-footer-stats .pagination-info {
+    font-size: 12px;
   }
 
   .notif-dropdown-menu {

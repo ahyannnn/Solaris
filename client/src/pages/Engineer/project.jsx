@@ -32,7 +32,7 @@ import {
   Cell
 } from 'recharts';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
-import { useRealtimeTable, applyRealtimeRecord } from '../../hooks/useRealtimeTable';
+import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Engineer/project.css';
 
 const EngineerProject = () => {
@@ -46,6 +46,18 @@ const EngineerProject = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  // Server-side paging: `projects` holds ONE page (10 rows). Totals from the API.
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  // Row ordering: 'action' (needs-action-first, default) or 'newest'.
+  const [sortMode, setSortMode] = useState('action');
+  // Charts + KPIs from the stats endpoint (no bulk fetch).
+  const [pipelineData, setPipelineData] = useState([]);
+  const [monthlyChartData, setMonthlyChartData] = useState([]);
+  const [kpiTotals, setKpiTotals] = useState({ total: 0, readyToStart: 0, inProgress: 0, completed: 0 });
+  const searchTimeoutRef = React.useRef(null);
+  const firstRunRef = React.useRef(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
@@ -57,12 +69,39 @@ const EngineerProject = () => {
 
   useEffect(() => {
     fetchProjects();
+    fetchProjectStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Server-side paging: one 10-row page per filter/page/search/sort combination.
+  useEffect(() => {
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
+    }
+    fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, currentPage, appliedSearch, sortMode]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
   // ============================================================
-  // FETCH PROJECTS - API (full list; filter/sort/paginate client-side
-  // so needs-action rows stay on top across ALL pages)
+  // FETCH PROJECTS - API (server-side: 10 rows per page, action-ranked)
   // ============================================================
   const fetchProjects = async () => {
     try {
@@ -70,11 +109,21 @@ const EngineerProject = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/my-projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 1000 }
+        params: {
+          status: filter === 'all' ? undefined : filter,
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          search: appliedSearch || undefined,
+          sort: sortMode
+        }
       });
 
-      const projectsData = response.data.projects || [];
-      setProjects(projectsData);
+      setProjects(response.data.projects || []);
+      setTotalItems(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -83,13 +132,45 @@ const EngineerProject = () => {
     }
   };
 
-  // Realtime: admin assignment/status or payment changes patch instantly.
-  useRealtimeTable(['projects', 'solar-invoices'], (payload) => {
-    if (payload?.entity === 'projects') {
-      setProjects((prev) => applyRealtimeRecord(prev, payload));
+  // Charts + KPIs from the lightweight stats endpoint (no row dump).
+  const fetchProjectStats = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const pipeline = response.data.stats?.pipeline || {};
+      setPipelineData([
+        { name: 'Pending', value: pipeline.pending || 0, fill: '#F39C12' },
+        { name: 'Ready', value: pipeline.ready || 0, fill: '#3B82F6' },
+        { name: 'In Progress', value: pipeline.inProgress || 0, fill: '#8B5CF6' },
+        { name: 'Progress Paid', value: pipeline.progressPaid || 0, fill: '#A78BFA' },
+        { name: 'Completed', value: pipeline.completed || 0, fill: '#10B981' },
+      ]);
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const byMonth = {};
+      (pipeline.monthly || []).forEach((m) => { byMonth[m.month] = m; });
+      setMonthlyChartData(MONTHS.map((name, i) => ({
+        name,
+        created: byMonth[i]?.created || 0,
+        completed: byMonth[i]?.completed || 0
+      })));
+      setKpiTotals({
+        total: pipeline.total || 0,
+        readyToStart: pipeline.readyToStart || 0,
+        inProgress: pipeline.inProgress || 0,
+        completed: pipeline.completed || 0
+      });
+    } catch (error) {
+      console.error('Error fetching project stats:', error);
     }
-    // Paginated list: merged row covers edits; refetch covers new assignments.
+  };
+
+  // Realtime: admin assignment/status or payment changes refresh the current
+  // page + stats (10 rows, no full-list refetch, no spinner flash).
+  useRealtimeTable(['projects', 'solar-invoices'], () => {
     fetchProjects();
+    fetchProjectStats();
   });
 
   // ============================================================
@@ -545,45 +626,8 @@ const EngineerProject = () => {
   // SUMMARY CARDS
   // ============================================================
 
-  const totalProjects = projects.length;
-  const readyToStart = projects.filter(p => {
-    const action = getProjectAction(p);
-    return action.type === 'start';
-  }).length;
-  const inProgress = projects.filter(p => p.status === 'in_progress').length;
-  const completed = projects.filter(p => p.status === 'completed').length;
-
-  // ====== CHART DATA: derived from projects (no new API) ======
-  const pipelineData = React.useMemo(() => {
-    const countBy = (pred) => projects.filter(pred).length;
-    const pending = countBy(p => ['quoted','approved'].includes(p.status));
-    const ready = countBy(p => ['initial_paid','full_paid'].includes(p.status) && getProjectAction(p).type === 'start');
-    const progress = countBy(p => p.status === 'in_progress');
-    const progressPaid = countBy(p => p.status === 'progress_paid');
-    const done = countBy(p => p.status === 'completed');
-    return [
-      { name: 'Pending', value: pending, fill: '#F39C12' },
-      { name: 'Ready', value: ready, fill: '#3B82F6' },
-      { name: 'In Progress', value: progress, fill: '#8B5CF6' },
-      { name: 'Progress Paid', value: progressPaid, fill: '#A78BFA' },
-      { name: 'Completed', value: done, fill: '#10B981' },
-    ];
-  }, [projects]);
-
-  const monthlyChartData = React.useMemo(() => {
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const created = Array(12).fill(0);
-    const finished = Array(12).fill(0);
-    projects.forEach(p => {
-      const c = new Date(p.createdAt);
-      if (!isNaN(c.getTime())) created[c.getMonth()]++;
-      if (p.status === 'completed' && p.actualCompletionDate) {
-        const f = new Date(p.actualCompletionDate);
-        if (!isNaN(f.getTime())) finished[f.getMonth()]++;
-      }
-    });
-    return MONTHS.map((name,i)=>({ name, created: created[i], completed: finished[i] }));
-  }, [projects]);
+  // KPIs + charts come from fetchProjectStats (stats endpoint state).
+  const totalProjects = kpiTotals.total;
 
   const PipelineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -636,44 +680,30 @@ const EngineerProject = () => {
     return 2;
   };
 
-  // Explicit table sorting: Start → Update → Check(in_progress waiting) → Approved → Completed → quoted
-  const getSortRank = (project) => {
-    const action = getProjectAction(project);
-    const priority = getRowPriority(project);
-    if (action.type === 'start') return 0; // Start (initial_paid ready)
-    if (action.type === 'update' && priority === 0) return 1; // Update + dot (in_progress act now)
-    if (action.type === 'update' && priority === 1) return 2; // Check (in_progress/progress_paid waiting payment)
-    if (action.type === 'view' && action.label === 'Check') return 3; // Approved Check
-    if (action.type === 'view' && action.label === 'View') return 4; // Completed View
-    return 5; // quoted / none
-  };
-
-  const filteredProjects = projects
-    .filter(project => filter === 'all' || project.status === filter)
-    .filter(project => {
-      if (!searchTerm) return true;
-      const searchLower = searchTerm.toLowerCase();
-      return project.projectName?.toLowerCase().includes(searchLower) ||
-        project.projectReference?.toLowerCase().includes(searchLower) ||
-        project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-        project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
-    })
-    // Sorted: Start → Update → Check → Completed → quoted, newest first within each rank
-    .sort((a, b) => {
-      const ra = getSortRank(a);
-      const rb = getSortRank(b);
-      if (ra !== rb) return ra - rb;
-      const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
-      const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
-      return bTime - aTime;
-    });
-
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
+  // NOTE: filter/search/rank/slice now happen server-side (status/search/sort
+  // params, mirrored by projectActionRank on the API). `projects` already holds
+  // exactly ONE page in rank order. getRowPriority is still used for the
+  // per-row needs-action dot below.
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const pagedProjects = filteredProjects.slice(
-    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
-    safeCurrentPage * ITEMS_PER_PAGE
-  );
+  const pagedProjects = projects;
+
+  // Pagination display (same design as schedule module).
+  const startItem = totalItems === 0 ? 0 : (safeCurrentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(safeCurrentPage * ITEMS_PER_PAGE, totalItems);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   const SkeletonLoader = () => (
     <div className="engineer-project-container">
@@ -808,7 +838,7 @@ const EngineerProject = () => {
                 type="text"
                 placeholder="Search by project name, reference or client..."
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => { setSearchTerm(e.target.value); }}
               />
           </div>
           <div className="filter-group-engineerproject">
@@ -824,14 +854,21 @@ const EngineerProject = () => {
             </select>
             <FaChevronDown className="filter-icon" />
           </div>
+          <div className="filter-group-engineerproject">
+            <select value={sortMode} onChange={(e) => { setSortMode(e.target.value); setCurrentPage(1); }} title="Row ordering">
+              <option value="action">Needs action first</option>
+              <option value="newest">Newest first</option>
+            </select>
+            <FaChevronDown className="filter-icon" />
+          </div>
         </div>
 
         {/* Projects Table */}
-        {filteredProjects.length === 0 ? (
+        {projects.length === 0 ? (
           <div className="empty-state-engineerproject">
             <FaTools className="empty-icon" />
-            <h3>No projects assigned</h3>
-            <p>You haven't been assigned to any projects yet.</p>
+            <h3>{appliedSearch || filter !== 'all' ? 'No matching projects' : 'No projects assigned'}</h3>
+            <p>{appliedSearch || filter !== 'all' ? 'Try another search term, filter, or page.' : "You haven't been assigned to any projects yet."}</p>
           </div>
         ) : (
           <>
@@ -977,24 +1014,37 @@ const EngineerProject = () => {
               </table>
             </div>
 
-            {/* Pagination */}
+            {/* Pagination (same design as schedule module) */}
             {totalPages > 1 && (
-              <div className="pagination-engineerproject">
-                <button
-                  className="page-btn"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={safeCurrentPage === 1}
-                >
-                  <FaChevronLeft /> Previous
-                </button>
-                <span className="page-info">Page {safeCurrentPage} of {totalPages}</span>
-                <button
-                  className="page-btn"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={safeCurrentPage === totalPages}
-                >
-                  Next <FaChevronRight />
-                </button>
+              <div className="pagination">
+                <div className="pagination-info">
+                  Showing {startItem} to {endItem} of {totalItems} projects
+                </div>
+                <div className="pagination-controls">
+                  <button
+                    className="page-btn"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={safeCurrentPage === 1}
+                  >
+                    <FaChevronLeft /> Previous
+                  </button>
+                  {getPageNumbers().map(page => (
+                    <button
+                      key={page}
+                      className={`page-number ${safeCurrentPage === page ? 'active' : ''}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    className="page-btn"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={safeCurrentPage === totalPages}
+                  >
+                    Next <FaChevronRight />
+                  </button>
+                </div>
               </div>
             )}
           </>
@@ -1029,7 +1079,7 @@ const EngineerProject = () => {
                     {getTimelineItems(selectedProject).map((item, index) => {
                       const isCompleted = item.completed || selectedProject.status === 'completed';
                       const isCurrent = index === getTimelineItems(selectedProject).findIndex(i => !i.completed) && selectedProject.status !== 'completed';
-                      const isUpcoming = !isCompleted && !isCurrent;
+                      const _isUpcoming = !isCompleted && !isCurrent;
 
                       return (
                         <div key={item.key} className="modal-timeline-item">

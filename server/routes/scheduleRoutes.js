@@ -17,6 +17,7 @@ const {
   
   // Engineer functions
   getMySchedules,
+  getEngineerScheduleStats,
   updateScheduleStatus,
   requestReschedule,
   getEngineerCalendar
@@ -40,6 +41,7 @@ router.post('/create-from-preassessment', verifyToken, admin, createScheduleFrom
 
 
 // ============ ENGINEER ROUTES ============
+router.get('/engineer/stats', verifyToken, engineer, getEngineerScheduleStats);
 router.get('/engineer/my-schedules', verifyToken, engineer, getMySchedules);
 router.get('/engineer/calendar', verifyToken, engineer, getEngineerCalendar);
 router.put('/:id/status', verifyToken, engineer, updateScheduleStatus);

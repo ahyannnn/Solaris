@@ -108,6 +108,7 @@ const Dashboard = () => {
   const [dashboardReady, setDashboardReady] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [totalNotifications, setTotalNotifications] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
   const buttonRef = useRef(null);
@@ -385,8 +386,16 @@ const Dashboard = () => {
         isRead: notif.read === true || notif.isRead === true,
         read: notif.read === true || notif.isRead === true
       }));
-      
+
       setNotifications(processedNotifications);
+      // Backend nests the full total under pagination (we only fetch 3
+      // for the popover) — drives the View All gate below.
+      setTotalNotifications(
+        response.data.pagination?.totalItems ??
+        response.data.total ??
+        response.data.totalItems ??
+        processedNotifications.length
+      );
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -431,30 +440,6 @@ const Dashboard = () => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
-    }
-  };
-
-  // Mark all as read
-  const markAllAsRead = async () => {
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      if (!token) return;
-
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/api/notifications/read-all`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      // Update local state - mark all as read
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, isRead: true, read: true }))
-      );
-      
-      // Update unread count
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
     }
   };
 
@@ -1009,6 +994,8 @@ const Dashboard = () => {
 
       // 1. Update unread count immediately in real time
       setUnreadCount((prev) => prev + 1);
+      // 1b. Keep the View All gate total in sync (popover only holds 3)
+      setTotalNotifications((prev) => prev + 1);
 
       // 1b. Billing/assessment/quotation changes arrive as notifications —
       // refresh the red-dot flags instantly instead of waiting for the poll.
@@ -1047,6 +1034,7 @@ const Dashboard = () => {
 
       setNotifications((prev) => prev.filter((n) => n._id !== notifId));
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      setTotalNotifications((prev) => Math.max(0, prev - 1));
     };
 
     socketService.on('notification:new', handleNewNotification);
@@ -1574,14 +1562,6 @@ const Dashboard = () => {
                 <div className="notification-popover" ref={notificationRef}>
                   <div className="notification-popover-header">
                     <h3>Notifications</h3>
-                    {unreadCount > 0 && (
-                      <button 
-                        className="mark-all-read-btn"
-                        onClick={markAllAsRead}
-                      >
-                        Mark all as read
-                      </button>
-                    )}
                   </div>
 
                   <div className="notification-popover-body">
@@ -1625,19 +1605,19 @@ const Dashboard = () => {
                           );
                         })}
 
-                        {notifications.length > 3 && (
-                          <div className="notif-view-all">
-                            <button 
-                              className="view-all-btn"
-                              onClick={() => handleNavigation(getNotificationsPath())}
-                            >
-                              View All Notifications
-                            </button>
-                          </div>
-                        )}
                       </>
                     )}
                   </div>
+                  {totalNotifications > 3 && (
+                    <div className="notif-view-all">
+                      <button
+                        className="view-all-btn"
+                        onClick={() => handleNavigation(getNotificationsPath())}
+                      >
+                        View All Notifications
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

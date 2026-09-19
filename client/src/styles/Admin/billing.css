@@ -618,6 +618,17 @@ body.dark-mode {
   transition: color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Clickable server-side sort headers (third click restores priority order) */
+.payments-table-adminbilling thead th.sortable-th-adminbilling {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.payments-table-adminbilling thead th.sortable-th-adminbilling:hover {
+  color: var(--text-primary);
+}
+
 .payments-table-adminbilling tbody tr {
   border-bottom: 1px solid var(--border-color);
   transition: background 200ms ease, border-color 0.3s ease;

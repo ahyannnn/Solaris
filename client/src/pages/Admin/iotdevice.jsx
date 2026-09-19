@@ -24,7 +24,7 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 
 // Recharts Imports
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 
 const IoTDevice = () => {
@@ -44,6 +44,13 @@ const IoTDevice = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
+  // Server-side search term (debounced) + sort state.
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const searchTimeoutRef = useRef(null);
+  // Per-bar gradient fills for the status chart (matches the <defs> ids below).
+  const CHART_FILLS = ['url(#colorAvailable)', 'url(#colorAssigned)', 'url(#colorDeployed)', 'url(#colorMaintenance)'];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 20 });
@@ -106,10 +113,35 @@ const IoTDevice = () => {
     fetchStats();
   });
 
+  // List refetch on tab/page/search/sort (one 10-row request per change).
+  // Stats refetch on tab change only — page turns don't change totals.
   useEffect(() => {
     fetchDevices();
-    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentPage, appliedSearch, sortBy, sortOrder]);
 
+  useEffect(() => {
+    fetchStats();
+  }, [activeTab]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       // Ignore taps on toggles/menus — their onClick owns open/close.
       // Otherwise mousedown pre-closes and the following click re-opens.
@@ -155,10 +187,20 @@ const IoTDevice = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: activeTab === 'all' ? undefined : activeTab, page: currentPage, limit: itemsPerPage }
+        params: {
+          status: activeTab === 'all' ? undefined : activeTab,
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined,
+          sortBy,
+          order: sortOrder
+        }
       });
       setDevices(response.data.devices || []);
       setTotalItems(response.data.total || 0);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching devices:', error);
@@ -403,14 +445,8 @@ const IoTDevice = () => {
     return actions;
   };
 
-  const filteredDevices = devices.filter(device => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return device.deviceId?.toLowerCase().includes(searchLower) ||
-      device.deviceName?.toLowerCase().includes(searchLower) ||
-      device.model?.toLowerCase().includes(searchLower) ||
-      device.serialNumber?.toLowerCase().includes(searchLower);
-  });
+  // NOTE: search now runs server-side (search param above) across ALL devices,
+  // not just the 10 loaded rows. `devices` already holds exactly ONE page.
 
   // Calculate pagination
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -448,10 +484,23 @@ const IoTDevice = () => {
     return null;
   };
 
-  // Clear search
+  // Clear search (debounced effect applies + resets to page 1)
   const clearSearch = () => {
     setSearchTerm('');
   };
+
+  // Server-side sort toggles: same field flips direction, new field starts asc.
+  const toggleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const sortArrow = (field) => (sortBy === field ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '');
 
   if (loading && devices.length === 0) {
     return (
@@ -538,7 +587,11 @@ const IoTDevice = () => {
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
 
                 {/* 4 Separate Bars with different colors */}
-                <Bar dataKey="count" fill="url(#colorAvailable)" radius={[4, 4, 0, 0]} barSize={35} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={35}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={entry.name} fill={CHART_FILLS[index % CHART_FILLS.length]} />
+                  ))}
+                </Bar>
 
               </BarChart>
             </ResponsiveContainer>
@@ -654,17 +707,25 @@ const IoTDevice = () => {
             <table className="iot-device-table-iotdevice">
               <thead>
                 <tr>
-                  <th>Device</th>
-                  <th>Model</th>
+                  <th className="sortable-th-iotdevice" onClick={() => toggleSort('deviceName')} title="Sort by device name">
+                    Device{sortArrow('deviceName')}
+                  </th>
+                  <th className="sortable-th-iotdevice" onClick={() => toggleSort('model')} title="Sort by model">
+                    Model{sortArrow('model')}
+                  </th>
                   <th>Serial</th>
                   <th>Firmware</th>
-                  <th>Status</th>
-                  <th>Created</th>
+                  <th className="sortable-th-iotdevice" onClick={() => toggleSort('status')} title="Sort by status">
+                    Status{sortArrow('status')}
+                  </th>
+                  <th className="sortable-th-iotdevice" onClick={() => toggleSort('createdAt')} title="Sort by date created">
+                    Created{sortArrow('createdAt')}
+                  </th>
                   <th style={{ width: '140px', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredDevices.length === 0 ? (
+                {devices.length === 0 ? (
                   <tr>
                     <td colSpan="7" data-label="" className="iot-empty-state-iotdevice">
                       <FaMicrochip className="empty-icon" />
@@ -673,7 +734,7 @@ const IoTDevice = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredDevices.map((device, idx) => {
+                  devices.map((device, idx) => {
                     const actions = getAvailableActions(device);
                     const isOpen = openDropdownId === device._id;
 
@@ -718,7 +779,7 @@ const IoTDevice = () => {
                                 className="iot-action-dropdown-toggle-iotdevice"
                                 data-action-toggle
                                 ref={el => buttonRefs.current[device._id] = el}
-                                onClick={(e) => handleDropdownClick(e, device._id, idx >= filteredDevices.length - 2)}
+                                onClick={(e) => handleDropdownClick(e, device._id, idx >= devices.length - 2)}
                               >
                                 Actions <FaChevronDown className={`iot-dropdown-arrow-iotdevice ${isOpen ? 'open-iotdevice' : ''}`} />
                               </button>

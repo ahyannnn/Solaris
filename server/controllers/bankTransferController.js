@@ -313,12 +313,16 @@ const submitManualBankTransfer = async (req, res) => {
 // @desc    Get all bank transfer submissions with filters
 // @route   GET /api/payments/bank-transfer/pending
 // @access  Private (Admin only)
+// Billing-list priority mirror (Admin/billing.jsx getBillingBankPriority):
+// waiting_verification(1) > rest(2), newest first.
+const billingBankRank = (p) => (p.status === 'waiting_verification' ? 1 : 2);
+
 const getPendingBankTransfers = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20, search, bank } = req.query;
+    const { status, page = 1, limit = 10, search, bank, sortBy = 'priority', order = 'desc' } = req.query;
 
     const query = {};
-    
+
     if (status && status !== 'all') {
       query.status = status;
     }
@@ -327,35 +331,43 @@ const getPendingBankTransfers = async (req, res) => {
       query.bankName = bank;
     }
 
-    if (search) {
-      const searchRegex = new RegExp(search, 'i');
-      query.$or = [
+    // Server-side search: reference / bank / account + client name + invoice no.
+    const term = (search || '').trim();
+    if (term) {
+      const searchRegex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [
         { transactionReference: searchRegex },
         { bankName: searchRegex },
         { accountName: searchRegex }
       ];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      const [clients, invoices] = await Promise.all([
+        Client.find({ $or: [{ contactFirstName: searchRegex }, { contactLastName: searchRegex }] }).select('_id').lean(),
+        SolarInvoice.find({ invoiceNumber: searchRegex }).select('_id').lean()
+      ]);
+      if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+      if (invoices.length) or.push({ invoiceId: { $in: invoices.map((i) => i._id) } });
+      query.$or = or;
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+    const skip = (pageNum - 1) * limitNum;
 
-    const [payments, total] = await Promise.all([
-      BankTransferPayment.find(query)
-        .populate('invoiceId', 'invoiceNumber invoiceType totalAmount balance paymentStatus')
-        .populate('projectId', 'projectName projectReference')
-        .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
-        .populate('verifiedBy', 'firstName lastName email')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit)),
-      BankTransferPayment.countDocuments(query)
-    ]);
+    const populateList = (findQuery) => findQuery
+      .populate('invoiceId', 'invoiceNumber invoiceType totalAmount balance paymentStatus')
+      .populate('projectId', 'projectName projectReference')
+      .populate('clientId', 'contactFirstName contactLastName contactNumber userId')
+      .populate('verifiedBy', 'firstName lastName email');
 
-    // Populate client user email
-    const paymentsWithClientEmail = await Promise.all(
+    const attachClientEmail = async (payments) => Promise.all(
       payments.map(async (payment) => {
-        const paymentObj = payment.toObject();
-        if (payment.clientId && payment.clientId.userId) {
-          const user = await User.findById(payment.clientId.userId);
+        const paymentObj = typeof payment.toObject === 'function' ? payment.toObject() : payment;
+        if (paymentObj.clientId && paymentObj.clientId.userId) {
+          const userId = paymentObj.clientId.userId._id || paymentObj.clientId.userId;
+          const user = await User.findById(userId).select('email photoURL').lean();
           paymentObj.clientEmail = user?.email || '';
           paymentObj.clientPhotoURL = user?.photoURL || null;
         }
@@ -363,14 +375,49 @@ const getPendingBankTransfers = async (req, res) => {
       })
     );
 
+    let payments;
+    let total;
+
+    if (sortBy === 'priority') {
+      const light = await BankTransferPayment.find(query)
+        .select('status createdAt')
+        .lean();
+      const ranked = light
+        .map((p) => ({
+          id: p._id,
+          rank: billingBankRank(p),
+          time: new Date(p.createdAt || 0).getTime() || 0
+        }))
+        .sort((a, b) => a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked.slice(skip, skip + limitNum).map((r) => r.id);
+      payments = pageIds.length
+        ? await attachClientEmail(await populateList(BankTransferPayment.find({ _id: { $in: pageIds } })).lean())
+        : [];
+      const orderMap = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      payments.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+    } else {
+      const SORTABLE = ['createdAt', 'status'];
+      const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+      const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+      const [rows, count] = await Promise.all([
+        populateList(
+          BankTransferPayment.find(query).sort({ [sortField]: sortDir }).skip(skip).limit(limitNum)
+        ).lean(),
+        BankTransferPayment.countDocuments(query)
+      ]);
+      payments = await attachClientEmail(rows);
+      total = count;
+    }
+
     res.json({
       success: true,
-      data: paymentsWithClientEmail,
+      data: payments,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         total,
-        totalPages: Math.ceil(total / parseInt(limit))
+        totalPages: Math.ceil(total / limitNum) || 1
       }
     });
 
@@ -427,6 +474,18 @@ const getBankTransferStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
+    // Billing trend source: verified transfers by verification month.
+    const verifiedTrendRows = await BankTransferPayment.find({ status: 'verified' })
+      .select('amount verifiedAt updatedAt createdAt')
+      .lean();
+    const verifiedTrendMap = {};
+    verifiedTrendRows.forEach((bt) => {
+      const d = new Date(bt.verifiedAt || bt.updatedAt || bt.createdAt);
+      if (isNaN(d.getTime()) || !(bt.amount > 0)) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      verifiedTrendMap[key] = (verifiedTrendMap[key] || 0) + bt.amount;
+    });
+
     res.json({
       success: true,
       stats: {
@@ -437,7 +496,8 @@ const getBankTransferStats = async (req, res) => {
         totalAmount: totalAmount[0]?.total || 0,
         verifiedAmount: verifiedAmount[0]?.total || 0,
         bankBreakdown,
-        recentActivity
+        recentActivity,
+        verifiedTrend: Object.entries(verifiedTrendMap).map(([key, amount]) => ({ key, amount }))
       }
     });
 

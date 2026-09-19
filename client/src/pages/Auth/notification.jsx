@@ -19,7 +19,9 @@ import {
   FaExclamationTriangle,
   FaBullhorn,
   FaEllipsisV,
-  FaEye
+  FaEye,
+  FaChevronLeft,
+  FaChevronRight
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import socketService from '../../services/socketService';
@@ -36,6 +38,14 @@ const Notifications = () => {
   const [selectedNotifications, setSelectedNotifications] = useState([]);
   const [selectMode, setSelectMode] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+
+  // Paging: fetch 10 at a time to avoid loading thousands of docs
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const currentPageRef = useRef(1);
+  currentPageRef.current = currentPage;
 
   // Modal State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -63,20 +73,30 @@ const Notifications = () => {
     return '/app/customer';
   };
 
-  // Real-time socket events
+  // Real-time socket events (paged: only prepend on page 1 to avoid shifting pages 2+)
   useEffect(() => {
     const handleNewNotification = (data) => {
       const notification = data?.notification || data;
-      if (!notification) return;
+      if (!notification?._id) return;
+
+      setTotalItems((prev) => {
+        const next = prev + 1;
+        setTotalPages(Math.max(1, Math.ceil(next / PAGE_SIZE)));
+        return next;
+      });
+      setUnreadCount((prev) => prev + 1);
+
+      // Only mutate the visible list on page 1; other pages refetch on navigation
+      if (currentPageRef.current !== 1) return;
 
       setNotifications((prev) => {
         // Prevent duplicate entry in list
         if (prev.some((n) => n._id === notification._id)) {
           return prev;
         }
-        return [notification, ...prev];
+        // Keep page size stable at 10
+        return [notification, ...prev].slice(0, PAGE_SIZE);
       });
-      setUnreadCount((prev) => prev + 1);
     };
 
     const handleNotificationRead = (data) => {
@@ -98,8 +118,19 @@ const Notifications = () => {
       const notifId = data?.notificationId;
       if (!notifId) return;
 
-      setNotifications((prev) => prev.filter((n) => n._id !== notifId));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setNotifications((prev) => {
+        const target = prev.find((n) => n._id === notifId);
+        if (!target) return prev;
+        if (!target.read) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        setTotalItems((c) => {
+          const next = Math.max(0, c - 1);
+          setTotalPages(Math.max(1, Math.ceil(next / PAGE_SIZE)));
+          return next;
+        });
+        return prev.filter((n) => n._id !== notifId);
+      });
     };
 
     socketService.on('notification:new', handleNewNotification);
@@ -115,7 +146,7 @@ const Notifications = () => {
     };
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (page = currentPageRef.current) => {
     try {
       setLoading(true);
       const token = getToken();
@@ -125,12 +156,26 @@ const Notifications = () => {
       }
 
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/notifications`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page, limit: PAGE_SIZE }
       });
 
       console.log('Notifications data:', response.data);
-      setNotifications(response.data.notifications || []);
+      // Guard: never render more than one page even if the API returns extra rows
+      const pageItems = (response.data.notifications || []).slice(0, PAGE_SIZE);
+      setNotifications(pageItems);
       setUnreadCount(response.data.unreadCount || 0);
+      if (response.data.pagination) {
+        setCurrentPage(response.data.pagination.currentPage || page);
+        setTotalPages(response.data.pagination.totalPages || 1);
+        setTotalItems(response.data.pagination.totalItems || 0);
+      } else {
+        // Fallback for servers without pagination metadata
+        setCurrentPage(page);
+        setTotalItems((prev) => Math.max(prev, pageItems.length));
+        setTotalPages((prev) => Math.max(prev, pageItems.length >= PAGE_SIZE ? page + 1 : page));
+      }
+      setSelectedNotifications([]);
       setError('');
     } catch (err) {
       console.error('Error fetching notifications:', err);
@@ -215,9 +260,19 @@ const Notifications = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const deleted = notifications.find(n => n._id === modalTargetId);
-        setNotifications(prev => prev.filter(notif => notif._id !== modalTargetId));
+        const remaining = notifications.filter(notif => notif._id !== modalTargetId);
+        setNotifications(remaining);
+        setTotalItems((prev) => {
+          const next = Math.max(0, prev - 1);
+          setTotalPages(Math.max(1, Math.ceil(next / PAGE_SIZE)));
+          return next;
+        });
         if (deleted && !deleted.read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+        // If the page is now empty and we are past page 1, step back (effect refetches)
+        if (remaining.length === 0 && currentPageRef.current > 1) {
+          setCurrentPage((p) => Math.max(1, p - 1));
         }
         showToast('Notification deleted successfully.', 'success');
       } else if (modalAction === 'bulk') {
@@ -233,11 +288,20 @@ const Notifications = () => {
         const deletedUnread = notifications.filter(
           n => deletedIds.has(n._id) && !n.read
         ).length;
+        const remaining = notifications.filter(n => !deletedIds.has(n._id));
 
-        setNotifications(prev => prev.filter(n => !deletedIds.has(n._id)));
+        setNotifications(remaining);
+        setTotalItems((prev) => {
+          const next = Math.max(0, prev - deletedIds.size);
+          setTotalPages(Math.max(1, Math.ceil(next / PAGE_SIZE)));
+          return next;
+        });
         setSelectedNotifications([]);
         setSelectMode(false);
         setUnreadCount(prev => Math.max(0, prev - deletedUnread));
+        if (remaining.length === 0 && currentPageRef.current > 1) {
+          setCurrentPage((p) => Math.max(1, p - 1));
+        }
         showToast(`${modalCount} notification(s) deleted successfully.`, 'success');
       }
     } catch (err) {
@@ -455,13 +519,58 @@ const Notifications = () => {
     return notifications.filter(n => n.isAdminBroadcast === true).length;
   };
 
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  // Pagination (same design as schedule module: page numbers + Previous/Next)
+  const startItem = totalItems > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+  const endItem = Math.min(currentPage * PAGE_SIZE, totalItems);
 
-  if (loading) {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const handleFilterChange = (next) => {
+    setFilter(next);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    const next = Math.min(Math.max(1, page), Math.max(1, totalPages));
+    if (next === currentPage) return;
+    setSelectedNotifications([]);
+    setSelectMode(false);
+    setCurrentPage(next);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications(currentPage);
+    const interval = setInterval(() => fetchNotifications(currentPageRef.current), 30000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  // Only full-screen spinner on first load; page turns + polls keep the list visible
+  if (loading && notifications.length === 0 && totalItems === 0) {
     return (
       <div className="notif-page">
         <div className="notif-loading">
@@ -496,7 +605,7 @@ const Notifications = () => {
             </div>
           </div>
           <div className="notif-header-right">
-            {notifications.length > 0 && (
+            {(totalItems > 0 || notifications.length > 0) && (
               <>
                 <button
                   className={`notif-select-btn ${selectMode ? 'active' : ''}`}
@@ -534,19 +643,19 @@ const Notifications = () => {
           </div>
         )}
 
-        {/* Filters */}
+        {/* Filters (counts are global; list filter applies to the loaded page) */}
         <div className="notif-filters">
           <div className="notif-filter-tabs">
             <button
               className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
-              <span className="filter-count">{notifications.length}</span>
+              <span className="filter-count">{totalItems}</span>
             </button>
             <button
               className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
-              onClick={() => setFilter('unread')}
+              onClick={() => handleFilterChange('unread')}
             >
               {unreadCount > 0 && <FaCircle className="filter-unread-dot" />}
               Unread
@@ -554,15 +663,16 @@ const Notifications = () => {
             </button>
             <button
               className={`filter-tab ${filter === 'read' ? 'active' : ''}`}
-              onClick={() => setFilter('read')}
+              onClick={() => handleFilterChange('read')}
             >
               Read
-              <span className="filter-count">{notifications.length - unreadCount}</span>
+              <span className="filter-count">{Math.max(0, totalItems - unreadCount)}</span>
             </button>
             {getBroadcastCount() > 0 && (
               <button
                 className={`filter-tab ${filter === 'broadcast' ? 'active' : ''}`}
-                onClick={() => setFilter('broadcast')}
+                onClick={() => handleFilterChange('broadcast')}
+                title="Broadcasts on this page"
               >
                 <FaBullhorn className="filter-broadcast-icon" />
                 Broadcast
@@ -577,7 +687,7 @@ const Notifications = () => {
           <div className="notif-error">
             <FaExclamationCircle />
             <p>{error}</p>
-            <button onClick={fetchNotifications}>Retry</button>
+            <button onClick={() => fetchNotifications(currentPage)}>Retry</button>
           </div>
         )}
 
@@ -587,8 +697,8 @@ const Notifications = () => {
             <div className="notif-empty-icon-wrapper">
               <FaInbox className="notif-empty-icon" />
             </div>
-            <h3>No notifications</h3>
-            <p>You're all caught up! Check back later for updates.</p>
+            <h3>No notifications on this page</h3>
+            <p>{totalItems > 0 ? 'Try another page or filter.' : "You're all caught up! Check back later for updates."}</p>
           </div>
         ) : (
           <div className="notif-list">
@@ -711,13 +821,47 @@ const Notifications = () => {
           </div>
         )}
 
-        {/* Footer stats */}
-        {notifications.length > 0 && (
+        {/* Pagination (same design as schedule module) */}
+        {totalItems > 0 && (
           <div className="notif-footer-stats">
-            <span className="notif-stats">
-              Showing {filteredNotifications.length} of {notifications.length} notifications
-              {getBroadcastCount() > 0 && ` • ${getBroadcastCount()} broadcast`}
-            </span>
+            {totalPages > 1 ? (
+              <div className="pagination">
+                <div className="pagination-info">
+                  Showing {startItem} to {endItem} of {totalItems} notifications
+                  {getBroadcastCount() > 0 && ` • ${getBroadcastCount()} broadcast on this page`}
+                </div>
+                <div className="pagination-controls">
+                  <button
+                    className="page-btn"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                  >
+                    <FaChevronLeft /> Previous
+                  </button>
+                  {getPageNumbers().map(page => (
+                    <button
+                      key={page}
+                      className={`page-number ${currentPage === page ? 'active' : ''}`}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    className="page-btn"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next <FaChevronRight />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <span className="notif-stats">
+                Showing {startItem} to {endItem} of {totalItems} notifications
+                {getBroadcastCount() > 0 && ` • ${getBroadcastCount()} broadcast on this page`}
+              </span>
+            )}
           </div>
         )}
       </div>

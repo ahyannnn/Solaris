@@ -87,6 +87,15 @@ const SiteAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  // Server-side paging: totals from the API; debounced search; sort cycles
+  // back to priority order (Date/Status headers, third click = default).
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [sortBy, setSortBy] = useState('priority');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const searchTimeoutRef = useRef(null);
+  const firstRunRef = useRef(true);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
@@ -118,13 +127,38 @@ const SiteAssessment = () => {
     { name: 'Dec', quotes: 0, assessments: 0 }
   ]);
 
-  // Real-time table updates (no page refresh): refetch on socket event and
-  // render only the complete server response, so rows never flash partial
-  // (N/A) data from the raw payload. Cleaned up on unmount.
+  // Real-time table updates (no page refresh): refetch current page + stats.
   useRealtimeTable(['free-quotes', 'pre-assessments', 'devices'], () => {
     fetchData();
     fetchStats();
   });
+
+  // Server-side paging: one 10-row page per tab/filter/page/search/sort change.
+  useEffect(() => {
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
+    }
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, appliedSearch, sortBy, sortOrder]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchData();
@@ -168,25 +202,59 @@ const SiteAssessment = () => {
     });
   };
 
+  // Server-side paging: ONE page of 10 rows per tab (filter/search/sort by API).
+  // Pre tab sends payment-status values via `paymentStatus` (they match nothing
+  // as `status`), the rest via `assessmentStatus` — fixes the empty filter bug.
   const fetchData = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
       if (activeTab === 'free-quotes') {
+        const params = {
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined,
+          sortBy,
+          order: sortOrder
+        };
+        if (filter !== 'all') params.status = filter;
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
           headers: { Authorization: `Bearer ${token}` },
-          // Fetch the whole tab list: search + pagination run client-side
-          // so search spans ALL pages, not just the visible one.
-          params: { status: filter === 'all' ? undefined : filter, limit: 1000 }
+          params
         });
         setFreeQuotes(response.data.quotes || []);
+        setTotalItems(response.data.total || 0);
+        setTotalPages(response.data.totalPages || 1);
+        if (response.data.page && response.data.page !== currentPage) {
+          setCurrentPage(response.data.page);
+        }
       } else {
+        const params = {
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined,
+          // Pre-assessments default to the 6-level admin rank (not billing rank).
+          sortBy: sortBy === 'priority' ? 'adminPriority' : sortBy,
+          order: sortOrder
+        };
+        if (filter !== 'all') {
+          if (['for_verification', 'paid'].includes(filter)) {
+            params.paymentStatus = filter;
+          } else {
+            params.assessmentStatus = filter;
+          }
+        }
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: filter === 'all' ? undefined : filter, limit: 1000 }
+          params
         });
         setPreAssessments(response.data.assessments || []);
+        setTotalItems(response.data.total || 0);
+        setTotalPages(response.data.totalPages || 1);
+        if (response.data.page && response.data.page !== currentPage) {
+          setCurrentPage(response.data.page);
+        }
       }
       setLoading(false);
     } catch (error) {
@@ -199,8 +267,10 @@ const SiteAssessment = () => {
   const fetchEngineers = async () => {
     try {
       const token = sessionStorage.getItem('token');
+      // Bounded at the API max so large rosters aren't truncated at the default.
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 50 }
       });
       setEngineers(response.data.users || []);
     } catch (error) {
@@ -213,7 +283,7 @@ const SiteAssessment = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: 'available' }
+        params: { status: 'available', limit: 50 }
       });
       setDevices(response.data.devices || []);
     } catch (error) {
@@ -224,74 +294,47 @@ const SiteAssessment = () => {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const quotes = freeQuotesRes.data.quotes || [];
+      // Stats endpoints only — no row dumps (counts stay correct at any volume).
+      const [quoteStatsRes, preStatsRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { stats: {} } })),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: {} }))
+      ]);
 
-      const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const assessments = preAssessmentsRes.data.assessments || [];
-      const autoVerified = assessments.filter(a => a.autoVerified === true || a.paymentGateway === 'paymongo').length;
-
-      // Needs-action counts: only rows where admin has something to do.
-      // Free: pending (assign) + processing (quotation/complete) — assigned is engineer's turn.
-      const freeNeedsAction = quotes.filter(q => ['pending', 'processing'].includes(q.status)).length;
-      const preNeedsAction = assessments.filter(a => {
-        // Engineer-owned stages: admin has nothing to do here, never dot.
-        // (site_visit_ongoing falls through: dot only if device still missing.)
-        if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(a.assessmentStatus)) return false;
-        if (a.assessmentStatus === 'pending_review') return true;
-        if (a.assessmentStatus === 'cancelled' && a.cancellation && ['pending', 'processing'].includes(a.cancellation.refundStatus)) return true;
-        if (a.paymentMethod === 'cash' && a.paymentStatus === 'pending') return true;
-        if (a.paymentMethod === 'gcash' && a.paymentStatus === 'for_verification' && !a.paymentGateway) return true;
-        if (a.paymentStatus === 'paid' && a.assessmentStatus === 'scheduled' && !a.assignedEngineerId) return true;
-        // Old flow: engineer assigned but no IoT device — no available device to assign, so not actionable; dot removed per user request (aligns with sidebar badge which only counts paid scheduled no engineer)
-        const hasDevice = a.assignedDeviceId || a.iotDeviceId || a.assignedDevice;
-        if (a.assignedEngineerId && !hasDevice) return false;
-        return false;
-      }).length;
+      const q = quoteStatsRes.data.stats || {};
+      const p = preStatsRes.data.page || {};
+      const pre = preStatsRes.data || {};
 
       setStats({
         freeQuotes: {
-          total: quotes.length,
-          pending: quotes.filter(q => q.status === 'pending').length,
-          assigned: quotes.filter(q => q.status === 'assigned').length,
-          processing: quotes.filter(q => q.status === 'processing').length,
-          completed: quotes.filter(q => q.status === 'completed').length,
-          needsAction: freeNeedsAction
+          total: q.total || 0,
+          pending: q.pending || 0,
+          assigned: q.assigned || 0,
+          processing: q.processing || 0,
+          completed: q.completed || 0,
+          needsAction: q.needsAction || 0
         },
         preAssessments: {
-          total: assessments.length,
-          pendingReview: assessments.filter(a => a.assessmentStatus === 'pending_review').length,
-          pendingPayment: assessments.filter(a => a.assessmentStatus === 'pending_payment').length,
-          forVerification: assessments.filter(a => a.paymentStatus === 'for_verification').length,
-          paid: assessments.filter(a => a.paymentStatus === 'paid').length,
-          scheduled: assessments.filter(a => a.assessmentStatus === 'scheduled').length,
-          completed: assessments.filter(a => a.assessmentStatus === 'completed').length,
-          autoVerified: autoVerified,
-          needsAction: preNeedsAction
+          total: p.total || 0,
+          pendingReview: p.pendingReview || 0,
+          pendingPayment: p.pendingPayment || 0,
+          forVerification: p.forVerification || 0,
+          paid: p.paid || 0,
+          scheduled: p.scheduled || 0,
+          completed: p.completed || 0,
+          autoVerified: pre.autoVerified || 0,
+          needsAction: p.needsAction || 0
         }
       });
 
-      // Process chart data
+      // Monthly chart: quotes by requestedAt month, assessments by bookedAt month.
       const monthlyQuotes = new Array(12).fill(0);
       const monthlyAssessments = new Array(12).fill(0);
-
-      quotes.forEach(quote => {
-        if (quote.requestedAt) {
-          const month = new Date(quote.requestedAt).getMonth();
-          monthlyQuotes[month]++;
-        }
-      });
-
-      assessments.forEach(assessment => {
-        if (assessment.bookedAt) {
-          const month = new Date(assessment.bookedAt).getMonth();
-          monthlyAssessments[month]++;
-        }
-      });
+      (q.monthly || []).forEach((m) => { monthlyQuotes[m.month] = m.count || 0; });
+      (p.monthly || []).forEach((m) => { monthlyAssessments[m.month] = m.count || 0; });
 
       setChartData(chartData.map((item, index) => ({
         ...item,
@@ -621,19 +664,8 @@ const SiteAssessment = () => {
     return 6;
   };
 
-  const FREE_QUOTE_PRIORITY = { pending: 1, assigned: 2, processing: 3, accepted: 4, completed: 5, cancelled: 6 };
-
-  const getItemTime = (item) => {
-    const raw = activeTab === 'free-quotes'
-      ? (item.requestedAt || item.createdAt)
-      : (item.bookedAt || item.createdAt);
-    const t = new Date(raw).getTime();
-    return Number.isNaN(t) ? 0 : t;
-  };
-
-  const getItemPriority = (item) => activeTab === 'free-quotes'
-    ? (FREE_QUOTE_PRIORITY[item.status] ?? 9)
-    : getPreAssessmentPriority(item);
+  // NOTE: list ranking now runs server-side (siteAssessmentPriority/FreeQuote
+  // rank on the API). getPreAssessmentPriority stays for the per-row red dot.
 
   // Toggle dot only: true when the row actually needs admin action.
   // Free assigned is engineer's turn (marks processing), so no dot.
@@ -649,30 +681,54 @@ const SiteAssessment = () => {
     return getPreAssessmentPriority(item) <= 5;
   };
 
-  const filteredItems = (activeTab === 'free-quotes' ? freeQuotes : preAssessments).filter(item => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-      item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-      (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
-    // Stable sort: needs-action rows first (newest on top),
-    // then the rest by priority group, newest within each group.
-  }).sort((a, b) => {
-    const needDiff = (hasNeedsAction(b) ? 1 : 0) - (hasNeedsAction(a) ? 1 : 0);
-    if (needDiff !== 0) return needDiff;
-    const priorityDiff = getItemPriority(a) - getItemPriority(b);
-    if (priorityDiff !== 0) return priorityDiff;
-    return getItemTime(b) - getItemTime(a);
-  });
+  // NOTE: filter/search/rank/slice now happen server-side (status/search/sort
+  // params, mirrored by siteAssessmentPriority/FreeQuote rank on the API).
+  // These aliases already hold exactly ONE page in the requested order.
+  // getItemPriority/hasNeedsAction stay for the per-row red dot.
+  const filteredItems = activeTab === 'free-quotes' ? freeQuotes : preAssessments;
+  const paginatedItems = filteredItems;
 
-  // Client-side pagination over the full filtered list
-  const totalFilteredItems = filteredItems.length;
-  const totalPages = Math.max(1, Math.ceil(totalFilteredItems / itemsPerPage));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const paginatedItems = filteredItems.slice(
-    (safeCurrentPage - 1) * itemsPerPage,
-    safeCurrentPage * itemsPerPage
-  );
+
+  // Header sort cycles: Date newest -> oldest -> priority (default);
+  // Status asc -> desc -> priority. Third click restores default order.
+  const cycleDateSort = () => {
+    const dateField = activeTab === 'free-quotes' ? 'requestedAt' : 'bookedAt';
+    if (sortBy !== dateField) {
+      setSortBy(dateField);
+      setSortOrder('desc');
+    } else if (sortOrder === 'desc') {
+      setSortOrder('asc');
+    } else {
+      setSortBy('priority');
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
+
+  const cycleStatusSort = () => {
+    const statusField = activeTab === 'free-quotes' ? 'status' : 'assessmentStatus';
+    if (sortBy !== statusField) {
+      setSortBy(statusField);
+      setSortOrder('asc');
+    } else if (sortOrder === 'asc') {
+      setSortOrder('desc');
+    } else {
+      setSortBy('priority');
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
+
+  const dateSortArrow = () => {
+    const dateField = activeTab === 'free-quotes' ? 'requestedAt' : 'bookedAt';
+    return sortBy === dateField ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '';
+  };
+
+  const statusSortArrow = () => {
+    const statusField = activeTab === 'free-quotes' ? 'status' : 'assessmentStatus';
+    return sortBy === statusField ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '';
+  };
 
   const getEngineerName = (engineer) => {
     if (!engineer) return 'Not assigned';
@@ -896,8 +952,8 @@ const SiteAssessment = () => {
     </div>
   );
 
-  const startItem = totalFilteredItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalFilteredItems);
+  const startItem = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(safeCurrentPage * itemsPerPage, totalItems);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -1011,14 +1067,14 @@ const SiteAssessment = () => {
         <div className="tabs-adminbills_">
           <button
             className={`tab-btn-adminbills_ ${activeTab === 'free-quotes' ? 'active-adminbills_' : ''}`}
-            onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
+            onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); setSortBy('priority'); setSortOrder('desc'); }}
           >
             Free Quotes
             {stats.freeQuotes.needsAction > 0 && <span className="tab-needs-dot-adminbills_" title={`${stats.freeQuotes.needsAction} need action`}></span>}
           </button>
           <button
             className={`tab-btn-adminbills_ ${activeTab === 'pre-assessments' ? 'active-adminbills_' : ''}`}
-            onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
+            onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); setSortBy('priority'); setSortOrder('desc'); }}
           >
             Pre-Assessments
             {stats.preAssessments.needsAction > 0 && <span className="tab-needs-dot-adminbills_" title={`${stats.preAssessments.needsAction} need action`}></span>}
@@ -1029,12 +1085,12 @@ const SiteAssessment = () => {
         <div className="toolbar-adminbills_">
           <div className="search-group-adminbills_">
             <FaSearch className="search-icon-adminbills_" />
-            <input
-              type="text"
-              placeholder="Search by client name or reference..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
+              <input
+                type="text"
+                placeholder="Search by client name or reference..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); }}
+              />
           </div>
           <div className="filter-group-adminbills_">
             <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
@@ -1074,10 +1130,14 @@ const SiteAssessment = () => {
                   <th>Client</th>
                   <th>Reference</th>
                   <th>Contact</th>
-                  <th>Date</th>
+                  <th className="sortable-th-adminbills_" onClick={cycleDateSort} title="Sort by date (third click restores priority order)">
+                    Date{dateSortArrow()}
+                  </th>
                   {activeTab === 'free-quotes' ? <th>Monthly Bill</th> : <th>Property</th>}
                   {activeTab === 'pre-assessments' && <th>Amount</th>}
-                  <th>Status</th>
+                  <th className="sortable-th-adminbills_" onClick={cycleStatusSort} title="Sort by status (third click restores priority order)">
+                    Status{statusSortArrow()}
+                  </th>
                   <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
@@ -1201,7 +1261,7 @@ const SiteAssessment = () => {
         {totalPages > 1 && (
           <div className="pagination-adminbills_">
             <div className="pagination-info-adminbills_">
-              Showing {startItem} to {endItem} of {totalFilteredItems} entries
+              Showing {startItem} to {endItem} of {totalItems} entries
             </div>
             <div className="pagination-controls-adminbills_">
               <button

@@ -11,16 +11,40 @@ const { processUpload, getFileUrl } = require('../middleware/uploadMiddleware');
 // @access  Private (Admin)
 exports.getAllUsers = async (req, res) => {
   try {
-    const { role, page = 1, limit = 20 } = req.query;
-    
+    const { role, search, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
+
+    // Validate paging: 10 per page default, max 50.
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+
+    // Whitelisted sortable fields (contact excluded: derived from two sources).
+    const SORTABLE = ['fullName', 'email', 'role', 'isActive', 'createdAt'];
+    const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+
     const query = {};
-    if (role) query.role = role;
+    if (role && role !== 'all') query.role = role;
+
+    // Server-side search: fullName / email / contactNumber on User,
+    // plus users whose Client record matches on contactNumber.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [{ fullName: rx }, { email: rx }, { contactNumber: rx }];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      const clients = await Client.find({ contactNumber: rx }).select('userId').lean();
+      const userIds = clients.map((c) => c.userId).filter(Boolean);
+      if (userIds.length) or.push({ _id: { $in: userIds } });
+      query.$or = or;
+    }
 
     const users = await User.find(query)
       .select('-passwordHash')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .sort({ [sortField]: sortDir })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
 
     const total = await User.countDocuments(query);
     
@@ -46,8 +70,9 @@ exports.getAllUsers = async (req, res) => {
       success: true,
       users: usersWithClientInfo,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
@@ -520,6 +545,26 @@ exports.getUserStats = async (req, res) => {
     const clientsWithSetup = await Client.countDocuments({ account_setup: true });
     const usersWithSetup = clientsWithSetup;
 
+    // Monthly customer signups (last 12 months) — chart source, replaces the
+    // client-side customer dump. Zero-filled client-side from these buckets.
+    const monthlySignups = await User.aggregate([
+      {
+        $match: {
+          role: 'user',
+          createdAt: {
+            $gte: new Date(currentDate.getFullYear(), currentDate.getMonth() - 11, 1)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
     res.json({
       success: true,
       total,
@@ -530,7 +575,8 @@ exports.getUserStats = async (req, res) => {
       byRole: byRole.reduce((acc, curr) => {
         acc[curr._id] = curr.count;
         return acc;
-      }, {})
+      }, {}),
+      monthlySignups: monthlySignups.map((m) => ({ key: m._id, value: m.count }))
     });
 
   } catch (error) {

@@ -15,6 +15,25 @@
 .admsvc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; font-family: 'Poppins', sans-serif; }
 .admsvc-table th, .admsvc-table td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border-color, #eef0ed); text-align: left; vertical-align: top; font-family: 'Poppins', sans-serif; }
 .admsvc-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary, #667085); font-weight: 600; }
+/* Clickable server-side sort headers */
+.admsvc-table th.sortable-th-admsvc { cursor: pointer; user-select: none; white-space: nowrap; }
+.admsvc-table th.sortable-th-admsvc:hover { color: var(--text-primary, #17212B); }
+/* Pagination (same design as schedule module) */
+.pagination { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px 0; flex-wrap: wrap; gap: 12px; font-family: 'Poppins', sans-serif; }
+.pagination-info { font-size: 13px; color: var(--text-muted, #98A2B3); }
+.pagination-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.page-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: transparent; color: var(--text-secondary, #667085); border: 1px solid var(--border-color, #eef0ed); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 200ms ease; font-family: 'Poppins', sans-serif; }
+.page-btn:hover:not(:disabled) { background: var(--bg-section, rgba(0,0,0,0.04)); border-color: var(--text-muted, #98A2B3); color: var(--text-primary, #17212B); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-number { min-width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; background: transparent; color: var(--text-secondary, #667085); border: 1px solid transparent; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 200ms ease; font-family: 'Poppins', sans-serif; }
+.page-number:hover { background: var(--bg-section, rgba(0,0,0,0.04)); color: var(--text-primary, #17212B); }
+.page-number.active { background: var(--icon-color, #F39C12); color: #FFFFFF; border-color: var(--icon-color, #F39C12); }
+@media (max-width: 480px) {
+  .pagination { flex-direction: column; align-items: center; gap: 8px; }
+  .pagination-controls { justify-content: center; }
+  .page-btn, .page-number { font-size: 12px; padding: 6px 12px; }
+  .pagination-info { font-size: 12px; }
+}
 .admsvc-table .mono { font-family: monospace; font-weight: 600; white-space: nowrap; }
 .admsvc-customer-profile { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .admsvc-customer-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }

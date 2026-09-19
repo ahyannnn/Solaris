@@ -8,6 +8,7 @@ const {
   createServiceRequest,
   getMyServiceRequests,
   getAllServiceRequests,
+  getServiceRequestStats,
   getServiceRequestById,
   updateServiceRequestStatus,
   cancelServiceRequest
@@ -20,11 +21,12 @@ router.post('/', verifyToken, customer, createServiceRequest);
 router.get('/my-requests', verifyToken, customer, getMyServiceRequests);
 router.put('/:id/cancel', verifyToken, customer, cancelServiceRequest);
 
+// Admin routes (static paths must come before dynamic /:id)
+router.get('/stats', verifyToken, admin, getServiceRequestStats);
+router.get('/', verifyToken, admin, getAllServiceRequests);
+
 // Shared (owner customer or admin — checked in controller)
 router.get('/:id', verifyToken, getServiceRequestById);
-
-// Admin routes
-router.get('/', verifyToken, admin, getAllServiceRequests);
 router.put('/:id/status', verifyToken, admin, updateServiceRequestStatus);
 
 module.exports = router;

@@ -1097,18 +1097,34 @@ body.dark-mode {
 }
 
 /* ============================================
-   PAGINATION
+   PAGINATION (same design as schedule module)
    ============================================ */
-.pagination-engineerproject {
+.pagination {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: space-between;
   padding: 16px 0 8px 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 16px;
   background: transparent;
   color: var(--text-secondary);
@@ -1118,10 +1134,6 @@ body.dark-mode {
   font-weight: 500;
   cursor: pointer;
   transition: all 200ms ease;
-  font-family: 'Poppins', sans-serif;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -1135,11 +1147,32 @@ body.dark-mode {
   cursor: not-allowed;
 }
 
-.page-info {
-  font-size: 13px;
-  color: var(--text-muted);
+.page-number {
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 8px;
-  transition: color 0.3s ease;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.page-number:hover {
+  background: var(--bg-section);
+  color: var(--text-primary);
+}
+
+.page-number.active {
+  background: var(--icon-color);
+  color: #FFFFFF;
+  border-color: var(--icon-color);
 }
 
 /* ============================================
@@ -2560,16 +2593,23 @@ body.dark-mode {
     font-size: 18px;
   }
 
-  .pagination-engineerproject {
-    gap: 4px;
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
 
-  .page-btn {
-    padding: 6px 12px;
+  .pagination-controls {
+    justify-content: center;
+  }
+
+  .page-btn,
+  .page-number {
     font-size: 12px;
+    padding: 6px 12px;
   }
 
-  .page-info {
+  .pagination-info {
     font-size: 12px;
   }
 
@@ -2747,12 +2787,13 @@ body.dark-mode {
     font-size: 13px;
   }
 
-  .page-btn {
+  .page-btn,
+  .page-number {
     padding: 4px 10px;
     font-size: 11px;
   }
 
-  .page-info {
+  .pagination-info {
     font-size: 11px;
   }
 

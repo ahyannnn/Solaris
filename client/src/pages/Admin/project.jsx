@@ -84,6 +84,13 @@ const ProjectManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  // Server-side paging: totals from the API; debounced search; sort cycles
+  // back to priority order (Requested/Status headers, third click = default).
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [sortBy, setSortBy] = useState('priority');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [engineers, setEngineers] = useState([]);
   const [projectInvoices, setProjectInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
@@ -108,8 +115,10 @@ const ProjectManagement = () => {
 
   // CHART DATA STATES
   const [projectStatusChartData, setProjectStatusChartData] = useState([]);
-  // Full project list for the workload chart (paginated table list is separate)
-  const [allProjectsList, setAllProjectsList] = useState([]);
+  // Workload chart source from the stats endpoint (no row dump).
+  const [workloadStats, setWorkloadStats] = useState({ entries: [], unassigned: 0 });
+  const searchTimeoutRef = useRef(null);
+  const firstRunRef = useRef(true);
 
   // ============================================
   // COMPACT CURRENCY FORMATTER - ALL SIZES
@@ -167,11 +176,10 @@ const ProjectManagement = () => {
     });
   };
 
-  // CHART 2 DATA: Engineer workload — active (non-completed, non-cancelled)
-  // projects per engineer, plus an Unassigned bar for the assign backlog.
-  // useMemo so it stays correct regardless of fetch order (engineers vs projects).
+  // CHART 2 DATA: Engineer workload from stats.workload, merged with the
+  // engineers list so zero-active engineers still appear (as before).
+  // useMemo so it stays correct regardless of fetch order (engineers vs stats).
   const workloadData = useMemo(() => {
-    const list = allProjectsList || [];
     const engMap = {};
     (engineers || []).forEach((eng) => {
       engMap[String(eng._id)] = {
@@ -179,28 +187,14 @@ const ProjectManagement = () => {
         active: 0
       };
     });
-    let unassigned = 0;
-    list.forEach((project) => {
-      if (project.status === 'completed' || project.status === 'cancelled') return;
-      const assigned = project.assignedEngineerId;
-      const engId = assigned && typeof assigned === 'object' ? assigned._id : assigned;
-      if (!engId) {
-        unassigned++;
-        return;
-      }
-      const key = String(engId);
-      if (!engMap[key]) {
-        const popName = assigned && typeof assigned === 'object'
-          ? (assigned.fullName || [assigned.firstName, assigned.lastName].filter(Boolean).join(' ') || null)
-          : null;
-        engMap[key] = { name: popName || 'Unknown', active: 0 };
-      }
-      engMap[key].active++;
+    (workloadStats.entries || []).forEach((entry) => {
+      const key = String(entry.engineerId);
+      engMap[key] = { name: entry.name || engMap[key]?.name || 'Unknown', active: entry.active || 0 };
     });
     const rows = Object.values(engMap).sort((a, b) => b.active - a.active);
-    rows.unshift({ name: 'Unassigned', active: unassigned, isUnassigned: true });
+    rows.unshift({ name: 'Unassigned', active: workloadStats.unassigned || 0, isUnassigned: true });
     return rows;
-  }, [allProjectsList, engineers]);
+  }, [workloadStats, engineers]);
 
   // Real-time table updates (no page refresh): refetch on socket event and
   // render only the complete server response, so rows never flash partial
@@ -233,22 +227,59 @@ const ProjectManagement = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('scroll', handleScroll, true);
     };
-    // Fetch-all once (filter/sort/paginate client-side so needs-action
-    // rows stay on top across ALL pages)
+    // Mount loads everything once (see fetchers below)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch the full list (project volumes are small); filtering, priority
-  // sorting and pagination all happen client-side below.
+  // Server-side paging: one 10-row page per filter/page/search/sort change.
+  useEffect(() => {
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
+    }
+    fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, currentPage, appliedSearch, sortBy, sortOrder]);
+
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Server-side paging: ONE page of 10 rows (filter/search/sort by the API).
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 999 }
+        params: {
+          status: filter === 'all' ? undefined : filter,
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined,
+          sortBy,
+          order: sortOrder
+        }
       });
       setProjects(response.data.projects || []);
+      setTotalItems(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -260,8 +291,10 @@ const ProjectManagement = () => {
   const fetchEngineers = async () => {
     try {
       const token = sessionStorage.getItem('token');
+      // Bounded at the API max so large engineer rosters aren't truncated at 20.
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users?role=engineer`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 50 }
       });
       setEngineers(response.data.users || []);
     } catch (error) {
@@ -318,14 +351,9 @@ const ProjectManagement = () => {
 
       setProjectStatusChartData(statusData);
 
-      // CHART 2 DATA: full project list for the engineer workload chart
-      // (grouped in a useMemo with the engineers list, so fetch order is safe)
-      const projectsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 999 }
-      });
-
-      setAllProjectsList(projectsResponse.data.projects || []);
+      // CHART 2 DATA: engineer workload from the stats endpoint (no row dump).
+      const workload = data.workload || { entries: [], unassigned: 0 };
+      setWorkloadStats(workload);
 
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -488,11 +516,6 @@ const ProjectManagement = () => {
     return 4;
   };
 
-  const getProjectTime = (project) => {
-    const t = new Date(project.createdAt).getTime();
-    return Number.isNaN(t) ? 0 : t;
-  };
-
   // Toggle red dot: true only when admin must act (approve quoted or
   // assign engineer). Cancelled/completed/in-progress never dot.
   const hasProjectNeedsAction = (project) => {
@@ -502,29 +525,30 @@ const ProjectManagement = () => {
     return getAdminProjectPriority(project) <= 2;
   };
 
-  const filteredProjects = projects
-    .filter(project => filter === 'all' || project.status === filter)
-    .filter(project => {
-      if (!searchTerm) return true;
-      const searchLower = searchTerm.toLowerCase();
-      return project.projectName?.toLowerCase().includes(searchLower) ||
-        project.projectReference?.toLowerCase().includes(searchLower) ||
-        project.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-        project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
-      // Stable sort: priority groups first, newest kept within each group.
-    })
-    .sort((a, b) =>
-      getAdminProjectPriority(a) - getAdminProjectPriority(b) ||
-      getProjectTime(b) - getProjectTime(a)
-    );
-
-  const totalItems = filteredProjects.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  // NOTE: filter/search/rank/slice now happen server-side (status/search/sort
+  // params, mirrored by projectAdminPriority on the API). `projects` already
+  // holds exactly ONE page in the requested order. getAdminProjectPriority /
+  // hasProjectNeedsAction below are still used for the per-row red dot.
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const pagedProjects = filteredProjects.slice(
-    (safeCurrentPage - 1) * itemsPerPage,
-    safeCurrentPage * itemsPerPage
-  );
+  const pagedProjects = projects;
+
+  // Header sort cycles: Requested newest -> oldest -> priority (default);
+  // Status asc -> desc -> priority. Third click restores the default order.
+  const cycleSort = (field, firstOrder) => {
+    if (sortBy !== field) {
+      setSortBy(field);
+      setSortOrder(firstOrder);
+    } else if (field === 'createdAt') {
+      if (sortOrder === 'desc') setSortOrder('asc');
+      else { setSortBy('priority'); setSortOrder('desc'); }
+    } else {
+      if (sortOrder === 'asc') setSortOrder('desc');
+      else { setSortBy('priority'); setSortOrder('desc'); }
+    }
+    setCurrentPage(1);
+  };
+
+  const sortArrow = (field) => (sortBy === field ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : '');
 
   const getAvailableActions = (project) => {
     const actions = [
@@ -816,12 +840,12 @@ const ProjectManagement = () => {
         <div className="project-filters-projectmanagement">
           <div className="search-group-projectmanagement">
             <FaSearch className="search-icon-projectmanagement" />
-            <input
-              type="text"
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); }}
+              />
           </div>
           <div className="filter-group-projectmanagement">
             <select value={filter} onChange={(e) => { setFilter(e.target.value); setCurrentPage(1); }}>
@@ -854,13 +878,18 @@ const ProjectManagement = () => {
                   <th>Size</th>
                   <th>Total</th>
                   <th>Paid</th>
-                  <th>Status</th>
+                  <th className="sortable-th-projectmanagement" onClick={() => cycleSort('status', 'asc')} title="Sort by status (third click restores priority order)">
+                    Status{sortArrow('status')}
+                  </th>
+                  <th className="sortable-th-projectmanagement" onClick={() => cycleSort('createdAt', 'desc')} title="Sort by date requested (third click restores priority order)">
+                    Requested{sortArrow('createdAt')}
+                  </th>
                   <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredProjects.length === 0 ? (
-                  <tr><td colSpan="7" data-label="" className="empty-state-projectmanagement">No projects found</td></tr>
+                {projects.length === 0 ? (
+                  <tr><td colSpan="8" data-label="" className="empty-state-projectmanagement">No projects found</td></tr>
                 ) : (
                   pagedProjects.map((project, idx) => {
                     const actions = getAvailableActions(project);
@@ -896,6 +925,7 @@ const ProjectManagement = () => {
                         <td data-label="Total" className="amount-projectmanagement">{formatCurrency(project.totalCost)}</td>
                         <td data-label="Paid" className="amount-projectmanagement">{formatCurrency(project.amountPaid)}</td>
                         <td data-label="Status">{getStatusBadge(project.status)}</td>
+                        <td data-label="Requested">{formatDate(project.createdAt)}</td>
                         <td data-label="Actions" style={{ textAlign: 'center', position: 'relative' }}>
                           <div className="action-dropdown-container-projectmanagement">
                             <button

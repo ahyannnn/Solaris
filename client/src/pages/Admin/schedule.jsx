@@ -1,5 +1,5 @@
 // pages/Admin/AdminSchedule.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
@@ -95,8 +95,13 @@ const AdminSchedule = () => {
   // STATE
   // ============================================================
   const [loading, setLoading] = useState(true);
-  const [allSchedules, setAllSchedules] = useState([]);
+  // Server-side paging: `schedules` holds ONE page (10 rows). Totals come from the API.
   const [schedules, setSchedules] = useState([]);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  // Charts are fed by lightweight stats endpoints (no full-row dumps).
+  const [statusChartData, setStatusChartData] = useState([]);
+  const [monthlyChartData, setMonthlyChartData] = useState([]);
+  const [chartTotal, setChartTotal] = useState(0);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -109,50 +114,76 @@ const AdminSchedule = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // KPI stats
-  const [stats, setStats] = useState({
-    total: 0,
-    upcoming: 0,
-    confirmed: 0,
-    completed: 0
-  });
+  // Chart builders shared by both tabs (same buckets as the old local computation)
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const buildStatusChart = (byStatus) => {
+    const buckets = {};
+    Object.entries(byStatus || {}).forEach(([raw, count]) => {
+      const g = groupScheduleStatus(raw);
+      if (!buckets[g.name]) buckets[g.name] = { name: g.name, value: 0, fill: g.fill };
+      buckets[g.name].value += count;
+    });
+    return Object.values(buckets);
+  };
+
+  const buildMonthlyChart = (monthly) => {
+    const byMonth = {};
+    (monthly || []).forEach((m) => { byMonth[m.month] = m; });
+    return MONTH_NAMES.map((name, i) => ({
+      name,
+      scheduled: byMonth[i]?.scheduled || 0,
+      completed: byMonth[i]?.completed || 0
+    }));
+  };
 
   // All projects for timeline data (ADMIN-WIDE - ALL ENGINEERS)
   const [projects, setProjects] = useState([]);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [_loadingProjects, setLoadingProjects] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
 
   // Search timeout ref
   const searchTimeoutRef = React.useRef(null);
+  // Mount already loads tab+stats via fetchAllData — skip the first watcher run.
+  const firstRunRef = React.useRef(true);
 
   // ============================================================
   // EFFECTS
   // ============================================================
-  // Real-time table updates (no page refresh): refetch current tab +
+  // Real-time table updates (no page refresh): refetch current tab page +
   // stats on any schedule/project/assessment change. Cleaned up on unmount.
   useRealtimeTable(['schedules', 'projects', 'pre-assessments'], () => {
     fetchDataForTab();
-    fetchStats();
+    fetchStatsForTab();
   });
 
   useEffect(() => {
     fetchAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Server-side paging: one 10-row page per tab/page/search combination.
   useEffect(() => {
-    setCurrentPage(1);
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return;
+    }
     fetchDataForTab();
-  }, [activeTab]);
+    fetchStatsForTab();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentPage, appliedSearch]);
 
+  // Debounced search: apply term + jump back to page 1 (batched single fetch).
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     searchTimeoutRef.current = setTimeout(() => {
-      fetchDataForTab();
+      setAppliedSearch(searchTerm.trim());
+      setCurrentPage(1);
     }, 300);
-    
+
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -168,7 +199,7 @@ const AdminSchedule = () => {
     try {
       await Promise.all([
         fetchDataForTab(),
-        fetchStats(),
+        fetchStatsForTab(),
         fetchAllProjects()
       ]);
     } catch (error) {
@@ -191,123 +222,59 @@ const AdminSchedule = () => {
     }
   };
 
+  // Charts + KPIs per tab from lightweight stats endpoints (no row dumps).
+  const fetchStatsForTab = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (activeTab === 'pre_assessment') {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const section = response.data.stats?.preAssessment || {};
+        setStatusChartData(buildStatusChart(section.byStatus));
+        setMonthlyChartData(buildMonthlyChart(section.monthly));
+        setChartTotal(section.total || 0);
+      } else {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const section = response.data.stats?.installation || {};
+        setStatusChartData(buildStatusChart(section.byStatus));
+        setMonthlyChartData(buildMonthlyChart(section.monthly));
+        setChartTotal(section.total || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
   // ============================================================
   // PRE-ASSESSMENT: Fetch from Schedules API + Check Device Deployment & Report Draft
   // ============================================================
   const fetchPreAssessmentSchedules = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      
-      // Fetch ALL pre-assessment schedules
+
+      // Server-side paging: ONE page of 10 rows (enrichment done by the API)
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           type: 'pre_assessment',
-          limit: 10000
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined
         }
       });
 
-      const allData = response.data.schedules || [];
-      
-      console.log('[SCHEDULES] Total schedules:', allData.length);
-      
-      // Fetch ALL pre-assessments to check for deployment and report_draft
-      const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 10000 }
-      });
-      
-      const preAssessments = preAssessmentsRes.data.assessments || [];
-      
-      // Create a map of assessment ID -> data
-      const assessmentMap = {};
-      preAssessments.forEach(assessment => {
-        const isDeployed = assessment.deviceDeployedAt ? true : false;
-        
-        // Check if report_draft or completed
-        const isReportDraft = assessment.assessmentStatus === 'report_draft' || 
-                              assessment.assessmentStatus === 'report_drafted' ||
-                              assessment.assessmentStatus === 'completed' ||
-                              assessment.assessmentStatus === 'quoted' ||
-                              assessment.assessmentStatus === 'quotation_generated';
-        
-        assessmentMap[assessment._id] = {
-          isDeployed: isDeployed,
-          isReportDraft: isReportDraft,
-          deployedAt: assessment.deviceDeployedAt || null,
-          assessmentStatus: assessment.assessmentStatus || null
-        };
-        
-        console.log(`[ASSESSMENT] ${assessment._id} - Deployed: ${isDeployed}, ReportDraft: ${isReportDraft}, Status: ${assessment.assessmentStatus}`);
-      });
-      
-      console.log('[ASSESSMENT MAP] Keys:', Object.keys(assessmentMap).length);
-      
-      // Enrich each schedule
-      const enrichedData = allData.map(schedule => {
-        // Find the assessment ID from the schedule
-        let assessmentId = null;
-        
-        if (schedule.preAssessmentId) {
-          if (typeof schedule.preAssessmentId === 'object' && schedule.preAssessmentId._id) {
-            assessmentId = schedule.preAssessmentId._id.toString();
-          } else if (typeof schedule.preAssessmentId === 'string') {
-            assessmentId = schedule.preAssessmentId;
-          }
-        }
-        
-        // If no preAssessmentId, try using schedule._id
-        if (!assessmentId) {
-          assessmentId = schedule._id.toString();
-        }
-        
-        // Get assessment data
-        const assessmentData = assessmentMap[assessmentId] || null;
-        
-        // ALWAYS start with the schedule's original status
-        let finalStatus = schedule.status;
-        let isDeviceDeployed = false;
-        let deviceDeployedAt = null;
-        let isReportDraft = false;
-        
-        if (assessmentData) {
-          isDeviceDeployed = assessmentData.isDeployed;
-          deviceDeployedAt = assessmentData.deployedAt;
-          isReportDraft = assessmentData.isReportDraft;
-          
-          // PRIORITY 1: If report_draft -> show as COMPLETED
-          if (isReportDraft) {
-            finalStatus = 'completed';
-            console.log(`[ENRICH] Schedule ${schedule._id} -> REPORT_DRAFT -> COMPLETED, status: completed`);
-          }
-          // PRIORITY 2: If device deployed but not report_draft -> show device_deployed
-          else if (isDeviceDeployed) {
-            finalStatus = 'device_deployed';
-            console.log(`[ENRICH] Schedule ${schedule._id} -> Device DEPLOYED, status: device_deployed`);
-          }
-          // PRIORITY 3: Use schedule status
-          else {
-            finalStatus = schedule.status;
-            console.log(`[ENRICH] Schedule ${schedule._id} -> Using schedule status: ${finalStatus}`);
-          }
-        } else {
-          // No assessment found, use schedule status
-          finalStatus = schedule.status;
-          console.log(`[ENRICH] Schedule ${schedule._id} -> No assessment, status: ${finalStatus}`);
-        }
-        
-        return {
-          ...schedule,
-          _enrichedStatus: finalStatus,
-          _isDeviceDeployed: isDeviceDeployed,
-          _deviceDeployedAt: deviceDeployedAt,
-          _assessmentId: assessmentId,
-          _isReportDraft: isReportDraft
-        };
-      });
+      const pageRows = response.data.schedules || [];
+      setSchedules(pageRows);
+      setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || 0);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
 
-      setAllSchedules(enrichedData);
-      applyFilterAndPagination(enrichedData);
+      console.log('[SCHEDULES] Page:', currentPage, 'Rows:', pageRows.length, 'Total:', response.data.total);
 
     } catch (error) {
       console.error('Error fetching pre-assessment schedules:', error);
@@ -318,25 +285,26 @@ const AdminSchedule = () => {
   // ============================================================
   // INSTALLATION: Fetch from Projects API (ADMIN-WIDE)
   // ============================================================
+  const INSTALLATION_STATUSES = 'in_progress,completed,full_paid,progress_paid';
+
   const fetchInstallationProjects = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      
+
+      // Server-side paging: ONE page of 10 installation projects
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          limit: 10000
+          statuses: INSTALLATION_STATUSES,
+          page: currentPage,
+          limit: itemsPerPage,
+          search: appliedSearch || undefined
         }
       });
 
       const allProjects = response.data.projects || [];
 
-      const installationStatuses = ['in_progress', 'completed', 'full_paid', 'progress_paid'];
-      const installationProjects = allProjects.filter(p => 
-        installationStatuses.includes(p.status)
-      );
-
-      const transformedSchedules = installationProjects.map(project => ({
+      const transformedSchedules = allProjects.map(project => ({
         _id: project._id,
         title: project.projectName || 'Installation Project',
         clientName: project.clientId?.contactFirstName && project.clientId?.contactLastName 
@@ -364,8 +332,12 @@ const AdminSchedule = () => {
         _projectData: project
       }));
 
-      setAllSchedules(transformedSchedules);
-      applyFilterAndPagination(transformedSchedules);
+      setSchedules(transformedSchedules);
+      setTotalPages(response.data.totalPages || 1);
+      setTotalItems(response.data.total || 0);
+      if (response.data.page && response.data.page !== currentPage) {
+        setCurrentPage(response.data.page);
+      }
 
     } catch (error) {
       console.error('Error fetching installation projects:', error);
@@ -373,152 +345,9 @@ const AdminSchedule = () => {
     }
   };
 
-  // ============================================================
-  // FILTER AND PAGINATION LOGIC
-  // ============================================================
-  const applyFilterAndPagination = useCallback((data) => {
-    const searchLower = searchTerm.trim().toLowerCase();
-    let filtered = data;
-
-    if (searchLower) {
-      filtered = data.filter(item => {
-        const searchableText = [
-          item.title,
-          item.clientName,
-          item.projectName,
-          item.bookingReference,
-          item.projectReference,
-          item._id,
-          item.status,
-          item.assignedEngineerId?.firstName,
-          item.assignedEngineerId?.lastName,
-          item.assignedEngineerId?.fullName,
-          item.projectReference,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-
-        return searchableText.includes(searchLower);
-      });
-    }
-
-    const totalFiltered = filtered.length;
-    const totalFilteredPages = Math.ceil(totalFiltered / itemsPerPage) || 1;
-    
-    const safePage = Math.min(currentPage, totalFilteredPages);
-    if (safePage !== currentPage && totalFiltered > 0) {
-      setCurrentPage(safePage);
-    }
-
-    const startIndex = (safePage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
-    const paginated = filtered.slice(startIndex, endIndex);
-
-    setSchedules(paginated);
-    setTotalPages(totalFilteredPages);
-    setTotalItems(totalFiltered);
-
-  }, [searchTerm, currentPage, itemsPerPage]);
-
-  useEffect(() => {
-    if (allSchedules.length > 0) {
-      applyFilterAndPagination(allSchedules);
-    }
-  }, [searchTerm, currentPage, allSchedules, applyFilterAndPagination]);
-
-  // ============================================================
-  // UPDATE STATS - Count completed statuses properly
-  // ============================================================
-  const fetchStats = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      
-      // First, get the stats from API
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Then fetch all schedules to get enriched data and count completed properly
-      const schedulesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          type: 'pre_assessment',
-          limit: 10000
-        }
-      });
-      
-      const allSchedulesData = schedulesResponse.data.schedules || [];
-      
-      // Count completed statuses from enriched data
-      let completedCount = 0;
-      let upcomingCount = 0;
-      let confirmedCount = 0;
-      
-      // Fetch pre-assessments to check report_draft
-      const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 10000 }
-      });
-      
-      const preAssessments = preAssessmentsRes.data.assessments || [];
-      
-      // Create map of assessment ID -> report_draft status
-      const reportDraftMap = {};
-      preAssessments.forEach(assessment => {
-        const isReportDraft = assessment.assessmentStatus === 'report_draft' || 
-                              assessment.assessmentStatus === 'report_drafted' ||
-                              assessment.assessmentStatus === 'completed' ||
-                              assessment.assessmentStatus === 'quoted' ||
-                              assessment.assessmentStatus === 'quotation_generated';
-        reportDraftMap[assessment._id] = isReportDraft;
-      });
-      
-      allSchedulesData.forEach(schedule => {
-        let status = schedule.status;
-        
-        // Check if schedule has preAssessmentId
-        let assessmentId = null;
-        if (schedule.preAssessmentId) {
-          if (typeof schedule.preAssessmentId === 'object' && schedule.preAssessmentId._id) {
-            assessmentId = schedule.preAssessmentId._id.toString();
-          } else if (typeof schedule.preAssessmentId === 'string') {
-            assessmentId = schedule.preAssessmentId;
-          }
-        }
-        if (!assessmentId) {
-          assessmentId = schedule._id.toString();
-        }
-        
-        // If report_draft, count as completed
-        if (reportDraftMap[assessmentId]) {
-          status = 'completed';
-        }
-        
-        if (status === 'completed') {
-          completedCount++;
-        } else if (status === 'scheduled' || status === 'confirmed') {
-          upcomingCount++;
-          confirmedCount++;
-        } else if (status === 'pending') {
-          upcomingCount++;
-        }
-      });
-      
-      const data = response.data.stats || {};
-      setStats({
-        total: data.total || allSchedulesData.length,
-        upcoming: data.upcoming || upcomingCount,
-        confirmed: data.confirmed || confirmedCount,
-        completed: data.completed || completedCount
-      });
-      
-      console.log('[STATS] Total:', allSchedulesData.length, 'Completed:', completedCount, 'Upcoming:', upcomingCount);
-      
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
+  // NOTE: filtering + slicing now happen server-side (page/limit/search params).
+  // The pager below consumes backend total/totalPages directly.
+  // Charts come from fetchStatsForTab (stats endpoints) — no full-row dumps.
 
   const fetchAllProjects = async () => {
     try {
@@ -552,31 +381,8 @@ const AdminSchedule = () => {
     return { name: 'Others', fill: '#98A2B3' };
   };
 
-  const statusChartData = React.useMemo(() => {
-    const buckets = {};
-    allSchedules.forEach((item) => {
-      const raw = item._enrichedStatus || item.status;
-      const g = groupScheduleStatus(raw);
-      if (!buckets[g.name]) buckets[g.name] = { name: g.name, value: 0, fill: g.fill };
-      buckets[g.name].value += 1;
-    });
-    return Object.values(buckets);
-  }, [allSchedules]);
-
-  const monthlyChartData = React.useMemo(() => {
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const scheduled = Array(12).fill(0);
-    const finished = Array(12).fill(0);
-    allSchedules.forEach((item) => {
-      const d = new Date(item.scheduledDate);
-      if (isNaN(d.getTime())) return;
-      const m = d.getMonth();
-      scheduled[m] += 1;
-      const st = (item._enrichedStatus || item.status || '').toLowerCase();
-      if (st === 'completed') finished[m] += 1;
-    });
-    return MONTHS.map((name, i) => ({ name, scheduled: scheduled[i], completed: finished[i] }));
-  }, [allSchedules]);
+  // statusChartData / monthlyChartData / chartTotal are state now,
+  // fed by fetchStatsForTab from the stats endpoints.
 
   const ScheduleBarTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -845,10 +651,14 @@ const AdminSchedule = () => {
 
   const handleTabChange = (tab) => {
     if (tab === activeTab) return;
+    // Clear any pending debounced search so the tab fetch fires exactly once.
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
     setActiveTab(tab);
     setSearchTerm('');
+    setAppliedSearch('');
     setCurrentPage(1);
-    setAllSchedules([]);
     setSchedules([]);
   };
 
@@ -1029,10 +839,10 @@ const AdminSchedule = () => {
             <div className="schedule-chart-card">
               <div className="schedule-chart-header">
                 <h3>Schedule Status</h3>
-                <span className="schedule-chart-period">By status • Total {allSchedules.length}</span>
+                <span className="schedule-chart-period">By status • Total {chartTotal}</span>
               </div>
               <div className="schedule-chart-wrapper">
-                {allSchedules.length === 0 ? (
+                {statusChartData.length === 0 ? (
                   <div className="schedule-chart-empty">No schedules yet — charts will appear once bookings come in.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">

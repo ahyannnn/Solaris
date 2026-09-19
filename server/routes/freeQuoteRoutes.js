@@ -8,6 +8,7 @@ const { upload } = require('../middleware/uploadMiddleware');
 const {
   createFreeQuote,
   getAllFreeQuotes,
+  getFreeQuoteStats,
   getMyFreeQuotes,
   getFreeQuoteById,
   updateQuoteStatus,
@@ -32,6 +33,8 @@ const engineerOrAdmin = (req, res, next) => {
 // Customer routes
 router.post('/', verifyToken, createFreeQuote);
 router.get('/my-quotes', verifyToken, getMyFreeQuotes);
+// Static /stats before dynamic /:id so 'stats' isn't treated as an ID
+router.get('/stats', verifyToken, admin, getFreeQuoteStats);
 router.get('/:id', verifyToken, getFreeQuoteById);
 router.put('/:id/cancel', verifyToken, cancelFreeQuote);
 

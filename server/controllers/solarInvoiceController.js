@@ -802,15 +802,44 @@ exports.createSolarInvoice = async (req, res) => {
 // @desc    Get all solar invoices (Admin)
 // @route   GET /api/solar-invoices
 // @access  Private (Admin)
+// Billing-list priority mirror (Admin/billing.jsx getBillingInvoicePriority):
+// verifying(1) > draft(2) > pending/partial(3) > rest(4), newest first.
+const billingInvoiceRank = (inv) => {
+  if (inv.paymentStatus === 'for_verification') return 1;
+  if (inv.status === 'draft') return 2;
+  if (inv.paymentStatus === 'pending' || inv.paymentStatus === 'partial') return 3;
+  return 4;
+};
+
 exports.getAllSolarInvoices = async (req, res) => {
   try {
-    const { status, paymentStatus, page = 1, limit = 20 } = req.query;
+    const { status, paymentStatus, search, sortBy = 'priority', order = 'desc', page = 1, limit = 10 } = req.query;
 
     const query = {};
-    if (status) query.status = status;
-    if (paymentStatus) query.paymentStatus = paymentStatus;
+    if (status && status !== 'all') query.status = status;
+    if (paymentStatus && paymentStatus !== 'all') query.paymentStatus = paymentStatus;
 
-    const invoices = await SolarInvoice.find(query)
+    // Server-side search: invoice no. + client name + project name.
+    const term = (search || '').trim();
+    if (term) {
+      const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const or = [{ invoiceNumber: rx }];
+      if (mongoose.Types.ObjectId.isValid(term)) {
+        or.push({ _id: new mongoose.Types.ObjectId(term) });
+      }
+      const [clients, projects] = await Promise.all([
+        Client.find({ $or: [{ contactFirstName: rx }, { contactLastName: rx }] }).select('_id').lean(),
+        Project.find({ $or: [{ projectName: rx }, { projectReference: rx }] }).select('_id').lean()
+      ]);
+      if (clients.length) or.push({ clientId: { $in: clients.map((c) => c._id) } });
+      if (projects.length) or.push({ projectId: { $in: projects.map((p) => p._id) } });
+      query.$or = or;
+    }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+
+    const populateList = (findQuery) => findQuery
       .populate({
         path: 'clientId',
         select: 'contactFirstName contactLastName contactNumber userId',
@@ -818,19 +847,48 @@ exports.getAllSolarInvoices = async (req, res) => {
       })
       .populate('projectId', 'projectName projectReference systemSize totalCost')
       .populate('createdBy', 'firstName lastName')
-      .populate('approvedBy', 'firstName lastName')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .populate('approvedBy', 'firstName lastName');
 
-    const total = await SolarInvoice.countDocuments(query);
+    let invoices;
+    let total;
+
+    if (sortBy === 'priority') {
+      const light = await SolarInvoice.find(query)
+        .select('status paymentStatus createdAt')
+        .lean();
+      const ranked = light
+        .map((inv) => ({
+          id: inv._id,
+          rank: billingInvoiceRank(inv),
+          time: new Date(inv.createdAt || 0).getTime() || 0
+        }))
+        .sort((a, b) => a.rank - b.rank || b.time - a.time);
+      total = ranked.length;
+      const pageIds = ranked
+        .slice((pageNum - 1) * limitNum, pageNum * limitNum)
+        .map((r) => r.id);
+      invoices = pageIds.length
+        ? await populateList(SolarInvoice.find({ _id: { $in: pageIds } }))
+        : [];
+      const orderMap = new Map(pageIds.map((id, i) => [id.toString(), i]));
+      invoices.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+    } else {
+      const SORTABLE = ['createdAt', 'dueDate', 'paymentStatus', 'status'];
+      const sortField = SORTABLE.includes(sortBy) ? sortBy : 'createdAt';
+      const sortDir = String(order).toLowerCase() === 'asc' ? 1 : -1;
+      invoices = await populateList(
+        SolarInvoice.find(query).sort({ [sortField]: sortDir }).skip((pageNum - 1) * limitNum).limit(limitNum)
+      );
+      total = await SolarInvoice.countDocuments(query);
+    }
 
     res.json({
       success: true,
       invoices,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum) || 1,
+      itemsPerPage: limitNum
     });
 
   } catch (error) {
@@ -1222,6 +1280,8 @@ exports.getSolarInvoiceStats = async (req, res) => {
     const partial = await SolarInvoice.countDocuments({ paymentStatus: 'partial' });
     const overdue = await SolarInvoice.countDocuments({ paymentStatus: 'overdue' });
     const cancelled = await SolarInvoice.countDocuments({ paymentStatus: 'cancelled' });
+    const forVerification = await SolarInvoice.countDocuments({ paymentStatus: 'for_verification' });
+    const draft = await SolarInvoice.countDocuments({ status: 'draft' });
 
 
 
@@ -1279,6 +1339,41 @@ exports.getSolarInvoiceStats = async (req, res) => {
 
 
 
+    // Billing-chart source (mirrors Admin/billing.jsx revenue + trend logic).
+    const billingInvoices = await SolarInvoice.find({})
+      .select('paymentStatus status payments balance createdAt')
+      .lean();
+
+    const revenueByMethod = { cash: 0, gcash: 0, paymongo: 0, bank: 0 };
+    const trendCollected = {};
+    const trendPending = {};
+    const trendAdd = (map, dateVal, amount) => {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime()) || !(amount > 0)) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      map[key] = (map[key] || 0) + amount;
+    };
+
+    billingInvoices.forEach((invoice) => {
+      (invoice.payments || []).forEach((p) => {
+        if (invoice.paymentStatus === 'paid' || invoice.paymentStatus === 'partial') {
+          const method = p.method || 'cash';
+          const amount = p.amount || 0;
+          if (method === 'cash') revenueByMethod.cash += amount;
+          else if (method === 'gcash') revenueByMethod.gcash += amount;
+          else if (method === 'paymongo') revenueByMethod.paymongo += amount;
+          else if (method === 'bank' || method === 'bank_transfer') revenueByMethod.bank += amount;
+          trendAdd(trendCollected, p.date || invoice.createdAt, amount);
+        }
+      });
+      if ((invoice.balance || 0) > 0 &&
+        ['pending', 'partial', 'for_verification', 'overdue'].includes(invoice.paymentStatus)) {
+        trendAdd(trendPending, invoice.createdAt, invoice.balance || 0);
+      }
+    });
+
+    const trendMap = (map) => Object.entries(map).map(([key, amount]) => ({ key, amount }));
+
     res.json({
       success: true,
       stats: {
@@ -1288,9 +1383,14 @@ exports.getSolarInvoiceStats = async (req, res) => {
         partial,
         overdue,
         cancelled,
+        forVerification,
+        draft,
         totalRevenue,
         pendingAmount,
-        monthlyRevenue: fullMonthlyRevenue
+        monthlyRevenue: fullMonthlyRevenue,
+        revenueByMethod,
+        trendCollected: trendMap(trendCollected),
+        trendPending: trendMap(trendPending)
       }
     });
 

@@ -2401,9 +2401,15 @@ const MyAssessments = () => {
                       <strong>{selectedItem.inverterSize} kW</strong>
                     </div>
                     <div className="rec-item">
-                      <label>Total Daily Consumption</label>
+                      <label>Total Daily Consumption (Load Profile)</label>
                       <strong>{selectedItem.totalDailyConsumption?.toFixed(2) || 0} kWh/day</strong>
                     </div>
+                    {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && (
+                      <div className="rec-item">
+                        <label>Total Daily Consumption (Electric Bill)</label>
+                        <strong>{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</strong>
+                      </div>
+                    )}
                     <div className="rec-item">
                       <label>Day/Night Usage</label>
                       <strong>{selectedItem.dayPercentage?.toFixed(0) || 0}% / {selectedItem.nightPercentage?.toFixed(0) || 0}%</strong>
@@ -2512,7 +2518,8 @@ const MyAssessments = () => {
                       </>
                     )}
                     {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
-                    {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
+                    {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
+                    {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</span></div>}
                     {(() => {
                       const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
                       return (motorW > 0 || nonMotorW > 0) && (
@@ -2701,7 +2708,7 @@ const MyAssessments = () => {
                         selectedPanelForCalc={calculation.selectedPanelForCalc}
                         setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
                         availablePanels={availablePanels}
-                        calculateByLoadProfile={calculation.calculateByLoadProfile}
+                        calculateByLoadProfile={() => calculation.calculateByLoadProfile(freeQuoteForm.systemType)}
                         isDataLoaded={calculation.isDataLoaded}
                         selectedBatteryForCalc={calculation.selectedBatteryForCalc}
                         batteryAutonomy={calculation.batteryAutonomy}
@@ -2749,7 +2756,7 @@ const MyAssessments = () => {
                           selectedPanelForCalc={calculation.selectedPanelForCalc}
                           setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
                           availablePanels={availablePanels}
-                          calculateByNetMetering={calculation.calculateByNetMetering}
+                          calculateByNetMetering={() => calculation.calculateByNetMetering(freeQuoteForm.systemType)}
                           exportRate={calculation.exportRate}
                           isDataLoaded={calculation.isDataLoaded}
                           targetSavings={calculation.targetSavings}
@@ -2774,7 +2781,8 @@ const MyAssessments = () => {
                           availablePanels,
                           availableInverters,
                           availableBatteries,
-                          showToast
+                          showToast,
+                          freeQuoteForm.systemType
                         )}
                         resetCalculationCards={calculation.resetCalculationCards}
                         systemType={freeQuoteForm.systemType}
@@ -2800,7 +2808,7 @@ const MyAssessments = () => {
                           </div>
                           <div className="summary-item">
                             <label>Inverter Size</label>
-                            <strong>{calculation.calculationResults.inverterSize} kW</strong>
+                            <strong>{calculation.calculationResults.inverterSize} kW{(calculation.calculationResults.inverterQuantity || 1) > 1 ? ` x ${calculation.calculationResults.inverterQuantity}` : ''}</strong>
                           </div>
                           <div className="summary-item">
                             <label>Panels Needed</label>
@@ -3020,7 +3028,7 @@ const MyAssessments = () => {
                   <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption || 0} kWh/day</span></div>
-                  <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(selectedItem.monthlyBill / (selectedItem.rate * 30)).toFixed(2) || 0} kWh/day</span></div>
+                  {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</span></div>}
                   {(() => {
                     const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
                     return (motorW > 0 || nonMotorW > 0) && (
@@ -3276,7 +3284,7 @@ const MyAssessments = () => {
                         selectedPanelForCalc={calculation.selectedPanelForCalc}
                         setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
                         availablePanels={availablePanels}
-                        calculateByLoadProfile={calculation.calculateByLoadProfile}
+                        calculateByLoadProfile={() => calculation.calculateByLoadProfile(selectedItem.systemType || 'grid-tie')}
                         isDataLoaded={calculation.isDataLoaded}
                         selectedBatteryForCalc={calculation.selectedBatteryForCalc}
                         batteryAutonomy={calculation.batteryAutonomy}
@@ -3325,7 +3333,7 @@ const MyAssessments = () => {
                           selectedPanelForCalc={calculation.selectedPanelForCalc}
                           setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
                           availablePanels={availablePanels}
-                          calculateByNetMetering={calculation.calculateByNetMetering}
+                          calculateByNetMetering={() => calculation.calculateByNetMetering(selectedItem.systemType || 'grid-tie')}
                           isDataLoaded={calculation.isDataLoaded}
                           targetSavings={calculation.targetSavings}
                           showToast={showToast}
@@ -3349,7 +3357,8 @@ const MyAssessments = () => {
                           availablePanels,
                           availableInverters,
                           availableBatteries,
-                          showToast
+                          showToast,
+                          selectedItem.systemType || 'grid-tie'
                         )}
                         resetCalculationCards={calculation.resetCalculationCards}
                         systemType={selectedItem.systemType || 'grid-tie'}
@@ -3375,7 +3384,7 @@ const MyAssessments = () => {
                           </div>
                           <div className="summary-item">
                             <label>Inverter Size</label>
-                            <strong>{calculation.calculationResults.inverterSize} kW</strong>
+                            <strong>{calculation.calculationResults.inverterSize} kW{(calculation.calculationResults.inverterQuantity || 1) > 1 ? ` x ${calculation.calculationResults.inverterQuantity}` : ''}</strong>
                           </div>
                           <div className="summary-item">
                             <label>Panels Needed</label>

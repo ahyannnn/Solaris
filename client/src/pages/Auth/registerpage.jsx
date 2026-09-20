@@ -69,6 +69,20 @@ const RegisterPage = () => {
     };
   }, []);
 
+  // Clear credential fields on entry so saved logins don't autofill the signup form.
+  // Covers landing + login + forgot-password Sign Up entries (all mount this page).
+  // The delayed pass catches browsers that autofill just after React mount.
+  useEffect(() => {
+    const clearCredentials = () => {
+      setFormData((prev) => ({ ...prev, email: '', password: '', confirmPassword: '' }));
+      setIsEmailTaken(false);
+      setEmailChecking(false);
+    };
+    clearCredentials();
+    const t = setTimeout(clearCredentials, 100);
+    return () => clearTimeout(t);
+  }, []);
+
   const showModal = (message, type = 'error') => {
     setModal({ show: true, message, type });
     setTimeout(() => setModal({ show: false, message: '', type: '' }), 5000);
@@ -829,7 +843,7 @@ const RegisterPage = () => {
                   </div>
                 )}
 
-                <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="new-register-form">
+                <form onSubmit={(e) => { e.preventDefault(); handleSendVerification(); }} className="new-register-form" autoComplete="off">
                   <div className="new-register-form-group">
                     <label className="new-register-form-label">First Name</label>
                     <div className="new-register-input-wrapper">
@@ -888,6 +902,7 @@ const RegisterPage = () => {
                       <input
                         type="email"
                         name="email"
+                        autoComplete="new-email"
                         className={`new-register-form-input ${errors.email ? 'new-register-input-error' : ''}`}
                         placeholder="Enter your email address"
                         value={formData.email}
@@ -927,6 +942,7 @@ const RegisterPage = () => {
                       <input
                         type={showPassword ? 'text' : 'password'}
                         name="password"
+                        autoComplete="new-password"
                         className={`new-register-form-input ${errors.password ? 'new-register-input-error' : ''}`}
                         placeholder="Create a password"
                         value={formData.password}
@@ -952,6 +968,7 @@ const RegisterPage = () => {
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         name="confirmPassword"
+                        autoComplete="new-password"
                         className={`new-register-form-input ${errors.confirmPassword ? 'new-register-input-error' : ''}`}
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}

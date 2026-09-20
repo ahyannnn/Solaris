@@ -929,11 +929,30 @@ export const CalculationResultsCard = ({
           <strong>{safeToFixed(calculationResults.recommendedSystemSize)} kWp</strong>
         </div>
         <div className="result-item">
-          <label>Inverter Size</label>
-          <strong>{safeToFixed(calculationResults.inverterSize)} kW</strong>
-          {hasApplianceWatts
-            ? <small>( ({motorWatts} x 3 )+ {nonMotorWatts} )1.3</small>
-            : <small>( (Total Motor power x 3 )+ other non motor )1.3</small>}
+          <label>Inverter Size{systemType === 'grid-tie' && (calculationResults.inverterQuantity || 1) > 1 ? ' (Total)' : ''}</label>
+          {systemType === 'grid-tie' ? (
+            <>
+              <strong>
+                {safeToFixed(calculationResults.inverterSize)} kW
+                {(calculationResults.inverterQuantity || 1) > 1 ? ` x ${calculationResults.inverterQuantity}` : ''}
+              </strong>
+              <small>Matched from system size {safeToFixed(calculationResults.recommendedSystemSize)} kWp</small>
+              
+              {calculationResults.inverterCombo && calculationResults.inverterCombo.length > 1 && (
+                <small>Combo: {calculationResults.inverterCombo.join('kW + ')}kW</small>
+              )}
+              
+              
+            </>
+          ) : (
+            <>
+              <strong>{safeToFixed(calculationResults.inverterSize)} kW</strong>
+              {hasApplianceWatts
+                ? <small>( ({motorWatts} x 3 )+ {nonMotorWatts} )1.3</small>
+                : <small>( (Total Motor power x 3 )+ other non motor )1.3</small>}
+              <small>Hybrid / Off-grid surge sizing</small>
+            </>
+          )}
         </div>
         <div className="result-item">
           <label>Panels Needed</label>

@@ -149,17 +149,9 @@ const EngineerDashboard = () => {
           });
         }
 
-        // 2. Assessments that need final report submission (report_draft status)
-        if (a.assessmentStatus === 'report_draft' || a.assessmentStatus === 'report_drafted') {
-          pending.push({
-            id: a._id,
-            type: 'submit_report',
-            title: 'Submit Final Report',
-            reference: a.bookingReference || 'Assessment',
-            date: a.deviceDeployedAt || a.createdAt,
-            link: `/app/engineer/assessment/${a._id}`
-          });
-        }
+        // NOTE: report_draft is deliberately NOT counted — the sidebar red
+        // dots exclude it (no engineer action left), so the dashboard
+        // fallback must not count it either.
 
         // 3. Assessments that need data analysis
         if (a.assessmentStatus === 'data_collecting' || a.assessmentStatus === 'data_analyzing') {
@@ -192,6 +184,25 @@ const EngineerDashboard = () => {
       pending.sort((a, b) => new Date(a.date) - new Date(b.date));
       setPendingTasks(pending.slice(0, 5));
 
+      // Pending-tasks total = sidebar red dots (server action counts for
+      // My Assessments + My Projects). The local list above is only a
+      // top-5 preview with different predicates, so it must not drive
+      // the count.
+      let actionTotal = pending.length;
+      try {
+        const [projCountRes, assessCountRes] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/action-counts`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/assessment-action-counts`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+        actionTotal = (projCountRes.data?.total || 0) + (assessCountRes.data?.total || 0);
+      } catch (countErr) {
+        console.error('Error fetching action counts for dashboard:', countErr);
+      }
+
       // Get user name from session storage or localStorage
       const storedName = sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Engineer';
       setUserName(storedName);
@@ -201,7 +212,7 @@ const EngineerDashboard = () => {
         myAssessments: pendingAssessments,
         mySchedules: upcomingSchedules.length,
         todaySchedules: todayScheds.length,
-        pendingTasks: pending.length
+        pendingTasks: actionTotal
       });
 
       // Combine activities for timeline - ONLY 3 MOST RECENT
@@ -408,14 +419,14 @@ const EngineerDashboard = () => {
           </div>
         )}
 
-        {/* Pending Tasks Alert */}
-        {pendingTasks.length > 0 && (
+        {/* Pending Tasks Alert (count matches sidebar red dots) */}
+        {stats.pendingTasks > 0 && (
           <div className="engdas-pending-alert">
             <div className="alert-icon-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
               <FaExclamationTriangle />
             </div>
             <div className="alert-content-engdas">
-              <strong>You have {pendingTasks.length} pending task(s)</strong>
+              <strong>You have {stats.pendingTasks} pending task(s)</strong>
               <p>Complete these tasks to move your projects forward.</p>
             </div>
             <Link to="#pending-tasks" className="alert-action-engdas" onClick={(e) => {

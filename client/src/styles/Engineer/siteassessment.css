@@ -37,12 +37,12 @@
   --bg-cost-summary: rgba(255, 255, 255, 0.86);
   --bg-stat-card: rgba(255, 255, 255, 0.86);
   --text-primary: #17212B;
-  --text-secondary: #667085;
-  --text-muted: #98A2B3;
+  --text-secondary: #4B5563;
+  --text-muted: #5B6472;
   --text-white: #17212B;
   --text-dark: #17212B;
-  --border-color: #EEF0ED;
-  --border-card: rgba(255, 255, 255, 0.9);
+  --border-color: #E5E7EB;
+  --border-card: #E5E7EB;
   --border-medium: #E5E7EB;
   --border-input: #EEF0ED;
   --border-modal: #EEF0ED;
@@ -1034,6 +1034,151 @@ body.dark-mode {
   text-transform: capitalize;
 }
 
+/* Merged identity + basic-info card (free-quote detail) */
+.detail-header-enad.detail-header-merged-enad {
+  display: block;
+}
+
+.merged-head-top-enad {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.merged-head-div-enad {
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+}
+
+.merged-head-facts-enad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-top: 14px;
+}
+
+.detail-fact-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.detail-fact-label-enad {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+
+.detail-fact-value-enad {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.detail-fact-hint-enad {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.merged-details-title-enad {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-primary);
+  margin: 14px 0 0;
+}
+
+.merged-details-grid-enad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 24px;
+  padding-top: 6px;
+}
+
+@media (max-width: 1200px) {
+  .merged-details-grid-enad {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .merged-summary-grid-enad {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.merged-summary-grid-enad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 24px;
+  padding-top: 6px;
+}
+
+.merged-final-enad {
+  margin-top: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.merged-final-label-enad {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+
+.merged-final-value-enad {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-success);
+}
+
+.merged-pdf-link-enad {
+  color: var(--text-edit);
+  font-weight: 600;
+}
+
+.merged-note-enad {
+  margin-top: 12px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .merged-head-facts-enad {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .merged-details-grid-enad {
+    grid-template-columns: 1fr;
+  }
+  .merged-summary-grid-enad {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ============================================
    DETAIL VIEW - TABS
    ============================================ */
@@ -1114,7 +1259,7 @@ body.dark-mode {
 
 .info-label-enad {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1123,8 +1268,20 @@ body.dark-mode {
 
 .info-value-enad {
   font-size: 14px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
   transition: color 0.3s ease;
+}
+
+/* Details card: the grid nested inside a section card is flattened so there
+   is only one card (no card-inside-card). Standalone grids keep their card. */
+.quotation-section .info-grid-enad {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .info-value-enad .capitalize {
@@ -1175,7 +1332,7 @@ body.dark-mode {
 
 .device-info-label-enad {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1184,7 +1341,8 @@ body.dark-mode {
 
 .device-info-value-enad {
   font-size: 14px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
   transition: color 0.3s ease;
 }
 
@@ -1323,10 +1481,23 @@ body.dark-mode {
    ============================================ */
 .calculation-cards-container {
   margin-top: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
 }
 
 .calculation-cards-header {
   margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .calculation-cards-container {
+    padding: 16px;
+  }
 }
 
 .calculation-cards-header h3 {
@@ -1358,6 +1529,215 @@ body.dark-mode {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+}
+
+/* Method tabs + sticky results split */
+.calc-method-tabs-enad {
+  margin-bottom: 14px;
+}
+
+.calc-split-enad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 16px;
+  /* Both columns stretch to the same row height */
+  align-items: stretch;
+}
+
+.calc-methods-enad {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-methods-enad .calculation-card {
+  min-height: 0;
+  flex: 1;
+}
+
+/* Uniform method height across tabs (tallest method is Area).
+   Desktop only — mobile lets each card size naturally. */
+@media (min-width: 1025px) {
+  .calc-methods-enad {
+    min-height: 660px;
+  }
+}
+
+/* Compact method-card rhythm so the pinned button sits close
+   to the content instead of floating in dead space. */
+.calc-methods-enad .calculation-card-body {
+  padding: 12px 14px;
+  gap: 8px;
+}
+
+.calc-methods-enad .consumption-display {
+  margin-bottom: 0;
+}
+
+.calc-methods-enad .formula-display.math-block {
+  margin: 0;
+}
+
+.calc-methods-enad .btn-calculate {
+  margin-top: auto;
+}
+
+.calc-methods-enad .form-group-enad {
+  margin-bottom: 0;
+}
+
+/* Panel select + specs share one row */
+.panel-row-enad {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.panel-row-enad > .form-group-enad {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-specs-enad {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-bottom: 1px;
+}
+
+.panel-spec-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 12px;
+  background: var(--bg-section);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.panel-spec-enad label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+}
+
+.panel-spec-enad strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cost-value-color);
+}
+
+.psh-field-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  width: 104px;
+  padding-bottom: 1px;
+}
+
+.psh-field-enad label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.psh-field-enad .param-input {
+  width: 100%;
+  max-width: none;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .panel-row-enad {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .panel-specs-enad {
+    padding-bottom: 0;
+  }
+  .panel-spec-enad {
+    flex: 1;
+  }
+  .psh-field-enad {
+    width: 100%;
+  }
+}
+
+.calc-results-side-enad {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-results-side-enad .calculation-results-card {
+  margin-top: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc-results-side-enad .results-actions {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.calc-empty-side-enad {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Results card compresses into the side column */
+.calc-results-side-enad .results-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.calc-results-side-enad .results-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.calc-results-side-enad .results-actions {
+  flex-direction: column;
+}
+
+.calc-results-side-enad .results-actions button {
+  width: 100%;
+  justify-content: center;
+}
+
+.calc-empty-side-enad {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-dashed);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 1200px) {
+  .calc-split-enad {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .calc-split-enad {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Calculation Card */
@@ -1461,6 +1841,13 @@ body.dark-mode {
 .consumption-item.highlight {
   background: var(--bg-section);
   border-color: rgba(243, 156, 18, 0.15);
+  /* Key-result tile always spans the full row so no half-width
+     orphan is left hanging when the tile count is odd. */
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .consumption-item.highlight strong {
@@ -1859,8 +2246,70 @@ body.dark-mode {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 12px 0;
+  margin: 0;
   transition: color 0.3s ease;
+}
+
+.iot-card-head-enad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.iot-include-enad {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.iot-include-enad input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--icon-color);
+  cursor: pointer;
+}
+
+.iot-card-hint-enad {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 10px 0 2px 0;
+}
+
+.iot-head-actions-enad {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.iot-submit-btn-enad {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* Detail tabs merged into the identity header card */
+.detail-header-enad .detail-tabs-merged-enad {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  border-top: 1px solid var(--border-color);
+  margin-top: 14px;
+  padding: 12px 0 0;
+  width: 100%;
 }
 
 .iot-metrics-grid {
@@ -1881,9 +2330,16 @@ body.dark-mode {
   grid-column: 1 / -1;
 }
 
+.metric-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .metric-item label {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1892,7 +2348,8 @@ body.dark-mode {
 
 .metric-item span {
   font-size: 14px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
   transition: color 0.3s ease;
 }
 
@@ -1910,6 +2367,8 @@ body.dark-mode {
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
   margin-top: 16px;
+  /* Offset for the sticky dashboard header when scrolled into view */
+  scroll-margin-top: 96px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -1921,6 +2380,24 @@ body.dark-mode {
   color: var(--text-primary);
   margin: 0 0 12px 0;
   transition: color 0.3s ease;
+}
+
+.summary-head-enad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.calculated-results-summary .summary-head-enad h4 {
+  margin: 0;
+}
+
+.summary-change-btn-enad {
+  padding: 6px 14px;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .summary-grid {
@@ -1961,6 +2438,11 @@ body.dark-mode {
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 16px;
+}
+
+.form-actions-bottom-enad {
+  justify-content: flex-end;
+  margin: 4px 0 8px;
 }
 
 .btn-primary-enad {
@@ -3080,6 +3562,19 @@ body.dark-mode {
 .form-row-enad {
   display: flex;
   gap: 16px;
+}
+
+/* Two-column form grid (Site Inspection grouped cards) */
+.form-row-grid-enad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .form-row-grid-enad {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dimension-input-enad {

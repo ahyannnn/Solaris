@@ -1,5 +1,6 @@
 // pages/Engineer/MyAssessments.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -66,6 +67,19 @@ const MyAssessments = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showMoreTabs, setShowMoreTabs] = useState(false);
   const [showCalcAfterQuotation, setShowCalcAfterQuotation] = useState(false);
+  // Calculation method tab: 'area' | 'loadprofile' | 'electricity' | 'netmetering'
+  const [calcMethodTab, setCalcMethodTab] = useState('area');
+  const CALC_METHOD_TABS = [
+    { key: 'area', label: 'Area' },
+    { key: 'loadprofile', label: 'Load Profile' },
+    { key: 'electricity', label: 'Electricity Bill' },
+    { key: 'netmetering', label: 'Net Metering', gridTieOnly: true },
+  ];
+  // Visible tabs for a system type (net metering is grid-tie only).
+  const getCalcMethodTabs = (systemType) =>
+    CALC_METHOD_TABS.filter((t) => !t.gridTieOnly || systemType === 'grid-tie');
+  const getActiveCalcTab = (systemType) =>
+    getCalcMethodTabs(systemType).some((t) => t.key === calcMethodTab) ? calcMethodTab : 'area';
   const tabsMoreRef = useRef(null);
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -1748,6 +1762,25 @@ const MyAssessments = () => {
     fetchAssessmentStats();
   };
 
+  // Publish detail mode to the dashboard layout so the global header shows
+  // only a Back button (other header content hidden) while a Manage detail
+  // view is open. List view (selectedItem == null) clears it.
+  const outletCtx = useOutletContext();
+  const setDetailNav = outletCtx?.setDetailNav;
+  useEffect(() => {
+    if (!setDetailNav) return;
+    if (selectedItem) {
+      setDetailNav({ onBack: handleBackToList, label: 'Back to Assessments' });
+    } else {
+      setDetailNav(null);
+    }
+    return () => {
+      // Clear on unmount / when leaving detail; list-view effect also clears.
+      setDetailNav(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItem, setDetailNav]);
+
   const handleFreeQuoteFormChange = (field, value) => {
     setFreeQuoteForm(prev => ({ ...prev, [field]: value }));
   };
@@ -2347,9 +2380,6 @@ const MyAssessments = () => {
 
   // Detail View for Free Quote
   if (selectedType === 'free_quote') {
-    const StatusConfig = getStatusConfig(selectedItem);
-    const TypeConfig = getTypeConfig('free_quote');
-
     return (
       <>
         <Helmet><title>Free Quote Details | Engineer | SOLARIS</title></Helmet>
@@ -2363,22 +2393,170 @@ const MyAssessments = () => {
         <div className="my-assessments-enad">
           <div className="detail-view-enad">
             <div className="detail-content-enad">
-              <button onClick={handleBackToList} className="back-button-enad">← Back to Assessments</button>
-              <div className="detail-header-enad">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
-                    <h1 className="detail-title-enad">{selectedItem.quotationReference}</h1>
-                  </div>
-                  <div className="client-meta-enad">
-                    <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
-                    <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
-                    <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
-                    <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
-                    <div className="client-meta-item-enad">{getFullAddress(selectedItem.address) || 'No address'}</div>
+              <div className="detail-header-enad detail-header-merged-enad">
+                <div className="merged-head-top-enad">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="detail-title-enad">{selectedItem.quotationReference}</h1>
+                    </div>
+                    <div className="client-meta-enad">
+                      <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                      <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                      <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                      <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                      <div className="client-meta-item-enad">{getFullAddress(selectedItem.address) || 'No address'}</div>
+                    </div>
                   </div>
                 </div>
-                <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
+                <div className="merged-head-div-enad" />
+                <div className="merged-head-facts-enad">
+                  <div className="detail-fact-enad">
+                    <span className="detail-fact-label-enad">Quotation Number</span>
+                    <span className="detail-fact-value-enad">{freeQuoteForm.quotationNumber}</span>
+                  </div>
+                  <div className="detail-fact-enad">
+                    <span className="detail-fact-label-enad">Expiry Date</span>
+                    <span className="detail-fact-value-enad">{formatDate(freeQuoteForm.quotationExpiryDate)}</span>
+                    <small className="detail-fact-hint-enad">Automatically set to 30 days from today</small>
+                  </div>
+                  <div className="detail-fact-enad">
+                    <span className="detail-fact-label-enad">System Type</span>
+                    <span className="detail-fact-value-enad">{getSystemTypeLabel(freeQuoteForm.systemType)}</span>
+                  </div>
+                </div>
+                <div className="merged-head-div-enad" />
+                <div className="merged-details-title-enad">Details</div>
+                <div className="merged-details-grid-enad">
+                  <div className="info-item-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
+                  <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>
+                  {selectedItem.desiredCapacity && <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity}</span></div>}
+                  <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
+                  {(selectedItem.roofLength || selectedItem.roofWidth) && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Roof Dimensions</span>
+                      <span className="info-value-enad">
+                        {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
+                        {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
+                          <span className="roof-area-text">({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
+                  {selectedItem.monthlyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.monthlyConsumption} kWh</span></div>}
+                  {selectedItem.rate > 0 && <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>}
+                  {(selectedItem.dayConsumption > 0 || selectedItem.nightConsumption > 0) && (
+                    <>
+                      <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
+                      <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
+                    </>
+                  )}
+                  {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
+                  {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
+                  {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</span></div>}
+                  {(() => {
+                    const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
+                    return (motorW > 0 || nonMotorW > 0) && (
+                      <div className="info-item-enad"><span className="info-label-enad">Motor / Non-Motor Power</span><span className="info-value-enad">{motorW} W | {nonMotorW} W</span></div>
+                    );
+                  })()}
+                  {selectedItem.targetSavings && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Target Savings</span>
+                      <span className="info-value-enad">{selectedItem.targetSavings}%</span>
+                    </div>
+                  )}
+                  {selectedItem.recommendedSystemSize && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Recommended System Size</span>
+                      <span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span>
+                    </div>
+                  )}
+                  {selectedItem.inverterSize && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Inverter Size</span>
+                      <span className="info-value-enad">{selectedItem.inverterSize} kW</span>
+                    </div>
+                  )}
+                  {selectedItem.batteryCapacityKwh > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Battery Capacity</span>
+                      <span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span>
+                    </div>
+                  )}
+                  {selectedItem.panelsNeeded && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Panels Needed</span>
+                      <span className="info-value-enad">{selectedItem.panelsNeeded} panels</span>
+                    </div>
+                  )}
+                  {selectedItem.estimatedAnnualProduction > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Est. Annual Production</span>
+                      <span className="info-value-enad">{selectedItem.estimatedAnnualProduction} kWh/year</span>
+                    </div>
+                  )}
+                  {selectedItem.co2Offset > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">CO₂ Offset</span>
+                      <span className="info-value-enad">{selectedItem.co2Offset} kg/year</span>
+                    </div>
+                  )}
+                  {selectedItem.roiYears > 0 && (
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">ROI / Payback Period</span>
+                      <span className="info-value-enad">{selectedItem.roiYears} years</span>
+                    </div>
+                  )}
+                  <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt || selectedItem.createdAt)}</span></div>
+                  {selectedItem.processedAt && <div className="info-item-enad"><span className="info-label-enad">Processed Date</span><span className="info-value-enad">{formatDateTime(selectedItem.processedAt)}</span></div>}
+                  {selectedItem.adminRemarks && <div className="info-item-enad"><span className="info-label-enad">Admin Remarks</span><span className="info-value-enad">{selectedItem.adminRemarks}</span></div>}
+                </div>
+                {(selectedItem.quotationDetails || selectedItem.quotationFile || selectedItem.quotationUrl) && (
+                  <>
+                    <div className="merged-head-div-enad" />
+                    <div className="merged-details-title-enad">Quotation Summary</div>
+                    <div className="merged-summary-grid-enad">
+                      {selectedItem.quotationDetails?.systemSize > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">System Size</span><span className="info-value-enad">{selectedItem.quotationDetails.systemSize} kWp</span></div>
+                      )}
+                      {selectedItem.quotationDetails?.equipmentCost > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">Equipment Cost</span><span className="info-value-enad">{formatCurrency(selectedItem.quotationDetails.equipmentCost)}</span></div>
+                      )}
+                      {selectedItem.quotationDetails?.installationCost > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">Installation Cost</span><span className="info-value-enad">{formatCurrency(selectedItem.quotationDetails.installationCost)}</span></div>
+                      )}
+                      {selectedItem.quotationDetails?.totalCost > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">Total Cost</span><span className="info-value-enad">{formatCurrency(selectedItem.quotationDetails.totalCost)}</span></div>
+                      )}
+                      {selectedItem.discountAmount > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">Discount{selectedItem.discountPercentage > 0 ? ` (${selectedItem.discountPercentage}%)` : ''}</span><span className="info-value-enad">-{formatCurrency(selectedItem.discountAmount)}</span></div>
+                      )}
+                      {selectedItem.quotationDetails?.warrantyYears > 0 && (
+                        <div className="info-item-enad"><span className="info-label-enad">Warranty</span><span className="info-value-enad">{selectedItem.quotationDetails.warrantyYears} years</span></div>
+                      )}
+                      {selectedItem.quotationSentAt && (
+                        <div className="info-item-enad"><span className="info-label-enad">Quotation Sent</span><span className="info-value-enad">{formatDateTime(selectedItem.quotationSentAt)}</span></div>
+                      )}
+                      {(selectedItem.quotationFile || selectedItem.quotationUrl) && (
+                        <div className="info-item-enad"><span className="info-label-enad">Quotation File</span><a className="info-value-enad merged-pdf-link-enad" href={selectedItem.quotationFile || selectedItem.quotationUrl} target="_blank" rel="noreferrer">View PDF</a></div>
+                      )}
+                    </div>
+                    {selectedItem.finalAmount > 0 && (
+                      <div className="merged-final-enad">
+                        <span className="merged-final-label-enad">Final Amount</span>
+                        <span className="merged-final-value-enad">{formatCurrency(selectedItem.finalAmount)}</span>
+                      </div>
+                    )}
+                    {calculation.showCalculationCards && freeQuoteHasQuotation(selectedItem) && !showCalcAfterQuotation && (
+                      <div className="merged-note-enad">
+                        <span>Quotation already generated</span>
+                        <button type="button" className="btn-secondary-enad" onClick={() => setShowCalcAfterQuotation(true)}>Recalculate system size</button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* System Calculations from Database */}
@@ -2467,209 +2645,6 @@ const MyAssessments = () => {
               )}
 
               <div className="detail-section-enad">
-                {/* Basic Information */}
-                <div className="quotation-section">
-                  <h4>Basic Information</h4>
-                  <div className="form-grid-enad">
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">Quotation Number</label>
-                      <div className="assessment-form-input-enad">{freeQuoteForm.quotationNumber}</div>
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">Expiry Date</label>
-                      <div className="assessment-form-input-enad">{formatDate(freeQuoteForm.quotationExpiryDate)}</div>
-                      <small className="form-hint-enad">Automatically set to 30 days from today</small>
-                    </div>
-                    <div className="form-group-enad">
-                      <label className="form-label-enad">System Type</label>
-                      <div className="assessment-form-input-enad">{getSystemTypeLabel(freeQuoteForm.systemType)}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Request Details (from the customer's free quote request) */}
-                <div className="quotation-section">
-                  <h4>Details</h4>
-                  <div className="info-grid-enad">
-                    <div className="info-item-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
-                    <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
-                    <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>
-                    {selectedItem.desiredCapacity && <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity}</span></div>}
-                    <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
-                    {(selectedItem.roofLength || selectedItem.roofWidth) && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Roof Dimensions</span>
-                        <span className="info-value-enad">
-                          {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
-                          {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
-                            <span className="roof-area-text">({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)</span>
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
-                    {selectedItem.monthlyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.monthlyConsumption} kWh</span></div>}
-                    {selectedItem.rate > 0 && <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>}
-                    {(selectedItem.dayConsumption > 0 || selectedItem.nightConsumption > 0) && (
-                      <>
-                        <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
-                        <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
-                      </>
-                    )}
-                    {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
-                    {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
-                    {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</span></div>}
-                    {(() => {
-                      const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
-                      return (motorW > 0 || nonMotorW > 0) && (
-                        <div className="info-item-enad"><span className="info-label-enad">Motor / Non-Motor Power</span><span className="info-value-enad">{motorW} W | {nonMotorW} W</span></div>
-                      );
-                    })()}
-                    {selectedItem.targetSavings && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Target Savings</span>
-                        <span className="info-value-enad">{selectedItem.targetSavings}%</span>
-                      </div>
-                    )}
-                    {selectedItem.recommendedSystemSize && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Recommended System Size</span>
-                        <span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span>
-                      </div>
-                    )}
-                    {selectedItem.inverterSize && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Inverter Size</span>
-                        <span className="info-value-enad">{selectedItem.inverterSize} kW</span>
-                      </div>
-                    )}
-                    {selectedItem.batteryCapacityKwh > 0 && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Battery Capacity</span>
-                        <span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span>
-                      </div>
-                    )}
-                    {selectedItem.panelsNeeded && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Panels Needed</span>
-                        <span className="info-value-enad">{selectedItem.panelsNeeded} panels</span>
-                      </div>
-                    )}
-                    {selectedItem.estimatedAnnualProduction > 0 && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">Est. Annual Production</span>
-                        <span className="info-value-enad">{selectedItem.estimatedAnnualProduction} kWh/year</span>
-                      </div>
-                    )}
-                    {selectedItem.co2Offset > 0 && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">CO₂ Offset</span>
-                        <span className="info-value-enad">{selectedItem.co2Offset} kg/year</span>
-                      </div>
-                    )}
-                    {selectedItem.roiYears > 0 && (
-                      <div className="info-item-enad">
-                        <span className="info-label-enad">ROI / Payback Period</span>
-                        <span className="info-value-enad">{selectedItem.roiYears} years</span>
-                      </div>
-                    )}
-                    <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt || selectedItem.createdAt)}</span></div>
-
-                    {selectedItem.processedAt && <div className="info-item-enad"><span className="info-label-enad">Processed Date</span><span className="info-value-enad">{formatDateTime(selectedItem.processedAt)}</span></div>}
-                    {selectedItem.adminRemarks && <div className="info-item-enad"><span className="info-label-enad">Admin Remarks</span><span className="info-value-enad">{selectedItem.adminRemarks}</span></div>}
-                  </div>
-                </div>
-
-                {selectedItem.quotationDetails ? (
-                  <div className="device-card-enad">
-                    <div className="device-card-title-enad">Quotation Summary</div>
-                    <div className="device-info-enad">
-                      {selectedItem.quotationDetails.systemSize > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">System Size</span>
-                          <span className="device-info-value-enad">{selectedItem.quotationDetails.systemSize} kWp</span>
-                        </div>
-                      )}
-                      {selectedItem.quotationDetails.equipmentCost > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Equipment Cost</span>
-                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.equipmentCost)}</span>
-                        </div>
-                      )}
-                      {selectedItem.quotationDetails.installationCost > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Installation Cost</span>
-                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.installationCost)}</span>
-                        </div>
-                      )}
-                      {selectedItem.quotationDetails.totalCost > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Total Cost</span>
-                          <span className="device-info-value-enad">{formatCurrency(selectedItem.quotationDetails.totalCost)}</span>
-                        </div>
-                      )}
-                      {selectedItem.discountAmount > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Discount{selectedItem.discountPercentage > 0 ? ` (${selectedItem.discountPercentage}%)` : ''}</span>
-                          <span className="device-info-value-enad">-{formatCurrency(selectedItem.discountAmount)}</span>
-                        </div>
-                      )}
-                      {selectedItem.finalAmount > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Final Amount</span>
-                          <span className="device-info-value-enad">{formatCurrency(selectedItem.finalAmount)}</span>
-                        </div>
-                      )}
-                      {selectedItem.quotationDetails.warrantyYears > 0 && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Warranty</span>
-                          <span className="device-info-value-enad">{selectedItem.quotationDetails.warrantyYears} years</span>
-                        </div>
-                      )}
-                      {selectedItem.quotationSentAt && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Quotation Sent</span>
-                          <span className="device-info-value-enad">{formatDateTime(selectedItem.quotationSentAt)}</span>
-                        </div>
-                      )}
-                      {(selectedItem.quotationFile || selectedItem.quotationUrl) && (
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Quotation File</span>
-                          <a className="device-info-value-enad" href={selectedItem.quotationFile || selectedItem.quotationUrl} target="_blank" rel="noreferrer">View PDF</a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  (selectedItem.quotationFile || selectedItem.quotationUrl) && (
-                    <div className="device-card-enad">
-                      <div className="device-card-title-enad">Quotation</div>
-                      <div className="device-info-enad">
-                        {selectedItem.quotationSentAt && (
-                          <div className="device-info-item-enad">
-                            <span className="device-info-label-enad">Quotation Sent</span>
-                            <span className="device-info-value-enad">{formatDateTime(selectedItem.quotationSentAt)}</span>
-                          </div>
-                        )}
-                        <div className="device-info-item-enad">
-                          <span className="device-info-label-enad">Quotation File</span>
-                          <a className="device-info-value-enad" href={selectedItem.quotationFile || selectedItem.quotationUrl} target="_blank" rel="noreferrer">View PDF</a>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                )}
-
-                {calculation.showCalculationCards && freeQuoteHasQuotation(selectedItem) && !showCalcAfterQuotation && (
-                  <div className="no-device-card-enad">
-                    <div>Quotation already generated</div>
-                    <div style={{ marginTop: '12px' }}>
-                      <button type="button" className="btn-secondary-enad" onClick={() => setShowCalcAfterQuotation(true)}>Recalculate system size</button>
-                    </div>
-                  </div>
-                )}
-
                 {calculation.showCalculationCards && (!freeQuoteHasQuotation(selectedItem) || showCalcAfterQuotation) && (
                   <div className="calculation-cards-container">
                     <div className="calculation-cards-header">
@@ -2681,116 +2656,135 @@ const MyAssessments = () => {
                       </div>
                     </div>
 
-                    <div className="calculation-cards-grid">
-                      {/* Based on Area - Show for ALL system types (Grid-Tie, Hybrid, Off-Grid) */}
-                      <AreaCalculationCard
-                        roofLength={calculation.roofLength}
-                        roofWidth={calculation.roofWidth}
-                        roofArea={calculation.roofArea}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        targetSavings={calculation.targetSavings}
-                        calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
-                        isDataLoaded={calculation.isDataLoaded}
-                        showToast={showToast}
-                      />
-
-                      {/* Based on Load Profile - Show for Hybrid and Off-Grid ONLY */}
-
-                      <LoadProfileCalculationCard
-                        totalDailyConsumption={calculation.totalDailyConsumption}
-                        dayConsumption={calculation.dayConsumption}
-                        nightConsumption={calculation.nightConsumption}
-                        pshValue={calculation.pshValue}
-                        setPshValue={calculation.setPshValue}
-                        targetSavings={calculation.targetSavings}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        calculateByLoadProfile={() => calculation.calculateByLoadProfile(freeQuoteForm.systemType)}
-                        isDataLoaded={calculation.isDataLoaded}
-                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
-                        batteryAutonomy={calculation.batteryAutonomy}
-                        setBatteryAutonomy={calculation.setBatteryAutonomy}
-                        systemType={freeQuoteForm.systemType}
-                        showToast={showToast}
-                      />
-
-
-                      {/* Based on Electricity - Show for Grid-Tie ONLY */}
-
-                      <ElectricityCalculationCard
-                        totalDailyConsumption={calculation.totalDailyConsumption}
-                        dayConsumption={calculation.dayConsumption}
-                        nightConsumption={calculation.nightConsumption}
-                        ratePerKwh={calculation.ratePerKwh}
-                        monthlyBill={calculation.monthlyBill}
-                        pshValue={calculation.pshValue}
-                        setPshValue={calculation.setPshValue}
-                        targetSavings={calculation.targetSavings}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        calculateByElectricity={() => calculation.calculateByElectricity(freeQuoteForm.systemType)}
-                        isDataLoaded={calculation.isDataLoaded}
-                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
-                        batteryAutonomy={calculation.batteryAutonomy}
-                        setBatteryAutonomy={calculation.setBatteryAutonomy}
-                        systemType={freeQuoteForm.systemType}
-                        showToast={showToast}
-                      />
-
-
-                      {/* Based on Net Metering - Show for Grid-Tie ONLY */}
-                      {freeQuoteForm.systemType === 'grid-tie' && (
-                        <NetMeteringCalculationCard
-                          dayConsumption={calculation.dayConsumption}
-                          nightConsumption={calculation.nightConsumption}
-                          dayPvCapacity={calculation.dayPvCapacity}
-                          pshValue={calculation.pshValue}
-                          setExportRate={calculation.setExportRate}
-                          ratePerKwh={calculation.ratePerKwh}
-                          nightPvCapacity={calculation.nightPvCapacity}
-                          totalPvCapacity={calculation.totalPvCapacity}
-                          selectedPanelForCalc={calculation.selectedPanelForCalc}
-                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                          availablePanels={availablePanels}
-                          calculateByNetMetering={() => calculation.calculateByNetMetering(freeQuoteForm.systemType)}
-                          exportRate={calculation.exportRate}
-                          isDataLoaded={calculation.isDataLoaded}
-                          targetSavings={calculation.targetSavings}
-                          showToast={showToast}
-                        />
-                      )}
-                    </div>
-
-                    {/* Show results if calculated */}
-                    {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 && (
-                      <CalculationResultsCard
-                        calculationResults={calculation.calculationResults}
-                        selectedCalculationMethod={calculation.selectedCalculationMethod}
-                        applyCalculationResults={() => calculation.applyCalculationResults(
-                          setFreeQuoteForm,
-                          setFreeQuoteSelectedPanel,
-                          setFreeQuotePanelQuantity,
-                          setFreeQuoteSelectedInverter,
-                          setFreeQuoteInverterQuantity,
-                          setFreeQuoteSelectedBattery,
-                          setFreeQuoteBatteryQuantity,
-                          availablePanels,
-                          availableInverters,
-                          availableBatteries,
-                          showToast,
-                          freeQuoteForm.systemType
-                        )}
-                        resetCalculationCards={calculation.resetCalculationCards}
-                        systemType={freeQuoteForm.systemType}
-                        showToast={showToast}
-                        motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
-                        nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
-                      />
-                    )}
+                    {(() => {
+                      const methodTabs = getCalcMethodTabs(freeQuoteForm.systemType);
+                      const activeMethod = getActiveCalcTab(freeQuoteForm.systemType);
+                      return (
+                        <>
+                          <div className="tabs-enad calc-method-tabs-enad">
+                            {methodTabs.map((t) => (
+                              <button
+                                key={t.key}
+                                type="button"
+                                onClick={() => setCalcMethodTab(t.key)}
+                                className={`tab-btn-enad ${activeMethod === t.key ? 'active-enad' : ''}`}
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="calc-split-enad">
+                            <div className="calc-methods-enad">
+                              {activeMethod === 'area' && (
+                                <AreaCalculationCard
+                                  roofLength={calculation.roofLength}
+                                  roofWidth={calculation.roofWidth}
+                                  roofArea={calculation.roofArea}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  targetSavings={calculation.targetSavings}
+                                  calculateByArea={() => calculation.calculateByArea(freeQuoteForm.systemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'loadprofile' && (
+                                <LoadProfileCalculationCard
+                                  totalDailyConsumption={calculation.totalDailyConsumption}
+                                  dayConsumption={calculation.dayConsumption}
+                                  nightConsumption={calculation.nightConsumption}
+                                  pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
+                                  targetSavings={calculation.targetSavings}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByLoadProfile={() => calculation.calculateByLoadProfile(freeQuoteForm.systemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                                  batteryAutonomy={calculation.batteryAutonomy}
+                                  setBatteryAutonomy={calculation.setBatteryAutonomy}
+                                  systemType={freeQuoteForm.systemType}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'electricity' && (
+                                <ElectricityCalculationCard
+                                  totalDailyConsumption={calculation.totalDailyConsumption}
+                                  dayConsumption={calculation.dayConsumption}
+                                  nightConsumption={calculation.nightConsumption}
+                                  ratePerKwh={calculation.ratePerKwh}
+                                  monthlyBill={calculation.monthlyBill}
+                                  pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
+                                  targetSavings={calculation.targetSavings}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByElectricity={() => calculation.calculateByElectricity(freeQuoteForm.systemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                                  batteryAutonomy={calculation.batteryAutonomy}
+                                  setBatteryAutonomy={calculation.setBatteryAutonomy}
+                                  systemType={freeQuoteForm.systemType}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'netmetering' && freeQuoteForm.systemType === 'grid-tie' && (
+                                <NetMeteringCalculationCard
+                                  dayConsumption={calculation.dayConsumption}
+                                  nightConsumption={calculation.nightConsumption}
+                                  dayPvCapacity={calculation.dayPvCapacity}
+                                  pshValue={calculation.pshValue}
+                                  setExportRate={calculation.setExportRate}
+                                  ratePerKwh={calculation.ratePerKwh}
+                                  nightPvCapacity={calculation.nightPvCapacity}
+                                  totalPvCapacity={calculation.totalPvCapacity}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByNetMetering={() => calculation.calculateByNetMetering(freeQuoteForm.systemType)}
+                                  exportRate={calculation.exportRate}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  targetSavings={calculation.targetSavings}
+                                  showToast={showToast}
+                                />
+                              )}
+                            </div>
+                            <div className="calc-results-side-enad">
+                              {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 ? (
+                                <CalculationResultsCard
+                                  calculationResults={calculation.calculationResults}
+                                  selectedCalculationMethod={calculation.selectedCalculationMethod}
+                                  applyCalculationResults={() => calculation.applyCalculationResults(
+                                    setFreeQuoteForm,
+                                    setFreeQuoteSelectedPanel,
+                                    setFreeQuotePanelQuantity,
+                                    setFreeQuoteSelectedInverter,
+                                    setFreeQuoteInverterQuantity,
+                                    setFreeQuoteSelectedBattery,
+                                    setFreeQuoteBatteryQuantity,
+                                    availablePanels,
+                                    availableInverters,
+                                    availableBatteries,
+                                    showToast,
+                                    freeQuoteForm.systemType
+                                  )}
+                                  resetCalculationCards={calculation.resetCalculationCards}
+                                  systemType={freeQuoteForm.systemType}
+                                  showToast={showToast}
+                                  motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
+                                  nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
+                                />
+                              ) : (
+                                <div className="calc-empty-side-enad">Run a calculation method<br />to see the results here.</div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -2800,7 +2794,19 @@ const MyAssessments = () => {
                     {/* Show calculated results summary */}
                     {calculation.calculationResults.recommendedSystemSize > 0 && (
                       <div className="calculated-results-summary">
-                        <h4>System Summary</h4>
+                        <div className="summary-head-enad">
+                          <h4>System Summary</h4>
+                          <button
+                            type="button"
+                            className="btn-success-enad summary-change-btn-enad"
+                            onClick={() => {
+                              calculation.setShowEquipmentSelection(false);
+                              calculation.setShowCalculationCards(true);
+                            }}
+                          >
+                            Change Configuration
+                          </button>
+                        </div>
                         <div className="summary-grid">
                           <div className="summary-item">
                             <label>System Size</label>
@@ -2922,8 +2928,6 @@ const MyAssessments = () => {
   }
 
   // Detail View for Pre-Assessment
-  const StatusConfig = getStatusConfig(selectedItem);
-  const TypeConfig = getTypeConfig('pre_assessment');
   const deviceAssigned = hasDeviceAssigned(selectedItem);
 
   return (
@@ -2939,68 +2943,63 @@ const MyAssessments = () => {
       <div className="my-assessments-enad">
         <div className="detail-view-enad">
           <div className="detail-content-enad">
-            <button onClick={handleBackToList} className="back-button-enad">← Back to Assessments</button>
             <div className="detail-header-enad">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`type-badge-enad ${TypeConfig.color}`}>{TypeConfig.label}</span>
-                  <h1 className="detail-title-enad">{selectedItem.bookingReference}</h1>
-                </div>
-                <div className="client-meta-enad">
-                  <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
-                  <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
-                  <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
-                  <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
-                </div>
-              </div>
-              <div className={`status-badge-enad ${StatusConfig.color}`}>{StatusConfig.label}</div>
-            </div>
-
-            <div className="tabs-enad">
-              {VISIBLE_DETAIL_TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
-                  className={`tab-btn-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-              {OVERFLOW_DETAIL_TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
-                  className={`tab-btn-enad overflow-tab ${activeTab === tab.key ? 'active-enad' : ''}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-              <div className="tabs-more-enad" ref={tabsMoreRef}>
-                <button
-                  className={`tab-btn-enad ${OVERFLOW_DETAIL_TABS.some(t => t.key === activeTab) ? 'active-enad' : ''}`}
-                  aria-haspopup="menu"
-                  aria-expanded={showMoreTabs}
-                  onClick={() => setShowMoreTabs(v => !v)}
-                >
-                  More <FaChevronDown className={`tabs-more-chevron ${showMoreTabs ? 'open' : ''}`} />
-                </button>
-                {showMoreTabs && (
-                  <div className="tabs-more-menu-enad" role="menu">
-                    {OVERFLOW_DETAIL_TABS.map(tab => (
-                      <button
-                        key={tab.key}
-                        role="menuitem"
-                        className={`tabs-more-item-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
-                        onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="detail-title-enad">{selectedItem.bookingReference}</h1>
                   </div>
-                )}
+                  <div className="client-meta-enad">
+                    <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                    <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                    <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                    <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                  </div>
+                </div>
+                <div className="tabs-enad detail-tabs-merged-enad">
+                  {VISIBLE_DETAIL_TABS.map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                      className={`tab-btn-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                  {OVERFLOW_DETAIL_TABS.map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                      className={`tab-btn-enad overflow-tab ${activeTab === tab.key ? 'active-enad' : ''}`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                  <div className="tabs-more-enad" ref={tabsMoreRef}>
+                    <button
+                      className={`tab-btn-enad ${OVERFLOW_DETAIL_TABS.some(t => t.key === activeTab) ? 'active-enad' : ''}`}
+                      aria-haspopup="menu"
+                      aria-expanded={showMoreTabs}
+                      onClick={() => setShowMoreTabs(v => !v)}
+                    >
+                      More <FaChevronDown className={`tabs-more-chevron ${showMoreTabs ? 'open' : ''}`} />
+                    </button>
+                    {showMoreTabs && (
+                      <div className="tabs-more-menu-enad" role="menu">
+                        {OVERFLOW_DETAIL_TABS.map(tab => (
+                          <button
+                            key={tab.key}
+                            role="menuitem"
+                            className={`tabs-more-item-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
+                            onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div>
@@ -3152,28 +3151,26 @@ const MyAssessments = () => {
             {/* Quotation Tab */}
             {activeTab === 'quotation' && (
               <div className="quotation-tab-enhanced">
-                <div className="action-buttons-enad">
-                  {selectedItem.assessmentStatus !== 'completed' && (
-                    <button onClick={openReportConfirmModal} disabled={submitting} className="btn-success-enad">
-                      {submitting ? 'Submitting...' : 'Submit Final Report'}
-                    </button>
-                  )}
-                </div>
-
-                <div className="form-group-enad">
-                  <label className="form-label-enad">
-                    <input type="checkbox" checked={includeIoTData} onChange={(e) => setIncludeIoTData(e.target.checked)} />
-                    Include IoT Data Analysis in PDF
-                  </label>
-                  {selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd && (
-                    <small className="form-hint-enad">IoT data collected from {formatDateTime(selectedItem.dataCollectionStart)} to {formatDateTime(selectedItem.dataCollectionEnd)}</small>
-                  )}
-                </div>
-
                 {/* IoT Monitoring Results - Show always */}
                 {assessmentResults && (
                   <div className="iot-metrics-section">
-                    <h4>IoT Monitoring Results (7-Day Data Collection)</h4>
+                    <div className="iot-card-head-enad">
+                      <h4>IoT Monitoring Results (7-Day Data Collection)</h4>
+                      <div className="iot-head-actions-enad">
+                        {selectedItem.assessmentStatus !== 'completed' && (
+                          <button onClick={openReportConfirmModal} disabled={submitting} className="btn-success-enad iot-submit-btn-enad">
+                            {submitting ? 'Submitting...' : 'Submit Final Report'}
+                          </button>
+                        )}
+                        <label className="iot-include-enad" title="Include IoT Data Analysis in PDF">
+                          <input type="checkbox" checked={includeIoTData} onChange={(e) => setIncludeIoTData(e.target.checked)} />
+                          Include in PDF
+                        </label>
+                      </div>
+                    </div>
+                    {selectedItem.dataCollectionStart && selectedItem.dataCollectionEnd && (
+                      <small className="iot-card-hint-enad">IoT data collected from {formatDateTime(selectedItem.dataCollectionStart)} to {formatDateTime(selectedItem.dataCollectionEnd)}</small>
+                    )}
                     <div className="iot-metrics-grid">
                       <div className="metric-item">
                         <div>
@@ -3257,116 +3254,136 @@ const MyAssessments = () => {
                       </div>
                     </div>
 
-                    <div className="calculation-cards-grid">
-                      {/* Based on Area - Show for ALL system types (Grid-Tie, Hybrid, Off-Grid) */}
-                      <AreaCalculationCard
-                        roofLength={calculation.roofLength}
-                        roofWidth={calculation.roofWidth}
-                        roofArea={calculation.roofArea}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        targetSavings={calculation.targetSavings}
-                        calculateByArea={() => calculation.calculateByArea(selectedItem.systemType || 'grid-tie')}
-                        isDataLoaded={calculation.isDataLoaded}
-                        showToast={showToast}
-                      />
-
-                      {/* Based on Load Profile - Show for Hybrid and Off-Grid ONLY */}
-
-                      <LoadProfileCalculationCard
-                        totalDailyConsumption={calculation.totalDailyConsumption}
-                        dayConsumption={calculation.dayConsumption}
-                        nightConsumption={calculation.nightConsumption}
-                        pshValue={calculation.pshValue}
-                        setPshValue={calculation.setPshValue}
-                        targetSavings={calculation.targetSavings}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        calculateByLoadProfile={() => calculation.calculateByLoadProfile(selectedItem.systemType || 'grid-tie')}
-                        isDataLoaded={calculation.isDataLoaded}
-                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
-                        batteryAutonomy={calculation.batteryAutonomy}
-                        setBatteryAutonomy={calculation.setBatteryAutonomy}
-                        systemType={selectedItem.systemType || 'grid-tie'}
-                        showToast={showToast}
-                      />
-
-
-                      {/* all*/}
-
-                      <ElectricityCalculationCard
-                        totalDailyConsumption={calculation.totalDailyConsumption}
-                        dayConsumption={calculation.dayConsumption}
-                        nightConsumption={calculation.nightConsumption}
-                        ratePerKwh={calculation.ratePerKwh}
-                        monthlyBill={calculation.monthlyBill}
-                        pshValue={calculation.pshValue}
-                        setPshValue={calculation.setPshValue}
-                        targetSavings={calculation.targetSavings}
-                        selectedPanelForCalc={calculation.selectedPanelForCalc}
-                        setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                        availablePanels={availablePanels}
-                        calculateByElectricity={() => calculation.calculateByElectricity(selectedItem.systemType || 'grid-tie')}
-                        isDataLoaded={calculation.isDataLoaded}
-                        selectedBatteryForCalc={calculation.selectedBatteryForCalc}
-                        batteryAutonomy={calculation.batteryAutonomy}
-                        setBatteryAutonomy={calculation.setBatteryAutonomy}
-                        systemType={selectedItem.systemType || 'grid-tie'}
-                        showToast={showToast}
-                      />
-
-
-                      {/* Based on Net Metering - Show for Grid-Tie ONLY */}
-                      {selectedItem.systemType === 'grid-tie' && (
-                        <NetMeteringCalculationCard
-                          dayConsumption={calculation.dayConsumption}
-                          pshValue={calculation.pshValue}
-                          setExportRate={calculation.setExportRate}
-                          nightConsumption={calculation.nightConsumption}
-                          dayPvCapacity={calculation.dayPvCapacity}
-                          exportRate={calculation.exportRate}
-                          nightPvCapacity={calculation.nightPvCapacity}
-                          ratePerKwh={calculation.ratePerKwh}
-                          totalPvCapacity={calculation.totalPvCapacity}
-                          selectedPanelForCalc={calculation.selectedPanelForCalc}
-                          setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
-                          availablePanels={availablePanels}
-                          calculateByNetMetering={() => calculation.calculateByNetMetering(selectedItem.systemType || 'grid-tie')}
-                          isDataLoaded={calculation.isDataLoaded}
-                          targetSavings={calculation.targetSavings}
-                          showToast={showToast}
-                        />
-                      )}
-                    </div>
-
-                    {/* Show results if calculated */}
-                    {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 && (
-                      <CalculationResultsCard
-                        calculationResults={calculation.calculationResults}
-                        selectedCalculationMethod={calculation.selectedCalculationMethod}
-                        applyCalculationResults={() => calculation.applyCalculationResults(
-                          setQuotationForm,
-                          setSelectedPanel,
-                          setPanelQuantity,
-                          setSelectedInverter,
-                          setInverterQuantity,
-                          setSelectedBattery,
-                          setBatteryQuantity,
-                          availablePanels,
-                          availableInverters,
-                          availableBatteries,
-                          showToast,
-                          selectedItem.systemType || 'grid-tie'
-                        )}
-                        resetCalculationCards={calculation.resetCalculationCards}
-                        systemType={selectedItem.systemType || 'grid-tie'}
-                        showToast={showToast}
-                        motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
-                        nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
-                      />
-                    )}
+                    {(() => {
+                      const paSystemType = selectedItem.systemType || 'grid-tie';
+                      const methodTabs = getCalcMethodTabs(paSystemType);
+                      const activeMethod = getActiveCalcTab(paSystemType);
+                      return (
+                        <>
+                          <div className="tabs-enad calc-method-tabs-enad">
+                            {methodTabs.map((t) => (
+                              <button
+                                key={t.key}
+                                type="button"
+                                onClick={() => setCalcMethodTab(t.key)}
+                                className={`tab-btn-enad ${activeMethod === t.key ? 'active-enad' : ''}`}
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="calc-split-enad">
+                            <div className="calc-methods-enad">
+                              {activeMethod === 'area' && (
+                                <AreaCalculationCard
+                                  roofLength={calculation.roofLength}
+                                  roofWidth={calculation.roofWidth}
+                                  roofArea={calculation.roofArea}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  targetSavings={calculation.targetSavings}
+                                  calculateByArea={() => calculation.calculateByArea(paSystemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'loadprofile' && (
+                                <LoadProfileCalculationCard
+                                  totalDailyConsumption={calculation.totalDailyConsumption}
+                                  dayConsumption={calculation.dayConsumption}
+                                  nightConsumption={calculation.nightConsumption}
+                                  pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
+                                  targetSavings={calculation.targetSavings}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByLoadProfile={() => calculation.calculateByLoadProfile(paSystemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                                  batteryAutonomy={calculation.batteryAutonomy}
+                                  setBatteryAutonomy={calculation.setBatteryAutonomy}
+                                  systemType={paSystemType}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'electricity' && (
+                                <ElectricityCalculationCard
+                                  totalDailyConsumption={calculation.totalDailyConsumption}
+                                  dayConsumption={calculation.dayConsumption}
+                                  nightConsumption={calculation.nightConsumption}
+                                  ratePerKwh={calculation.ratePerKwh}
+                                  monthlyBill={calculation.monthlyBill}
+                                  pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
+                                  targetSavings={calculation.targetSavings}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByElectricity={() => calculation.calculateByElectricity(paSystemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  selectedBatteryForCalc={calculation.selectedBatteryForCalc}
+                                  batteryAutonomy={calculation.batteryAutonomy}
+                                  setBatteryAutonomy={calculation.setBatteryAutonomy}
+                                  systemType={paSystemType}
+                                  showToast={showToast}
+                                />
+                              )}
+                              {activeMethod === 'netmetering' && paSystemType === 'grid-tie' && (
+                                <NetMeteringCalculationCard
+                                  dayConsumption={calculation.dayConsumption}
+                                  pshValue={calculation.pshValue}
+                                  setExportRate={calculation.setExportRate}
+                                  nightConsumption={calculation.nightConsumption}
+                                  dayPvCapacity={calculation.dayPvCapacity}
+                                  exportRate={calculation.exportRate}
+                                  nightPvCapacity={calculation.nightPvCapacity}
+                                  ratePerKwh={calculation.ratePerKwh}
+                                  totalPvCapacity={calculation.totalPvCapacity}
+                                  selectedPanelForCalc={calculation.selectedPanelForCalc}
+                                  setSelectedPanelForCalc={calculation.setSelectedPanelForCalc}
+                                  availablePanels={availablePanels}
+                                  calculateByNetMetering={() => calculation.calculateByNetMetering(paSystemType)}
+                                  isDataLoaded={calculation.isDataLoaded}
+                                  targetSavings={calculation.targetSavings}
+                                  showToast={showToast}
+                                />
+                              )}
+                            </div>
+                            <div className="calc-results-side-enad">
+                              {calculation.hasCalculated && calculation.calculationResults.recommendedSystemSize > 0 ? (
+                                <CalculationResultsCard
+                                  calculationResults={calculation.calculationResults}
+                                  selectedCalculationMethod={calculation.selectedCalculationMethod}
+                                  applyCalculationResults={() => calculation.applyCalculationResults(
+                                    setQuotationForm,
+                                    setSelectedPanel,
+                                    setPanelQuantity,
+                                    setSelectedInverter,
+                                    setInverterQuantity,
+                                    setSelectedBattery,
+                                    setBatteryQuantity,
+                                    availablePanels,
+                                    availableInverters,
+                                    availableBatteries,
+                                    showToast,
+                                    paSystemType
+                                  )}
+                                  resetCalculationCards={calculation.resetCalculationCards}
+                                  systemType={paSystemType}
+                                  showToast={showToast}
+                                  motorWatts={getMotorNonMotorWatts(selectedItem).motorW}
+                                  nonMotorWatts={getMotorNonMotorWatts(selectedItem).nonMotorW}
+                                />
+                              ) : (
+                                <div className="calc-empty-side-enad">Run a calculation method<br />to see the results here.</div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -3376,7 +3393,19 @@ const MyAssessments = () => {
                     {/* Show calculated results summary */}
                     {calculation.calculationResults.recommendedSystemSize > 0 && (
                       <div className="calculated-results-summary">
-                        <h4>System Summary</h4>
+                        <div className="summary-head-enad">
+                          <h4>System Summary</h4>
+                          <button
+                            type="button"
+                            className="btn-success-enad summary-change-btn-enad"
+                            onClick={() => {
+                              calculation.setShowEquipmentSelection(false);
+                              calculation.setShowCalculationCards(true);
+                            }}
+                          >
+                            Change Configuration
+                          </button>
+                        </div>
                         <div className="summary-grid">
                           <div className="summary-item">
                             <label>System Size</label>

@@ -355,6 +355,9 @@ export const SystemEquipmentSelection = ({
     generateQuotationPDF();
   };
 
+  // Expose submit + disabled state to the modal footer button in the parent.
+  // (Attached after isButtonDisabled is declared, below.)
+
   // Clear errors when user makes changes
   useEffect(() => {
     // Only clear errors for fields that have been touched
@@ -385,8 +388,8 @@ export const SystemEquipmentSelection = ({
   ]);
 
   // Check if button should be disabled
-  const isButtonDisabled = generatingPDF || 
-    !freeQuoteForm.systemSize || 
+  const isButtonDisabled = generatingPDF ||
+    !freeQuoteForm.systemSize ||
     parseFloat(freeQuoteForm.systemSize) <= 0 ||
     freeQuoteCalculatedCosts.totalSystemCost === 0 ||
     !annualProduction ||

@@ -144,6 +144,11 @@ export const useSystemCalculation = () => {
       return;
     }
 
+    // Reset PSH to default — a previous item's IoT-derived PSH must not
+    // leak into this item's calculations (pre-assessment re-applies IoT
+    // PSH via setPshFromIoT right after this when IoT data exists).
+    setPshValue(3.5);
+
     const length = parseFloat(selectedItem.roofLength) || 0;
     const width = parseFloat(selectedItem.roofWidth) || 0;
     const area = length * width;
@@ -682,11 +687,13 @@ const calculateByNetMetering = (systemType) => {
     setShowCalculationCards(false);
     setShowEquipmentSelection(true);
     showToast(`System size set to ${calculationResults.recommendedSystemSize} kWp`, 'success');
-    // Jump to page top so the engineer starts at the top of the equipment
-    // section instead of landing mid-content. Deferred so it runs after render.
+    // Land on the equipment section (System Summary header) instead of the
+    // page top. Deferred so it runs after render.
     if (typeof window !== 'undefined') {
       setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document
+          .querySelector('.calculated-results-summary')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 150);
     }
   };

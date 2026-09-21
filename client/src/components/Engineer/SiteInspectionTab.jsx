@@ -488,12 +488,8 @@ const SiteInspectionTab = ({
 
   return (
     <div>
-      {/* Action Buttons */}
+      {/* Action Buttons - Deploy stays on top; Save moved to bottom-right */}
       <div className="action-buttons-enad">
-        <button onClick={handleSave} disabled={isSubmitting} className="btn-secondary-enad">
-          {isSubmitting ? 'Saving...' : 'Save All Changes'}
-        </button>
-
         {/* Deploy Device Button - Only show if device is assigned AND not deployed yet */}
         {deviceAssigned &&
           !siteInspectionData.deviceDeployedAt &&  // ✅ Prevents re-deployment
@@ -618,7 +614,11 @@ const SiteInspectionTab = ({
       )}
 
       {/* ===== MONTHLY BILL & RATE ===== */}
-      <div className="form-row-grid-enad">
+      <div className="form-section-enad">
+        <div className="form-section-header-enad">
+          <h4>Energy Details</h4>
+        </div>
+        <div className="form-row-grid-enad">
         <div className="form-group-enad">
           <label className="form-label-enad">Monthly Electricity Bill (₱) *</label>
           <input
@@ -649,11 +649,16 @@ const SiteInspectionTab = ({
             <div className="error-message-enad">{validationErrors.ratePerKwh}</div>
           )}
           <small className="form-hint-enad">Electric rate from client's bill</small>
+          </div>
         </div>
       </div>
 
-      {/* ===== SYSTEM TYPE & ROOF TYPE ===== */}
-      <div className="form-row-grid-enad">
+      {/* ===== SYSTEM TYPE & ROOF ===== */}
+      <div className="form-section-enad">
+        <div className="form-section-header-enad">
+          <h4>System & Roof</h4>
+        </div>
+        <div className="form-row-grid-enad">
         <div className="form-group-enad">
           <label className="form-label-enad">Preferred System Type *</label>
           <select
@@ -778,8 +783,14 @@ const SiteInspectionTab = ({
         {validationErrors.estimatedInstallationTime && (
           <div className="error-message-enad">{validationErrors.estimatedInstallationTime}</div>
         )}
+        </div>
       </div>
 
+      {/* ===== NOTES & FINDINGS ===== */}
+      <div className="form-section-enad">
+        <div className="form-section-header-enad">
+          <h4>Notes & Findings</h4>
+        </div>
       {deviceAssigned && (
         <div className="form-group-enad">
           <label className="form-label-enad">Deployment Notes *</label>
@@ -840,6 +851,13 @@ const SiteInspectionTab = ({
         {validationErrors.technicalFindings && (
           <div className="error-message-enad">{validationErrors.technicalFindings}</div>
         )}
+        </div>
+      </div>
+
+      <div className="action-buttons-enad form-actions-bottom-enad">
+        <button onClick={handleSave} disabled={isSubmitting} className="btn-success-enad">
+          {isSubmitting ? 'Saving...' : 'Save All Changes'}
+        </button>
       </div>
 
       {/* ===== APPLIANCE MODAL ===== */}

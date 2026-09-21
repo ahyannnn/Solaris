@@ -90,40 +90,39 @@ export const AreaCalculationCard = ({
     <div className="calculation-card">
       <div className="calculation-card-header">
         <h4>Based on Area</h4>
-        <span className="calculation-badge">Grid-Tie • Off-Grid • Hybrid</span>
+        <span className="calculation-badge">Grid-Tie • Hybrid • Off-Grid</span>
       </div>
       <div className="calculation-card-body">
-        <div className="form-group-enad">
-          <label className="form-label-enad">Select Solar Panel</label>
-          <select
-            className="assessment-form-select-enad"
-            value={selectedPanelForCalc?._id || ''}
-            onChange={(e) => {
-              const panel = availablePanels.find(p => p._id === e.target.value);
-              setSelectedPanelForCalc(panel);
-            }}
-          >
-            <option value="">-- Select Panel --</option>
-            {availablePanels.filter(p => p.isActive).map(panel => {
-              const wattage = getPanelWattage(panel);
-              const area = getPanelArea(panel);
-              return (
-                <option key={panel._id} value={panel._id}>
-                  {panel.name} - {wattage}W - {safeToFixed(area)}m²
-                </option>
-              );
-            })}
-          </select>
-        </div>
-
-        {selectedPanelForCalc && (
-          <div className="selected-equipment-info">
-            <div className="equipment-detail">
-              <span>Panel Power: <strong>{panelWattage}W</strong></span>
-              <span>Panel Area: <strong>{safeToFixed(panelArea)}m²</strong></span>
-            </div>
+        <div className="panel-row-enad">
+          <div className="form-group-enad">
+            <label className="form-label-enad">Select Solar Panel</label>
+            <select
+              className="assessment-form-select-enad"
+              value={selectedPanelForCalc?._id || ''}
+              onChange={(e) => {
+                const panel = availablePanels.find(p => p._id === e.target.value);
+                setSelectedPanelForCalc(panel);
+              }}
+            >
+              <option value="">-- Select Panel --</option>
+              {availablePanels.filter(p => p.isActive).map(panel => {
+                const wattage = getPanelWattage(panel);
+                const area = getPanelArea(panel);
+                return (
+                  <option key={panel._id} value={panel._id}>
+                    {panel.name} - {wattage}W - {safeToFixed(area)}m²
+                  </option>
+                );
+              })}
+            </select>
           </div>
-        )}
+          {selectedPanelForCalc && (
+            <div className="panel-specs-enad">
+              <div className="panel-spec-enad"><label>Power</label><strong>{panelWattage}W</strong></div>
+              <div className="panel-spec-enad"><label>Area</label><strong>{safeToFixed(panelArea)}m²</strong></div>
+            </div>
+          )}
+        </div>
         <div className="consumption-display">
           <div className="consumption-item">
             <label>Roof Length</label>
@@ -328,41 +327,38 @@ export const ElectricityCalculationCard = ({
           </div>
         )}
 
-        <div className="form-group-enad">
-          <label className="form-label-enad">Select Solar Panel</label>
-          <select
-            className="assessment-form-select-enad"
-            value={selectedPanelForCalc?._id || ''}
-            onChange={(e) => {
-              const panel = availablePanels.find(p => p._id === e.target.value);
-              setSelectedPanelForCalc(panel);
-            }}
-          >
-            <option value="">-- Select Panel --</option>
-            {availablePanels.filter(p => p.isActive).map(panel => {
-              const wattage = getPanelWattage(panel);
-              return (
-                <option key={panel._id} value={panel._id}>
-                  {panel.name} - {wattage}W
-                </option>
-              );
-            })}
-          </select>
-        </div>
-
-        {selectedPanelForCalc && (
-          <div className="selected-equipment-info">
-            <div className="equipment-detail">
-              <span>Panel Power: <strong>{panelWattage}W</strong></span>
+        <div className="panel-row-enad">
+          <div className="form-group-enad">
+            <label className="form-label-enad">Select Solar Panel</label>
+            <select
+              className="assessment-form-select-enad"
+              value={selectedPanelForCalc?._id || ''}
+              onChange={(e) => {
+                const panel = availablePanels.find(p => p._id === e.target.value);
+                setSelectedPanelForCalc(panel);
+              }}
+            >
+              <option value="">-- Select Panel --</option>
+              {availablePanels.filter(p => p.isActive).map(panel => {
+                const wattage = getPanelWattage(panel);
+                return (
+                  <option key={panel._id} value={panel._id}>
+                    {panel.name} - {wattage}W
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          {selectedPanelForCalc && (
+            <div className="panel-specs-enad">
+              <div className="panel-spec-enad"><label>Power</label><strong>{panelWattage}W</strong></div>
               {selectedBatteryForCalc && (systemType === 'hybrid' || systemType === 'off-grid') && (
-                <span>Battery DOD: <strong>{safeToFixed(dod * 100, 0)}%</strong></span>
+                <div className="panel-spec-enad"><label>Battery DOD</label><strong>{safeToFixed(dod * 100, 0)}%</strong></div>
               )}
             </div>
-          </div>
-        )}
-        <div className="calculation-params">
-          <div className="param-group">
-            <label>PSH (Peak Sun Hours)</label>
+          )}
+          <div className="psh-field-enad" title="Peak Sun Hours — default 3.5 for Philippines">
+            <label>PSH</label>
             <input
               type="number"
               step="0.1"
@@ -370,9 +366,7 @@ export const ElectricityCalculationCard = ({
               onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
               className="param-input"
             />
-            <small className="form-hint-enad">Default: 3.5 for Philippines</small>
           </div>
-
         </div>
         <div className="consumption-display">
           <div className="consumption-item ">
@@ -550,42 +544,39 @@ export const LoadProfileCalculationCard = ({
           </div>
         )}
 
-        <div className="form-group-enad">
-          <label className="form-label-enad">Select Solar Panel</label>
-          <select
-            className="assessment-form-select-enad"
-            value={selectedPanelForCalc?._id || ''}
-            onChange={(e) => {
-              const panel = availablePanels.find(p => p._id === e.target.value);
-              setSelectedPanelForCalc(panel);
-            }}
-          >
-            <option value="">-- Select Panel --</option>
-            {availablePanels.filter(p => p.isActive).map(panel => {
-              const wattage = getPanelWattage(panel);
-              const area = getPanelArea(panel);
-              return (
-                <option key={panel._id} value={panel._id}>
-                  {panel.name} - {wattage}W - {safeToFixed(area)}m²
-                </option>
-              );
-            })}
-          </select>
-        </div>
-
-        {selectedPanelForCalc && (
-          <div className="selected-equipment-info">
-            <div className="equipment-detail">
-              <span>Panel Power: <strong>{panelWattage}W</strong></span>
+        <div className="panel-row-enad">
+          <div className="form-group-enad">
+            <label className="form-label-enad">Select Solar Panel</label>
+            <select
+              className="assessment-form-select-enad"
+              value={selectedPanelForCalc?._id || ''}
+              onChange={(e) => {
+                const panel = availablePanels.find(p => p._id === e.target.value);
+                setSelectedPanelForCalc(panel);
+              }}
+            >
+              <option value="">-- Select Panel --</option>
+              {availablePanels.filter(p => p.isActive).map(panel => {
+                const wattage = getPanelWattage(panel);
+                const area = getPanelArea(panel);
+                return (
+                  <option key={panel._id} value={panel._id}>
+                    {panel.name} - {wattage}W - {safeToFixed(area)}m²
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          {selectedPanelForCalc && (
+            <div className="panel-specs-enad">
+              <div className="panel-spec-enad"><label>Power</label><strong>{panelWattage}W</strong></div>
               {selectedBatteryForCalc && showBatteryAutonomy && (
-                <span>Battery DOD: <strong>{safeToFixed(dod * 100, 0)}%</strong></span>
+                <div className="panel-spec-enad"><label>Battery DOD</label><strong>{safeToFixed(dod * 100, 0)}%</strong></div>
               )}
             </div>
-          </div>
-        )}
-        <div className="calculation-params">
-          <div className="param-group">
-            <label>PSH (Peak Sun Hours)</label>
+          )}
+          <div className="psh-field-enad" title="Peak Sun Hours — default 3.5 for Philippines">
+            <label>PSH</label>
             <input
               type="number"
               step="0.1"
@@ -593,9 +584,7 @@ export const LoadProfileCalculationCard = ({
               onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
               className="param-input"
             />
-            <small className="form-hint-enad">Default: 3.5 for Philippines</small>
           </div>
-
         </div>
         <div className="consumption-display">
           <div className="consumption-item">
@@ -742,35 +731,34 @@ export const NetMeteringCalculationCard = ({
         <span className="calculation-badge">Grid-Tie</span>
       </div>
       <div className="calculation-card-body">
-        <div className="form-group-enad">
-          <label className="form-label-enad">Select Solar Panel</label>
-          <select
-            className="assessment-form-select-enad"
-            value={selectedPanelForCalc?._id || ''}
-            onChange={(e) => {
-              const panel = availablePanels.find(p => p._id === e.target.value);
-              setSelectedPanelForCalc(panel);
-            }}
-          >
-            <option value="">-- Select Panel --</option>
-            {availablePanels.filter(p => p.isActive).map(panel => {
-              const wattage = getPanelWattage(panel);
-              return (
-                <option key={panel._id} value={panel._id}>
-                  {panel.name} - {wattage}W
-                </option>
-              );
-            })}
-          </select>
-        </div>
-
-        {selectedPanelForCalc && (
-          <div className="selected-equipment-info">
-            <div className="equipment-detail">
-              <span>Panel Power: <strong>{panelWattage}W</strong></span>
-            </div>
+        <div className="panel-row-enad">
+          <div className="form-group-enad">
+            <label className="form-label-enad">Select Solar Panel</label>
+            <select
+              className="assessment-form-select-enad"
+              value={selectedPanelForCalc?._id || ''}
+              onChange={(e) => {
+                const panel = availablePanels.find(p => p._id === e.target.value);
+                setSelectedPanelForCalc(panel);
+              }}
+            >
+              <option value="">-- Select Panel --</option>
+              {availablePanels.filter(p => p.isActive).map(panel => {
+                const wattage = getPanelWattage(panel);
+                return (
+                  <option key={panel._id} value={panel._id}>
+                    {panel.name} - {wattage}W
+                  </option>
+                );
+              })}
+            </select>
           </div>
-        )}
+          {selectedPanelForCalc && (
+            <div className="panel-specs-enad">
+              <div className="panel-spec-enad"><label>Power</label><strong>{panelWattage}W</strong></div>
+            </div>
+          )}
+        </div>
 
         {/* Export Rate Input */}
         <div className="calculation-params">

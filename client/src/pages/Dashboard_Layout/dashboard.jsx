@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import axios from 'axios';
 import {
-  FaTachometerAlt,
   FaUsers,
   FaMicrochip,
   FaChartBar,
@@ -13,10 +12,8 @@ import {
   FaClipboardList,
   FaProjectDiagram,
   FaFileInvoiceDollar,
-  FaClipboardCheck,
   FaCalendarAlt,
   FaHeadset,
-  FaHome,
   FaTools,
   FaThLarge,
   FaTasks,
@@ -41,7 +38,8 @@ import {
   FaTimes as FaTimesIcon,
   FaBullhorn,
   FaMoon,
-  FaSun
+  FaSun,
+  FaSolarPanel
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import '../../styles/Dashboard/dashboard.css';
@@ -117,6 +115,10 @@ const Dashboard = () => {
   const [mobileSheetView, setMobileSheetView] = useState(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Engineer detail mode: when an Engineer Manage detail view is open, the
+  // child page publishes { onBack, label } here so the global header can show
+  // only a Back button and hide its normal content.
+  const [detailNav, setDetailNav] = useState(null);
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(() =>
@@ -769,14 +771,14 @@ const Dashboard = () => {
     return firstInitial + lastInitial;
   };
 
-  // Toggle dropdown - only toggle dropdown, not navigation
+  // Toggle dropdown (accordion) — opening one closes the other.
   const toggleDropdown = (key, e) => {
     if (e) {
       e.stopPropagation();
     }
     setOpenDropdowns(prev => ({
-      ...prev,
-      [key]: !prev[key]
+      support: key === 'support' ? !prev.support : false,
+      settingsSub: key === 'settingsSub' ? !prev.settingsSub : false,
     }));
   };
 
@@ -795,10 +797,10 @@ const Dashboard = () => {
           icon: <FaThLarge />,
           isDropdown: false,
           items: [
-            { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
+            { icon: <FaThLarge />, label: 'Dashboard', path: '/app/admin' },
             { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment', actionCountKey: 'siteAssessments' },
             { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing', actionCountKey: 'billing' },
-            { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project', actionCountKey: 'projects' },
+            { icon: <FaSolarPanel />, label: 'Projects', path: '/app/admin/project', actionCountKey: 'projects' },
             { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
           ]
         },
@@ -835,9 +837,9 @@ const Dashboard = () => {
           icon: <FaThLarge />,
           isDropdown: false,
           items: [
-            { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/engineer' },
-            { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment', actionCountKey: 'engineerAssessments' },
-            { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project', actionCountKey: 'engineerProjects' },
+            { icon: <FaThLarge />, label: 'Dashboard', path: '/app/engineer' },
+            { icon: <FaClipboardList />, label: 'My Assessments', path: '/app/engineer/assessment', actionCountKey: 'engineerAssessments' },
+            { icon: <FaSolarPanel />, label: 'My Projects', path: '/app/engineer/project', actionCountKey: 'engineerProjects' },
           ]
         },
         {
@@ -870,9 +872,9 @@ const Dashboard = () => {
           icon: <FaThLarge />,
           isDropdown: false,
           items: [
-            { icon: <FaHome />, label: 'Dashboard', path: '/app/customer' },
+            { icon: <FaThLarge />, label: 'Dashboard', path: '/app/customer' },
             { icon: <FaCalendarAlt />, label: 'Book Assessment', shortLabel: 'Book', path: '/app/customer/book-assessment' },
-            { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
+            { icon: <FaSolarPanel />, label: 'My Project', path: '/app/customer/project' },
             { icon: <FaReceipt />, label: 'Billing', path: '/app/customer/billing' },
           ]
         },
@@ -928,6 +930,16 @@ const Dashboard = () => {
   const isEngineer = userRole === 'engineer';
   const isCustomer = userRole === 'user';
   const isMobile = () => window.innerWidth <= 768;
+
+  // Engineer Manage detail view owns the header: show Back only, hide the
+  // normal title/description + actions. Cleared on route change or unmount.
+  const showDetailBackHeader =
+    isEngineer &&
+    location.pathname.startsWith('/app/engineer/assessment') &&
+    Boolean(detailNav?.onBack);
+  useEffect(() => {
+    setDetailNav(null);
+  }, [location.pathname]);
 
   // Handle window resize for sidebar
   useEffect(() => {
@@ -1487,7 +1499,10 @@ const Dashboard = () => {
           ))}
 
           <div className="sidebar-spacer-layout-dashboard"></div>
+        </nav>
 
+        {/* Fixed footer — Logout stays visible, nav scrolls above it */}
+        <div className="sidebar-footer-layout-dashboard">
           <button
             onClick={handleLogoutClick}
             className="nav-item-layout-dashboard logout-sidebar-btn"
@@ -1496,13 +1511,26 @@ const Dashboard = () => {
             <span className="nav-icon-layout-dashboard"><FaSignOutAlt /></span>
             <span className="nav-label-layout-dashboard">Logout</span>
           </button>
-        </nav>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="main-content-layout-dashboard">
         {/* Header */}
-        <header className="dashboard-header-layout-dashboard">
+        <header className={`dashboard-header-layout-dashboard${showDetailBackHeader ? ' is-detail-mode' : ''}`}>
+          {showDetailBackHeader ? (
+            <div className="header-back-left-layout-dashboard">
+              <button
+                className="header-back-btn-layout-dashboard"
+                onClick={detailNav.onBack}
+                aria-label={detailNav.label || 'Back to Assessments'}
+              >
+                <FaChevronLeft size={14} />
+                <span>{detailNav.label || 'Back'}</span>
+              </button>
+            </div>
+          ) : (
+          <>
           <div className="header-left-layout-dashboard">
             <div className="page-header-info-layout-dashboard">
               <div className="page-title-row-layout-dashboard">
@@ -1639,11 +1667,13 @@ const Dashboard = () => {
               <span className="header-user-name-layout-dashboard">{userName}</span>
             </div>
           </div>
+          </>
+          )}
         </header>
 
         {/* Content Area */}
         <div className="content-area-layout-dashboard">
-          <Outlet />
+          <Outlet context={{ setDetailNav }} />
         </div>
       </main>
 

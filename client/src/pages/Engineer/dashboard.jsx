@@ -126,6 +126,21 @@ const EngineerDashboard = () => {
       const mySchedulesList = schedulesRes.data.schedules || [];
       setFullSchedules(mySchedulesList);
       const upcomingSchedules = mySchedulesList.filter(s => s.status === 'scheduled' || s.status === 'confirmed');
+      // This-week window (Monday 00:00 – Sunday 23:59, local) for the
+      // Upcoming Schedules card count.
+      const nowRef = new Date();
+      const mondayOffset = (nowRef.getDay() + 6) % 7;
+      const weekStart = new Date(nowRef);
+      weekStart.setDate(nowRef.getDate() - mondayOffset);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      const thisWeekSchedules = upcomingSchedules.filter(s => {
+        if (!s?.scheduledDate) return false;
+        const d = new Date(s.scheduledDate);
+        return !isNaN(d) && d >= weekStart && d <= weekEnd;
+      });
       const todayScheds = mySchedulesList.filter(s => {
         const today = new Date().toDateString();
         return new Date(s.scheduledDate).toDateString() === today && s.status !== 'completed' && s.status !== 'cancelled';
@@ -210,7 +225,7 @@ const EngineerDashboard = () => {
       setStats({
         myProjects: activeProjects,
         myAssessments: pendingAssessments,
-        mySchedules: upcomingSchedules.length,
+        mySchedules: thisWeekSchedules.length,
         todaySchedules: todayScheds.length,
         pendingTasks: actionTotal
       });
@@ -557,10 +572,10 @@ const EngineerDashboard = () => {
           <div className="engdas-topbar-left">
             <div className="engdas-welcome-actions">
               <Link to="/app/engineer/assessment" className="btn-primary-engdas">
-                <FaClipboardList /> View Assessments
+                View Assessments
               </Link>
               <Link to="/app/engineer/schedule" className="btn-secondary-engdas">
-                <FaCalendarAlt /> My Schedule
+                My Schedule
               </Link>
             </div>
             <div className="engdas-topbar-squares">
@@ -579,8 +594,8 @@ const EngineerDashboard = () => {
               </Link>
             </div>
           </div>
-          {stats.pendingTasks > 0 && (
-            <div className="engdas-topbar-right">
+          <div className="engdas-topbar-right">
+            {stats.pendingTasks > 0 ? (
               <div className="engdas-inline-alert">
                 <span className="engdas-inline-alert-icon" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
                   <FaExclamationTriangle />
@@ -593,8 +608,18 @@ const EngineerDashboard = () => {
                   View Tasks <FaArrowRight />
                 </Link>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="engdas-caughtup-card">
+                <span className="engdas-inline-alert-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
+                  <FaCheckCircle />
+                </span>
+                <span className="engdas-caughtup-text">
+                  <strong>All caught up!</strong>
+                  <span>No pending tasks</span>
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards — admin-sized with icons + sparkline */}

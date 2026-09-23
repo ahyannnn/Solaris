@@ -326,7 +326,7 @@ body.dark-mode {
   padding: 10px 20px;
   background: var(--btn-secondary-bg);
   color: var(--text-primary);
-  border: 1.5px solid var(--btn-secondary-border);
+  border: 1px solid #000;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -1352,6 +1352,45 @@ body.dark-mode {
   font-size: 0.78rem;
 }
 
+/* Pending alert keeps a wider footprint on desktop; the caught-up card
+   hugs its content instead */
+.engdas-inline-alert {
+  min-width: 300px;
+}
+
+/* All-caught-up card (shown when 0 pending tasks) — static, no buttons */
+.engdas-caughtup-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  max-width: 100%;
+}
+
+.engdas-caughtup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.25;
+}
+
+.engdas-caughtup-text strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.engdas-caughtup-text span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 .engdas-topbar-date {
   font-size: 13px;
   font-weight: 500;
@@ -1686,6 +1725,11 @@ body.dark-mode .engdas-recent-avatar {
     flex: 1 1 100%;
     flex-wrap: wrap;
     padding: 10px 12px;
+  }
+
+  .engdas-caughtup-card {
+    flex: 1 1 100%;
+    padding: 8px 12px 8px 8px;
   }
 
   .engdas-inline-alert-text {

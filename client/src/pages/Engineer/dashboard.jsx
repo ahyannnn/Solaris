@@ -1,20 +1,30 @@
 // pages/Engineer/EngineerDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import {
   FaCalendarAlt,
+  FaCalendarCheck,
+  FaClipboardCheck,
   FaClipboardList,
   FaCheckCircle,
-  FaClock,
   FaSpinner,
   FaMapMarkerAlt,
-  FaUser,
   FaMicrochip,
   FaArrowRight,
   FaExclamationTriangle,
   FaTools,
+  FaSolarPanel,
   FaHome,
   FaBuilding,
   FaPhone,
@@ -30,19 +40,10 @@ import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import '../../styles/Engineer/dashboard.css';
 
-// Time-based greeting function
-const getTimeBasedGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'Good Morning';
-  if (hour >= 12 && hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
-};
-
 const EngineerDashboard = () => {
   const navigate = useNavigate();
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [greeting, setGreeting] = useState(getTimeBasedGreeting());
   const [stats, setStats] = useState({
     myProjects: 0,
     myAssessments: 0,
@@ -53,10 +54,12 @@ const EngineerDashboard = () => {
   const [myAssessments, setMyAssessments] = useState([]);
   const [mySchedules, setMySchedules] = useState([]);
   const [myDevices, setMyDevices] = useState([]);
-  const [userName, setUserName] = useState('');
   const [myProjects, setMyProjects] = useState([]);
+  // Full lists (not sliced) for Recent Customers card + 2 charts.
+  // No extra API calls — derived from the same fetch below.
+  const [fullAssessments, setFullAssessments] = useState([]);
+  const [fullSchedules, setFullSchedules] = useState([]);
   const [activeAssessment, setActiveAssessment] = useState(null);
-  const [todaySchedules, setTodaySchedules] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
 
@@ -77,13 +80,6 @@ const EngineerDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    
-    // Update greeting every minute
-    const interval = setInterval(() => {
-      setGreeting(getTimeBasedGreeting());
-    }, 60000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -92,7 +88,9 @@ const EngineerDashboard = () => {
       const token = sessionStorage.getItem('token');
 
       // Fetch MY projects (assigned to this engineer)
-      const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/my-projects`, {
+      // NOTE: endpoint is paginated (default 10, max 50) — dashboard needs
+      // the full picture for stats/charts, so request the max page.
+      const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/my-projects?limit=50`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const myProjectsList = projectsRes.data.projects || [];
@@ -100,11 +98,14 @@ const EngineerDashboard = () => {
       const activeProjects = myProjectsList.filter(p => p.status !== 'completed' && p.status !== 'cancelled').length;
 
       // Fetch MY assessments (assigned to this engineer)
-      const assessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/my-assessments`, {
+      // NOTE: paginated (default 20) — request max so Recent Customers,
+      // charts and counts see everything.
+      const assessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/my-assessments?limit=50`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const myAssessmentsList = assessmentsRes.data.assessments || [];
       setMyAssessments(myAssessmentsList.slice(0, 5));
+      setFullAssessments(myAssessmentsList);
       const pendingAssessments = myAssessmentsList.filter(a => a.assessmentStatus === 'scheduled' || a.assessmentStatus === 'pending_review').length;
 
       // Set active assessment
@@ -116,16 +117,19 @@ const EngineerDashboard = () => {
       setMyDevices(myDevicesList.slice(0, 5));
 
       // Fetch MY schedules (assigned to this engineer)
-      const schedulesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/engineer/my-schedules`, {
+      // NOTE: paginated (default 10 oldest-first, max 50) — without the max
+      // limit the 7-day chart only ever saw the oldest page (often all past
+      // dates) and rendered all zeros.
+      const schedulesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/engineer/my-schedules?limit=50`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const mySchedulesList = schedulesRes.data.schedules || [];
+      setFullSchedules(mySchedulesList);
       const upcomingSchedules = mySchedulesList.filter(s => s.status === 'scheduled' || s.status === 'confirmed');
       const todayScheds = mySchedulesList.filter(s => {
         const today = new Date().toDateString();
         return new Date(s.scheduledDate).toDateString() === today && s.status !== 'completed' && s.status !== 'cancelled';
       });
-      setTodaySchedules(todayScheds);
       setMySchedules(upcomingSchedules.slice(0, 5));
 
       // ============================================================
@@ -203,10 +207,6 @@ const EngineerDashboard = () => {
         console.error('Error fetching action counts for dashboard:', countErr);
       }
 
-      // Get user name from session storage or localStorage
-      const storedName = sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Engineer';
-      setUserName(storedName);
-
       setStats({
         myProjects: activeProjects,
         myAssessments: pendingAssessments,
@@ -281,11 +281,6 @@ const EngineerDashboard = () => {
     });
   };
 
-  const formatTime = (time) => {
-    if (!time) return 'N/A';
-    return time;
-  };
-
   const getStatusBadge = (status, type = 'assessment') => {
     const badges = {
       'assessment': {
@@ -339,6 +334,178 @@ const EngineerDashboard = () => {
     }
   };
 
+  // ============================================================
+  // DERIVED: Recent Customers (cards only, no buttons/links)
+  // Mix of assessments + projects, newest first, top 5.
+  // ============================================================
+  // photoURL is populated at clientId.userId (object when populated,
+  // string id when not) — empty string when no photo.
+  const clientPhotoOf = (c) => {
+    const u = c?.userId;
+    if (u && typeof u === 'object') return u.photoURL || '';
+    return '';
+  };
+
+  const recentCustomers = useMemo(() => {
+    const map = new Map();
+    (fullAssessments || []).forEach((a) => {
+      const c = a?.clientId;
+      if (!c) return;
+      const key = String(c._id || `${c.contactFirstName}-${c.contactLastName}-${a.bookingReference}`);
+      const name = `${c.contactFirstName || ''} ${c.contactLastName || ''}`.trim() || 'Customer';
+      const date = a.bookedAt || a.createdAt;
+      if (!map.has(key)) {
+        map.set(key, {
+          id: key,
+          name,
+          photo: clientPhotoOf(c),
+          meta: a.bookingReference || a.propertyType || 'Site Assessment',
+          status: a.assessmentStatus,
+          statusType: 'assessment',
+          date,
+        });
+      }
+    });
+    (myProjects || []).forEach((p) => {
+      const c = p?.clientId;
+      const nameFromClient = c ? `${c.contactFirstName || ''} ${c.contactLastName || ''}`.trim() : '';
+      const name = nameFromClient || p.clientName || p.projectName || 'Customer';
+      if (!name || name === 'Customer') return;
+      const key = String(p._id || `${name}-${p.projectReference}`);
+      if (!map.has(key)) {
+        map.set(key, {
+          id: key,
+          name,
+          photo: c ? clientPhotoOf(c) : '',
+          meta: p.projectReference || p.projectName || 'Project',
+          status: p.status,
+          statusType: 'project',
+          date: p.startDate || p.createdAt,
+        });
+      }
+    });
+    return [...map.values()]
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+  }, [fullAssessments, myProjects]);
+
+  const getInitials = (name) => {
+    if (!name) return 'C';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
+  // ============================================================
+  // CHART 1: 7-day schedule workload (next 7 days from today)
+  // ============================================================
+  const weeklyScheduleData = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      days.push({
+        key: d.toDateString(),
+        label: i === 0 ? 'Today' : d.toLocaleDateString('en-PH', { weekday: 'short' }),
+        full: d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+        count: 0,
+      });
+    }
+    (fullSchedules || []).forEach((s) => {
+      if (!s?.scheduledDate) return;
+      if (s.status === 'completed' || s.status === 'cancelled') return;
+      const key = new Date(s.scheduledDate).toDateString();
+      const slot = days.find((d) => d.key === key);
+      if (slot) slot.count += 1;
+    });
+    return days.map(({ label, full, count }) => ({ label, full, count }));
+  }, [fullSchedules]);
+
+  // ============================================================
+  // Stat sparklines (admin-style): last 7 days buckets, no new API.
+  // ============================================================
+  const statTrends = useMemo(() => {
+    const keys = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      keys.push(d.toDateString());
+    }
+    const bucket = (items, pickDate) => {
+      const counts = new Array(7).fill(0);
+      (items || []).forEach((it) => {
+        const raw = pickDate(it);
+        if (!raw) return;
+        const k = new Date(raw).toDateString();
+        const idx = keys.indexOf(k);
+        if (idx >= 0) counts[idx] += 1;
+      });
+      return counts;
+    };
+    const needsAction = (a) =>
+      ['scheduled', 'pending_review', 'data_collecting', 'data_analyzing'].includes(a?.assessmentStatus);
+    const projectNeedsAction = (p) =>
+      ['in_progress', 'initial_paid', 'full_paid'].includes(p?.status);
+    return {
+      projects: bucket(myProjects, (p) => p.startDate || p.createdAt),
+      assessments: bucket(fullAssessments, (a) => a.bookedAt || a.createdAt),
+      tasks: bucket(
+        [
+          ...(fullAssessments || []).filter(needsAction).map((a) => ({ d: a.bookedAt || a.createdAt })),
+          ...(myProjects || []).filter(projectNeedsAction).map((p) => ({ d: p.startDate || p.createdAt })),
+        ],
+        (x) => x.d
+      ),
+      schedules: bucket(fullSchedules, (s) => s.scheduledDate),
+    };
+  }, [myProjects, fullAssessments, fullSchedules]);
+
+  const Sparkline = ({ data }) => {
+    const arr = Array.isArray(data) && data.length ? data : [0];
+    const maxVal = Math.max(...arr, 1);
+    const n = arr.length;
+    const pts = arr.map((d, i) => {
+      const x = n === 1 ? 60 : (i / (n - 1)) * 120;
+      const y = 30 - (d / maxVal) * 25;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
+    });
+    return (
+      <div className="stat-sparkline-engdas">
+        <svg width="100%" height="30" viewBox="0 0 120 30" preserveAspectRatio="none">
+          <path
+            d={pts.join(' ')}
+            fill="none"
+            stroke="#F39C12"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    );
+  };
+
+  const ChartTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const row = payload[0]?.payload;
+      return (
+        <div className="engdas-chart-tooltip">
+          <p className="engdas-chart-tooltip-label">{row?.full || label || payload[0]?.name}</p>
+          {payload.map((entry, idx) => (
+            <p key={idx} className="engdas-chart-tooltip-item">
+              {entry.name}: {entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const SkeletonLoader = () => (
     <div className="engdas-dashboard">
       <div className="engdas-welcome-section">
@@ -385,123 +552,169 @@ const EngineerDashboard = () => {
       </Helmet>
 
       <div className="engdas-dashboard">
-        {/* Welcome Section */}
-        <div className="engdas-welcome-section">
-          <div className="engdas-welcome-content">
-            <div className="engdas-welcome-greeting-wrapper">
-              <p className="engdas-welcome-greeting">{greeting}, {userName || 'Engineer'}!</p>
+        {/* Top action bar — 6 buttons left, alerts right. Manuscript Links kept as-is. */}
+        <div className="engdas-welcome-section engdas-topbar">
+          <div className="engdas-topbar-left">
+            <div className="engdas-welcome-actions">
+              <Link to="/app/engineer/assessment" className="btn-primary-engdas">
+                <FaClipboardList /> View Assessments
+              </Link>
+              <Link to="/app/engineer/schedule" className="btn-secondary-engdas">
+                <FaCalendarAlt /> My Schedule
+              </Link>
             </div>
-            <p className="engdas-welcome-subtitle">Here's what's happening with your tasks today.</p>
-          </div>
-          <div className="engdas-welcome-actions">
-            <Link to="/app/engineer/assessment" className="btn-primary-engdas">
-              <FaClipboardList /> View Assessments
-            </Link>
-            <Link to="/app/engineer/schedule" className="btn-secondary-engdas">
-              <FaCalendarAlt /> My Schedule
-            </Link>
-          </div>
-        </div>
-
-        {/* Today's Tasks Alert */}
-        {todaySchedules.length > 0 && (
-          <div className="engdas-today-alert">
-            <div className="alert-icon-engdas">
-              <FaClock />
-            </div>
-            <div className="alert-content-engdas">
-              <strong>You have {todaySchedules.length} task(s) for today</strong>
-              <p>Check your schedule for details.</p>
-            </div>
-            <Link to="/app/engineer/schedule" className="alert-action-engdas">
-              View Schedule <FaArrowRight />
-            </Link>
-          </div>
-        )}
-
-        {/* Pending Tasks Alert (count matches sidebar red dots) */}
-        {stats.pendingTasks > 0 && (
-          <div className="engdas-pending-alert">
-            <div className="alert-icon-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
-              <FaExclamationTriangle />
-            </div>
-            <div className="alert-content-engdas">
-              <strong>You have {stats.pendingTasks} pending task(s)</strong>
-              <p>Complete these tasks to move your projects forward.</p>
-            </div>
-            <Link to="#pending-tasks" className="alert-action-engdas" onClick={(e) => {
-              e.preventDefault();
-              document.querySelector('.engdas-pending-tasks-section')?.scrollIntoView({ behavior: 'smooth' });
-            }}>
-              View Tasks <FaArrowRight />
-            </Link>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="engdas-quick-actions">
-          <h3 className="quick-actions-title-engdas">Quick Actions</h3>
-          <div className="engdas-action-grid">
-            <Link to="/app/engineer/assessment" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6' }}>
-                <FaClipboardList />
-              </div>
-              <span className="quick-action-label-engdas">My Assessments</span>
-              <FaChevronRight className="quick-action-arrow-engdas" />
-            </Link>
-            <Link to="/app/engineer/schedule" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6' }}>
-                <FaCalendarAlt />
-              </div>
-              <span className="quick-action-label-engdas">My Schedule</span>
-              <FaChevronRight className="quick-action-arrow-engdas" />
-            </Link>
-            <Link to="/app/engineer/project" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
-                <FaTools />
-              </div>
-              <span className="quick-action-label-engdas">My Projects</span>
-              <FaChevronRight className="quick-action-arrow-engdas" />
-            </Link>
-            <Link to="/app/engineer/device" className="quick-action-item-engdas">
-              <div className="quick-action-icon-engdas" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
+            <div className="engdas-topbar-squares">
+              <span className="engdas-squares-caption">Quick Actions</span>
+              <Link to="/app/engineer/assessment" className="engdas-square-btn" title="My Assessments" aria-label="My Assessments" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6' }}>
+                <FaClipboardCheck />
+              </Link>
+              <Link to="/app/engineer/schedule" className="engdas-square-btn" title="My Schedule" aria-label="My Schedule" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6' }}>
+                <FaCalendarCheck />
+              </Link>
+              <Link to="/app/engineer/project" className="engdas-square-btn" title="My Projects" aria-label="My Projects" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
+                <FaSolarPanel />
+              </Link>
+              <Link to="/app/engineer/device" className="engdas-square-btn" title="My Devices" aria-label="My Devices" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
                 <FaMicrochip />
-              </div>
-              <span className="quick-action-label-engdas">My Devices</span>
-              <FaChevronRight className="quick-action-arrow-engdas" />
-            </Link>
+              </Link>
+            </div>
           </div>
+          {stats.pendingTasks > 0 && (
+            <div className="engdas-topbar-right">
+              <div className="engdas-inline-alert">
+                <span className="engdas-inline-alert-icon" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
+                  <FaExclamationTriangle />
+                </span>
+                <strong className="engdas-inline-alert-text">You have {stats.pendingTasks} pending task(s)</strong>
+                <Link to="#pending-tasks" className="alert-action-engdas engdas-inline-alert-btn" onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('.engdas-pending-tasks-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
+                  View Tasks <FaArrowRight />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Stats Cards - 4 cards only - FIXED */}
+        {/* Stats Cards — admin-sized with icons + sparkline */}
         <div className="engdas-stats-grid">
           <div className="stat-card-engdas">
+            <div className="stat-card-header-engdas">
+              <div className="stat-icon-wrapper-engdas" style={{ background: 'rgba(243, 156, 18, 0.12)', color: '#F39C12' }}>
+                <FaSolarPanel />
+              </div>
+            </div>
             <div className="stat-content-engdas">
-              <span className="stat-label-engdas">Active Projects</span>
               <span className="stat-value-engdas">{stats.myProjects}</span>
+              <span className="stat-label-engdas">Active Projects</span>
               <span className="stat-trend-engdas">Assigned to you</span>
             </div>
+            <Sparkline data={statTrends.projects} />
           </div>
           <div className="stat-card-engdas">
+            <div className="stat-card-header-engdas">
+              <div className="stat-icon-wrapper-engdas" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6' }}>
+                <FaClipboardCheck />
+              </div>
+            </div>
             <div className="stat-content-engdas">
-              <span className="stat-label-engdas">Pending Assessments</span>
               <span className="stat-value-engdas">{stats.myAssessments}</span>
+              <span className="stat-label-engdas">Pending Assessments</span>
               <span className="stat-trend-engdas">Need your attention</span>
             </div>
+            <Sparkline data={statTrends.assessments} />
           </div>
           <div className="stat-card-engdas">
+            <div className="stat-card-header-engdas">
+              <div className="stat-icon-wrapper-engdas" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981' }}>
+                <FaExclamationTriangle />
+              </div>
+            </div>
             <div className="stat-content-engdas">
-              <span className="stat-label-engdas">Pending Tasks</span>
               <span className="stat-value-engdas">{stats.pendingTasks}</span>
+              <span className="stat-label-engdas">Pending Tasks</span>
               <span className="stat-trend-engdas">Require action</span>
             </div>
+            <Sparkline data={statTrends.tasks} />
           </div>
-          <div className="stat-card-engdas">
+          <Link to="/app/engineer/schedule" className="stat-card-engdas stat-card-link-engdas" title="Go to My Schedule" aria-label="Go to My Schedule">
+            <div className="stat-card-header-engdas">
+              <div className="stat-icon-wrapper-engdas" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6' }}>
+                <FaCalendarCheck />
+              </div>
+            </div>
             <div className="stat-content-engdas">
-              <span className="stat-label-engdas">Upcoming Schedules</span>
               <span className="stat-value-engdas">{stats.mySchedules}</span>
+              <span className="stat-label-engdas">Upcoming Schedules</span>
               <span className="stat-trend-engdas">This week</span>
             </div>
+            <Sparkline data={statTrends.schedules} />
+          </Link>
+        </div>
+
+        {/* Schedule + Recent Customers side-by-side (cards only, no buttons) */}
+        <div className="engdas-charts-row">
+          <div className="engdas-chart-card">
+            <div className="section-header-engdas">
+              <h2 className="section-title-engdas">7-Day Schedule</h2>
+              <span className="engdas-chart-sub">Upcoming visits</span>
+            </div>
+            <div className="engdas-chart-body">
+              <ResponsiveContainer width="100%" height="100%" minHeight={230}>
+                <BarChart data={weeklyScheduleData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis dataKey="label" height={24} tickMargin={4} interval={0} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(243,156,18,0.08)' }} />
+                  <Bar dataKey="count" name="Visits" fill="#F39C12" radius={[6, 6, 2, 2]} maxBarSize={34} />
+                </BarChart>
+              </ResponsiveContainer>
+              {weeklyScheduleData.reduce((sum, d) => sum + d.count, 0) === 0 && (
+                <div className="engdas-chart-empty">No visits scheduled in the next 7 days</div>
+              )}
+            </div>
+          </div>
+
+          <div className="engdas-recent-card engdas-recent-side">
+            <div className="section-header-engdas">
+              <h2 className="section-title-engdas">Recent Customers</h2>
+              <span className="engdas-chart-sub">Latest assigned work</span>
+            </div>
+            {recentCustomers.length > 0 ? (
+              <div className="engdas-recent-list">
+                {recentCustomers.map((c, index) => (
+                  <React.Fragment key={c.id}>
+                    <div className="engdas-recent-item">
+                      <div className="engdas-recent-avatar">
+                        <span className="engdas-recent-initials">{getInitials(c.name)}</span>
+                        {c.photo ? (
+                          <img
+                            src={c.photo}
+                            alt={c.name}
+                            className="engdas-recent-photo"
+                            loading="lazy"
+                            onError={(e) => { e.currentTarget.remove(); }}
+                          />
+                        ) : null}
+                      </div>
+                      <div className="engdas-recent-info">
+                        <span className="engdas-recent-name">{c.name}</span>
+                        <span className="engdas-recent-meta">{c.meta} • {formatDate(c.date)}</span>
+                      </div>
+                      <div className="engdas-recent-status">
+                        {getStatusBadge(c.status, c.statusType)}
+                      </div>
+                    </div>
+                    {index < recentCustomers.length - 1 && <div className="activity-divider-engdas"></div>}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-small-engdas">
+                <p className="empty-text-engdas">No customers assigned yet</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -606,35 +819,6 @@ const EngineerDashboard = () => {
                 )}
               </div>
             </div>
-
-            {/* Today's Schedules */}
-            {todaySchedules.length > 0 && (
-              <div className="today-schedules-section-engdas">
-                <h3 className="schedules-title-engdas">
-                  <FaClock className="schedules-icon-engdas" />
-                  Today's Schedule
-                </h3>
-                <div className="schedules-list-engdas">
-                  {todaySchedules.slice(0, 3).map(schedule => (
-                    <div key={schedule._id} className="schedule-item-engdas">
-                      <div className="schedule-time-engdas">
-                        <span className="schedule-hour-engdas">{formatTime(schedule.scheduledTime)}</span>
-                      </div>
-                      <div className="schedule-info-engdas">
-                        <span className="schedule-title-engdas">{schedule.title}</span>
-                        <span className="schedule-client-engdas">
-                          <FaUser className="schedule-user-icon-engdas" />
-                          {schedule.clientName}
-                        </span>
-                      </div>
-                      <div className="schedule-status-engdas">
-                        {getStatusBadge(schedule.status, 'schedule')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

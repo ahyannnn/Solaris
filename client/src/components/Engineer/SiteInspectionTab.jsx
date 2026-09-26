@@ -11,6 +11,7 @@ const SiteInspectionTab = ({
   onSiteInspectionDataChange,
   deviceAssigned,
   assessmentStatus,
+  bookingReference,
   appliancesLocked = false,
   deployNotes,
   onDeployNotesChange,
@@ -491,6 +492,7 @@ const SiteInspectionTab = ({
       {/* Action Buttons - Deploy stays on top; Save moved to bottom-right */}
       <div className="action-buttons-enad">
         {/* Deploy Device Button - Only show if device is assigned AND not deployed yet */}
+        {/* Manual fallback: auto-deploy happens when ESP32 AP portal Save sends first data */}
         {deviceAssigned &&
           !siteInspectionData.deviceDeployedAt &&  // ✅ Prevents re-deployment
           assessmentStatus !== 'device_deployed' &&
@@ -509,6 +511,26 @@ const SiteInspectionTab = ({
             </button>
           )}
       </div>
+
+      {/* Auto-deploy hint: ESP32 AP portal Save marks device_deployed via bookingReference */}
+      {deviceAssigned &&
+        !siteInspectionData.deviceDeployedAt &&
+        assessmentStatus !== 'device_deployed' &&
+        assessmentStatus !== 'completed' && (
+          <div className="form-hint-enad" style={{ margin: '8px 0 12px' }}>
+            {bookingReference ? (
+              <span>
+                Tip: Save in the ESP32_Config portal with BookingRef <strong>{bookingReference}</strong> to
+                auto-mark Device Deployed. Manual button above stays as fallback if the portal uses N/A.
+              </span>
+            ) : (
+              <span>
+                Tip: Save in the ESP32_Config portal to auto-mark Device Deployed. Manual button above stays
+                as fallback.
+              </span>
+            )}
+          </div>
+        )}
 
       {/* ===== APPLIANCES SECTION ===== */}
       <div className="form-section-enad">

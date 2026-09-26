@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import {
   FaSearch,
+  FaCalendarAlt,
   FaEye,
   FaCheckCircle,
   FaTimesCircle,
@@ -69,6 +70,10 @@ const SiteAssessment = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [approveNotes, setApproveNotes] = useState('');
+  // Monitoring extension review (Terms §5)
+  const [showExtensionModal, setShowExtensionModal] = useState(false);
+  const [extensionNote, setExtensionNote] = useState('');
+  const [extensionDays, setExtensionDays] = useState(7);
   const [verificationNote, setVerificationNote] = useState('');
   const [selectedEngineerId, setSelectedEngineerId] = useState('');
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
@@ -390,6 +395,49 @@ const SiteAssessment = () => {
     }
   };
 
+  const handleReviewExtension = async (approved) => {
+    if (!selectedItem || isSubmitting) return;
+    if (selectedItem.monitoringExtension?.status !== 'pending') {
+      showToast('Extension request is no longer pending — list refreshed', 'info');
+      setShowExtensionModal(false);
+      fetchData();
+      fetchStats();
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/extend-monitoring-review`,
+        {
+          approved,
+          adminNote: extensionNote,
+          approvedDays: parseInt(extensionDays, 10) || selectedItem.monitoringExtension?.requestedDays || 7
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data?.alreadyProcessed) {
+        showToast(response.data.message || 'Extension already processed — list refreshed', 'info');
+      } else {
+        showToast(
+          approved ? `Monitoring extended by ${response.data?.extension?.approvedDays || extensionDays} day(s). Existing readings kept.` : 'Extension request declined.',
+          approved ? 'success' : 'warning'
+        );
+      }
+      setShowExtensionModal(false);
+      setSelectedItem(null);
+      setExtensionNote('');
+      setOpenDropdownId(null);
+      fetchData();
+      fetchStats();
+    } catch (error) {
+      console.error('Error reviewing extension:', error);
+      showToast(error.response?.data?.message || 'Failed to review extension', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleVerifyPayment = async (verified) => {
     if (!selectedItem) return;
     setIsSubmitting(true);
@@ -669,12 +717,14 @@ const SiteAssessment = () => {
 
   // Toggle dot only: true when the row actually needs admin action.
   // Free assigned is engineer's turn (marks processing), so no dot.
-  // Pre engineer-owned stages (report_draft, device_deployed, data_*) never dot.
+  // Pre engineer-owned stages (report_draft, device_deployed, data_*) never dot —
+  // EXCEPT a pending monitoring-extension request, which needs admin review.
   // Legacy: engineer assigned but no IoT device — dot removed (no available device, aligns with sidebar badge)
   const hasNeedsAction = (item) => {
     if (activeTab === 'free-quotes') {
       return ['pending', 'processing'].includes(item.status);
     }
+    if (item.monitoringExtension?.status === 'pending') return true;
     if (['report_draft', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(item.assessmentStatus)) return false;
     const hasDevice = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
     if (item.assignedEngineerId && !hasDevice) return false;
@@ -816,6 +866,16 @@ const SiteAssessment = () => {
     }
   }, [preAssessments, showRefundModal]);
 
+  // Same realtime sync for the extension review modal
+  useEffect(() => {
+    if (showExtensionModal && selectedItem?._id) {
+      const fresh = preAssessments.find((a) => a._id === selectedItem._id);
+      if (fresh && fresh.monitoringExtension?.status !== selectedItem.monitoringExtension?.status) {
+        setSelectedItem(fresh);
+      }
+    }
+  }, [preAssessments, showExtensionModal]);
+
   const handleProcessRefund = async (action) => {
     if (!selectedItem || isSubmitting) return;
     const currentRefundStatus = selectedItem.cancellation?.refundStatus || 'none';
@@ -913,6 +973,12 @@ const SiteAssessment = () => {
       if (item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && !item.assignedEngineerId) {
         actions.push(
           { label: 'Assign Engineer & Device', icon: <FaUserCog />, action: () => handleOpenAssignModal(item), color: 'primary' }
+        );
+      }
+      // Monitoring extension request awaiting review (Terms §5)
+      if (item.monitoringExtension?.status === 'pending' && ['device_deployed', 'data_collecting'].includes(item.assessmentStatus)) {
+        actions.push(
+          { label: `Review Extension (+${item.monitoringExtension.requestedDays || 0} day${(item.monitoringExtension.requestedDays || 0) === 1 ? '' : 's'})`, icon: <FaCalendarAlt />, action: () => { setSelectedItem(item); setExtensionDays(item.monitoringExtension?.requestedDays || 7); setExtensionNote(''); setShowExtensionModal(true); setOpenDropdownId(null); }, color: 'warning' }
         );
       }
       if ((item.paymentGateway === 'paymongo' || item.autoVerified === true) && item.paymentStatus === 'paid') {
@@ -1571,6 +1637,32 @@ const SiteAssessment = () => {
           </div>
         )}
 
+        {showExtensionModal && selectedItem && selectedItem.monitoringExtension?.status === 'pending' && (
+          <div className="modal-overlay-adminbills_" onClick={() => setShowExtensionModal(false)}>
+            <div className="modal-adminbills_" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-adminbills_"><h3>Review Monitoring Extension</h3><button className="modal-close-adminbills_" onClick={() => setShowExtensionModal(false)}>×</button></div>
+              <div className="modal-body-adminbills_">
+                <div className="detail-row-adminbills_"><span>Reference:</span><strong>{selectedItem.bookingReference}</strong></div>
+                <div className="detail-row-adminbills_"><span>Client:</span><strong>{selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</strong></div>
+                <div className="detail-row-adminbills_"><span>Engineer:</span><strong>{getEngineerName(selectedItem.assignedEngineerId)}</strong></div>
+                <div className="detail-row-adminbills_"><span>Engineer reason:</span><strong>{selectedItem.monitoringExtension?.reason || '—'}</strong></div>
+                {selectedItem.monitoringExtension?.statsSnapshot && (
+                  <div className="detail-row-adminbills_"><span>Data at request:</span><strong>{selectedItem.monitoringExtension.statsSnapshot.totalReadings || 0} readings · {selectedItem.monitoringExtension.statsSnapshot.peakSunHours || 0} h/day · {selectedItem.monitoringExtension.statsSnapshot.averageIrradiance || 0} W/m² · {selectedItem.monitoringExtension.statsSnapshot.affectedDays || 0}/{selectedItem.monitoringExtension.statsSnapshot.monitoredDays || 0} days affected</strong></div>
+                )}
+                <div className="detail-row-adminbills_"><span>Current end:</span><strong>{selectedItem.dataCollectionEnd ? formatDate(selectedItem.dataCollectionEnd) : 'Not set'}</strong></div>
+                <div className="form-group-adminbills_"><label>Approved days (1–14)</label><input type="number" min="1" max="14" value={extensionDays} onChange={(e) => setExtensionDays(e.target.value)} /></div>
+                <div className="form-group-adminbills_"><label>Admin note (Optional)</label><textarea rows="2" value={extensionNote} onChange={(e) => setExtensionNote(e.target.value)} placeholder="Optional note to the engineer" /></div>
+                <div className="info-box-adminbills_"><FaInfoCircle /><small>Approving pushes collection out by the approved days at no extra cost (Terms §5). The device stays deployed and all existing readings are kept.</small></div>
+              </div>
+              <div className="modal-actions-adminbills_">
+                <button className="cancel-btn-adminbills_" onClick={() => setShowExtensionModal(false)}>Cancel</button>
+                <button className="reject-btn-adminbills_" onClick={() => handleReviewExtension(false)} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Decline'}</button>
+                <button className="approve-btn-adminbills_" onClick={() => handleReviewExtension(true)} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : 'Approve'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showDetailModal && selectedItem && (
           <div className="modal-overlay-adminbills_" onClick={() => setShowDetailModal(false)}>
             <div className="modal-adminbills_ detail-modal-adminbills_" onClick={e => e.stopPropagation()}>
@@ -1582,6 +1674,9 @@ const SiteAssessment = () => {
                 ) : (
                   <>
                   <div className="detail-section-adminbills_"><h4>Assessment</h4><p><strong>Reference:</strong> {selectedItem.bookingReference}</p><p><strong>Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p><p><strong>Payment:</strong> {selectedItem.paymentStatus}</p><p><strong>Assessment:</strong> {selectedItem.assessmentStatus}</p><p><strong>Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p><p><strong>Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId)}</p><p><strong>Site Visit:</strong> {selectedItem.siteVisitDate ? formatDate(selectedItem.siteVisitDate) : 'Not set'}</p><p><strong>Method:</strong> {selectedItem.paymentMethod || '—'}</p></div>
+                  {selectedItem.monitoringExtension && selectedItem.monitoringExtension.status !== 'none' && (
+                    <div className="detail-section-adminbills_"><h4>Monitoring Extension (Terms §5)</h4><p><strong>Status:</strong> {selectedItem.monitoringExtension.status}</p><p><strong>Requested:</strong> +{selectedItem.monitoringExtension.requestedDays || 0} day(s){selectedItem.monitoringExtension.requestedAt ? ` on ${formatDate(selectedItem.monitoringExtension.requestedAt)}` : ''}</p>{(selectedItem.monitoringExtension.approvedDays || 0) > 0 && <p><strong>Approved:</strong> +{selectedItem.monitoringExtension.approvedDays} day(s)</p>}<p><strong>Reason:</strong> {selectedItem.monitoringExtension.reason || '—'}</p>{selectedItem.monitoringExtension.adminNote && <p><strong>Admin note:</strong> {selectedItem.monitoringExtension.adminNote}</p>}{selectedItem.monitoringExtension.statsSnapshot && <p><strong>Data at request:</strong> {selectedItem.monitoringExtension.statsSnapshot.totalReadings || 0} readings, {selectedItem.monitoringExtension.statsSnapshot.peakSunHours || 0} h/day, {selectedItem.monitoringExtension.statsSnapshot.averageIrradiance || 0} W/m², {selectedItem.monitoringExtension.statsSnapshot.affectedDays || 0}/{selectedItem.monitoringExtension.statsSnapshot.monitoredDays || 0} days affected</p>}{selectedItem.monitoringExtension.status === 'pending' && ['device_deployed', 'data_collecting'].includes(selectedItem.assessmentStatus) && <p><button className="approve-btn-adminbills_" onClick={() => { setExtensionDays(selectedItem.monitoringExtension?.requestedDays || 7); setExtensionNote(''); setShowExtensionModal(true); }}>Review Request</button></p>}</div>
+                  )}
                   {selectedItem.cancellation && (
                     <div className="detail-section-adminbills_"><h4>Cancellation &amp; Refund</h4><p><strong>Cancelled:</strong> {formatDate(selectedItem.cancellation.cancelledAt)}</p><p><strong>Reason:</strong> {selectedItem.cancellation.reason || '—'}</p><p><strong>Tier:</strong> {selectedItem.cancellation.policyTier}</p><p><strong>Refund:</strong> {selectedItem.cancellation.refundPercentage}% — {formatCurrency(selectedItem.cancellation.refundAmount)}</p><p><strong>Status:</strong> {selectedItem.cancellation.refundStatus}</p><p><strong>Method:</strong> {selectedItem.cancellation.refundMethod}</p>{selectedItem.cancellation.refundReference && <p><strong>Ref:</strong> {selectedItem.cancellation.refundReference}</p>}</div>
                   )}

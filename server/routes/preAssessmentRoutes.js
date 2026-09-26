@@ -39,6 +39,8 @@ const {
   // Admin functions
   deployDevice,
   retrieveDevice,
+  requestMonitoringExtension,
+  reviewMonitoringExtension,
   updatePaymentStatus,
   approveBooking,
   // NEW: PDF Generation and IoT Analysis
@@ -67,6 +69,8 @@ router.put('/:id/process-refund', verifyToken, admin, processRefund);
 // ============ ENGINEER DEVICE FUNCTIONS ============
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);
 router.put('/:id/retrieve-device', verifyToken, engineer, retrieveDevice);
+router.post('/:id/extend-monitoring-request', verifyToken, engineer, requestMonitoringExtension);
+router.put('/:id/extend-monitoring-review', verifyToken, admin, reviewMonitoringExtension);
 router.get('/:id/iot-data', verifyToken, engineer, getIoTData);
 
 

@@ -124,6 +124,41 @@ discountPercentage: {
   dataCollectionEnd: Date,
   totalReadings: { type: Number, default: 0 },
 
+  // ============ MONITORING EXTENSION (Terms §5 — weather / insufficient data) ============
+  // Engineer requests extra monitoring days when collected data is not enough
+  // to retrieve (e.g. cloudy week, low irradiance). Admin approves/declines.
+  // Readings are never deleted — approval only pushes dataCollectionEnd out.
+  monitoringExtension: {
+    status: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'declined'],
+      default: 'none'
+    },
+    requestedDays: { type: Number, default: 0 },
+    approvedDays: { type: Number, default: 0 },
+    reason: String,
+    adminNote: String,
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    requestedAt: Date,
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    reviewedAt: Date,
+    // Data-quality snapshot at request time (shown to admin on review)
+    statsSnapshot: {
+      totalReadings: Number,
+      averageIrradiance: Number,
+      peakSunHours: Number,
+      affectedDays: Number,
+      monitoredDays: Number
+    },
+    history: [{
+      action: { type: String, enum: ['requested', 'approved', 'declined'] },
+      days: Number,
+      reason: String,
+      by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      at: { type: Date, default: Date.now }
+    }]
+  },
+
   // ============ SITE VISIT ============
   assignedEngineerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   siteVisitDate: Date,

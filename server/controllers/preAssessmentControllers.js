@@ -4149,6 +4149,8 @@ exports.getIoTData = async (req, res) => {
       maxIrradiance: 0,
       minIrradiance: 0,
       peakSunHours: 0,
+      affectedDays: 0,
+      monitoredDays: 0,
 
       averageTemperature: 0,
       minTemperature: 0,
@@ -4196,6 +4198,21 @@ exports.getIoTData = async (req, res) => {
       }
 
       stats.peakSunHours = Math.round((totalPeakSunHoursOverPeriod / numberOfDays) * 100) / 100;
+
+      // ============ WEATHER-AFFECTED DAYS (Terms §5) ============
+      // A calendar day averaging below 200 W/m² counts as weather-affected.
+      // 3+ affected days is the Terms §5 trigger for extending monitoring.
+      const readingsByDay = {};
+      sensorData.forEach((r) => {
+        const key = new Date(r.timestamp).toISOString().slice(0, 10);
+        (readingsByDay[key] = readingsByDay[key] || []).push(r.irradiance || 0);
+      });
+      stats.monitoredDays = Object.keys(readingsByDay).length;
+      stats.affectedDays = Object.values(readingsByDay).filter((vals) => {
+        const pos = vals.filter((v) => v > 0);
+        const avg = pos.length ? pos.reduce((a, b) => a + b, 0) / pos.length : 0;
+        return avg < 200;
+      }).length;
 
       // ============ TEMPERATURE METRICS ============
       const tempValues = sensorData
@@ -4250,6 +4267,7 @@ exports.getIoTData = async (req, res) => {
       success: true,
       readings: formattedReadings,
       stats: stats,
+      extension: assessment.monitoringExtension || { status: 'none' },
       device: {
         deviceId: assessment.iotDeviceId?.deviceId,
         deviceName: assessment.iotDeviceId?.deviceName,
@@ -4398,6 +4416,316 @@ exports.retrieveDevice = async (req, res) => {
   } catch (error) {
     console.error('Retrieve device error:', error);
     res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
+  }
+};
+
+// ============ MONITORING EXTENSION (Terms §5 — weather / insufficient data) ============
+// When the collected data is not enough to retrieve (e.g. a cloudy week with
+// low irradiance), the engineer may request extra monitoring days instead of
+// retrieving poor data. Approval only pushes dataCollectionEnd out — readings
+// are never deleted. Thresholds must stay in step with the client helper
+// getDataSufficiency in pages/Engineer/iotdevice.jsx.
+const MONITORING_EXTENSION = {
+  MIN_PEAK_SUN_HOURS: 3.0,
+  MIN_AVG_IRRADIANCE: 200, // W/m² — matches the "useful sun" cutoff used for PSH
+  MAX_AFFECTED_DAYS: 2, // 3+ affected days triggers Terms §5
+  AFFECTED_DAY_IRRADIANCE: 200, // day avg below this = weather-affected day
+  DEFAULT_EXTRA_DAYS: 7,
+  MAX_EXTRA_DAYS: 14,
+  MAX_APPROVED_EXTENSIONS: 1,
+  ACTIVE_STATUSES: ['device_deployed', 'data_collecting']
+};
+
+// Server-side data-quality snapshot for the CURRENT deployment only
+// (scoped by bookingReference + deviceId + dataCollectionStart, like getIoTData).
+async function computeMonitoringStats(assessment, deviceId) {
+  const SensorData = require('../models/SensorData');
+  const query = { deviceId, bookingReference: assessment.bookingReference };
+  if (assessment.dataCollectionStart) {
+    query.timestamp = { $gte: new Date(assessment.dataCollectionStart) };
+  }
+  const readings = await SensorData.find(query)
+    .select('timestamp irradiance')
+    .sort({ timestamp: 1 })
+    .lean();
+
+  const totalReadings = readings.length;
+  const positive = readings.map((r) => r.irradiance || 0).filter((v) => v > 0);
+  const averageIrradiance = positive.length
+    ? Math.round((positive.reduce((a, b) => a + b, 0) / positive.length) * 10) / 10
+    : 0;
+
+  // Per-calendar-day averages — a day averaging below the cutoff is "affected"
+  const byDay = {};
+  readings.forEach((r) => {
+    const key = new Date(r.timestamp).toISOString().slice(0, 10);
+    (byDay[key] = byDay[key] || []).push(r.irradiance || 0);
+  });
+  const monitoredDays = Object.keys(byDay).length;
+  let affectedDays = 0;
+  Object.values(byDay).forEach((vals) => {
+    const pos = vals.filter((v) => v > 0);
+    const avg = pos.length ? pos.reduce((a, b) => a + b, 0) / pos.length : 0;
+    if (avg < MONITORING_EXTENSION.AFFECTED_DAY_IRRADIANCE) affectedDays += 1;
+  });
+
+  // Peak sun hours — same 15-min interval method as getIoTData
+  const INTERVAL_HOURS = 0.25;
+  let totalPSH = 0;
+  for (let i = 0; i < readings.length - 1; i++) {
+    const avg = ((readings[i].irradiance || 0) + (readings[i + 1].irradiance || 0)) / 2;
+    if (avg >= 1000) totalPSH += INTERVAL_HOURS;
+  }
+  const peakSunHours = Math.round((totalPSH / Math.max(1, monitoredDays)) * 100) / 100;
+
+  return { totalReadings, averageIrradiance, peakSunHours, affectedDays, monitoredDays };
+}
+
+function evaluateDataSufficiency(s) {
+  const reasons = [];
+  if (!s || !s.totalReadings) {
+    reasons.push('No readings collected yet.');
+  } else {
+    if ((s.peakSunHours || 0) < MONITORING_EXTENSION.MIN_PEAK_SUN_HOURS) {
+      reasons.push(`Peak sun hours too low (${s.peakSunHours} h/day — minimum ${MONITORING_EXTENSION.MIN_PEAK_SUN_HOURS} for reliable sizing).`);
+    }
+    if ((s.averageIrradiance || 0) < MONITORING_EXTENSION.MIN_AVG_IRRADIANCE) {
+      reasons.push(`Average irradiance too low (${s.averageIrradiance} W/m² — minimum ${MONITORING_EXTENSION.MIN_AVG_IRRADIANCE}).`);
+    }
+    if ((s.affectedDays || 0) > MONITORING_EXTENSION.MAX_AFFECTED_DAYS) {
+      reasons.push(`${s.affectedDays} of ${s.monitoredDays} monitoring days affected by poor weather (Terms §5).`);
+    }
+  }
+  return { sufficient: reasons.length === 0, reasons };
+}
+
+// @desc    Request extra monitoring days (insufficient data — Terms §5)
+// @route   POST /api/pre-assessments/:id/extend-monitoring-request
+// @access  Private (Engineer)
+exports.requestMonitoringExtension = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const { requestedDays, reason } = req.body;
+
+    const assessment = await PreAssessment.findById(id).populate('iotDeviceId');
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    if (!MONITORING_EXTENSION.ACTIVE_STATUSES.includes(assessment.assessmentStatus)) {
+      return res.status(400).json({ message: 'Device is no longer collecting data for this assessment.' });
+    }
+
+    if (assessment.deviceRetrievedAt) {
+      return res.status(400).json({ message: 'Device already retrieved — extension is no longer possible.' });
+    }
+
+    const ext = assessment.monitoringExtension || {};
+    if (ext.status === 'pending') {
+      return res.status(400).json({ message: 'An extension request is already pending admin approval.' });
+    }
+    const approvedCount = (ext.history || []).filter((h) => h.action === 'approved').length;
+    if (approvedCount >= MONITORING_EXTENSION.MAX_APPROVED_EXTENSIONS) {
+      return res.status(400).json({ message: 'Monitoring has already been extended once for this assessment.' });
+    }
+
+    if (!reason || !String(reason).trim()) {
+      return res.status(400).json({ message: 'A reason is required (e.g. extended cloud cover, low irradiance).' });
+    }
+
+    const deviceId = assessment.iotDeviceId?.deviceId;
+    if (!deviceId) {
+      return res.status(400).json({ message: 'No device deployed for this assessment.' });
+    }
+
+    // Server-side sufficiency check — extension is only for insufficient data
+    const stats = await computeMonitoringStats(assessment, deviceId);
+    const { sufficient, reasons } = evaluateDataSufficiency(stats);
+    if (sufficient) {
+      return res.status(400).json({ message: 'Collected data is sufficient — please retrieve the device instead.', reasons });
+    }
+
+    // Guard against premature requests (device just deployed — Terms §5
+    // extensions are for monitoring days already lost to weather, not day one)
+    if (assessment.dataCollectionStart) {
+      const elapsedMs = Date.now() - new Date(assessment.dataCollectionStart).getTime();
+      if (elapsedMs < 24 * 60 * 60 * 1000 && (stats.monitoredDays || 0) < 2) {
+        return res.status(400).json({ message: 'Monitoring just started — please allow at least a day of data collection before requesting an extension.' });
+      }
+    }
+
+    const days = Math.min(
+      MONITORING_EXTENSION.MAX_EXTRA_DAYS,
+      Math.max(1, parseInt(requestedDays, 10) || MONITORING_EXTENSION.DEFAULT_EXTRA_DAYS)
+    );
+
+    assessment.monitoringExtension = {
+      status: 'pending',
+      requestedDays: days,
+      approvedDays: 0,
+      reason: String(reason).trim(),
+      adminNote: '',
+      requestedBy: engineerId,
+      requestedAt: new Date(),
+      reviewedBy: null,
+      reviewedAt: null,
+      statsSnapshot: stats,
+      history: [
+        ...(ext.history || []),
+        { action: 'requested', days, reason: String(reason).trim(), by: engineerId, at: new Date() }
+      ]
+    };
+    await assessment.save();
+
+    const engineerName = req.user.fullName || req.user.email || 'Engineer';
+    try {
+      await sendAdminBroadcast(
+        'Monitoring Extension Requested',
+        `Engineer ${engineerName} requested +${days} monitoring day(s) for ${assessment.bookingReference}: ${String(reason).trim()} (PSH ${stats.peakSunHours} h/day, avg ${stats.averageIrradiance} W/m², ${stats.affectedDays}/${stats.monitoredDays} days affected).`,
+        'warning',
+        '/admin/site-assessment',
+        {
+          bookingReference: assessment.bookingReference,
+          assessmentId: assessment._id,
+          requestedDays: days,
+          engineerName,
+          engineerId,
+          statsSnapshot: stats
+        }
+      );
+    } catch (notifyErr) {
+      console.error('Extension request admin broadcast failed:', notifyErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: `Extension request sent to admin (+${days} day(s)). The device keeps collecting meanwhile.`,
+      extension: assessment.monitoringExtension
+    });
+  } catch (error) {
+    console.error('Request monitoring extension error:', error);
+    res.status(500).json({ message: 'Failed to request monitoring extension', error: error.message });
+  }
+};
+
+// @desc    Review a monitoring extension request (approve = extend dataCollectionEnd)
+// @route   PUT /api/pre-assessments/:id/extend-monitoring-review
+// @access  Private (Admin)
+exports.reviewMonitoringExtension = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.id;
+    const { approved, adminNote, approvedDays } = req.body;
+
+    const assessment = await PreAssessment.findById(id)
+      .populate('iotDeviceId')
+      .populate('clientId', 'contactFirstName contactLastName userId');
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    const ext = assessment.monitoringExtension || {};
+    if (ext.status !== 'pending') {
+      return res.status(400).json({
+        message: `Extension request is already ${ext.status || 'absent'} — list refreshed.`,
+        alreadyProcessed: true,
+        extension: ext
+      });
+    }
+
+    const historyEntry = {
+      action: approved ? 'approved' : 'declined',
+      days: ext.requestedDays || 0,
+      reason: adminNote ? String(adminNote).trim() : (approved ? 'Approved' : 'Declined'),
+      by: adminId,
+      at: new Date()
+    };
+
+    if (approved) {
+      const days = Math.min(
+        MONITORING_EXTENSION.MAX_EXTRA_DAYS,
+        Math.max(1, parseInt(approvedDays, 10) || ext.requestedDays || MONITORING_EXTENSION.DEFAULT_EXTRA_DAYS)
+      );
+      const base = assessment.dataCollectionEnd ? new Date(assessment.dataCollectionEnd) : new Date();
+      assessment.dataCollectionEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+      assessment.monitoringExtension.status = 'approved';
+      assessment.monitoringExtension.approvedDays = days;
+      assessment.monitoringExtension.adminNote = adminNote ? String(adminNote).trim() : '';
+      assessment.monitoringExtension.reviewedBy = adminId;
+      assessment.monitoringExtension.reviewedAt = new Date();
+      assessment.monitoringExtension.history = [...(ext.history || []), { ...historyEntry, days }];
+      await assessment.save();
+
+      // Notify engineer + client (device stays — client must keep it in place)
+      try {
+        if (assessment.assignedEngineerId) {
+          await sendNotification(
+            assessment.assignedEngineerId,
+            'Monitoring Extension Approved',
+            `Admin approved +${days} monitoring day(s) for ${assessment.bookingReference}. Collection now ends ${assessment.dataCollectionEnd.toDateString()}. Existing readings are kept.`,
+            'success',
+            '/app/engineer/iot-devices',
+            { bookingReference: assessment.bookingReference, assessmentId: assessment._id, approvedDays: days }
+          );
+        }
+        const clientUserId = assessment.clientId?.userId;
+        if (clientUserId) {
+          await sendNotification(
+            clientUserId,
+            'Monitoring Extended',
+            `Solar monitoring for ${assessment.bookingReference} was extended by ${days} day(s) at no extra cost (weather-related, per Terms §5). Please keep the device in place.`,
+            'info',
+            '/pre-assessment/' + assessment._id,
+            { bookingReference: assessment.bookingReference, assessmentId: assessment._id, approvedDays: days }
+          );
+        }
+      } catch (notifyErr) {
+        console.error('Extension approval notifications failed:', notifyErr.message);
+      }
+
+      return res.json({
+        success: true,
+        message: `Monitoring extended by ${days} day(s). Existing readings kept.`,
+        dataCollectionEnd: assessment.dataCollectionEnd,
+        extension: assessment.monitoringExtension
+      });
+    }
+
+    assessment.monitoringExtension.status = 'declined';
+    assessment.monitoringExtension.adminNote = adminNote ? String(adminNote).trim() : '';
+    assessment.monitoringExtension.reviewedBy = adminId;
+    assessment.monitoringExtension.reviewedAt = new Date();
+    assessment.monitoringExtension.history = [...(ext.history || []), historyEntry];
+    await assessment.save();
+
+    try {
+      if (assessment.assignedEngineerId) {
+        await sendNotification(
+          assessment.assignedEngineerId,
+          'Monitoring Extension Declined',
+          `Admin declined the extension request for ${assessment.bookingReference}${assessment.monitoringExtension.adminNote ? ': ' + assessment.monitoringExtension.adminNote : '.'}`,
+          'warning',
+          '/app/engineer/iot-devices',
+          { bookingReference: assessment.bookingReference, assessmentId: assessment._id }
+        );
+      }
+    } catch (notifyErr) {
+      console.error('Extension decline notification failed:', notifyErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Extension request declined.',
+      extension: assessment.monitoringExtension
+    });
+  } catch (error) {
+    console.error('Review monitoring extension error:', error);
+    res.status(500).json({ message: 'Failed to review monitoring extension', error: error.message });
   }
 };
 // @desc    Get system recommendations based on IoT data and customer inputs

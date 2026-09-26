@@ -1801,13 +1801,17 @@ const ENGINEER_ITEMS_MAX_LIMIT = 50;
 
 // Needs-action rank mirror of siteassessment.jsx isAssessmentNeedsAction:
 // free quotes pending/assigned/processing; assessments scheduled/site_visit/
-// device/data phases (report_draft excluded — no action left).
+// and the post-retrieval analysis phase.
+//
+// 'device_deployed' is deliberately excluded: after deployment the engineer is
+// only waiting out the 7-14 day data-collection window, so there is nothing to
+// act on. Action resumes at 'data_analyzing', set when the device is retrieved.
+// 'data_collecting' is excluded for the same reason (and is never assigned
+// anywhere in the server).
 const QUOTE_NEEDS_ACTION = ['pending', 'assigned', 'processing'];
 const ASSESSMENT_NEEDS_ACTION = [
   'scheduled',
   'site_visit_ongoing',
-  'device_deployed',
-  'data_collecting',
   'data_analyzing'
 ];
 
@@ -2073,8 +2077,10 @@ exports.getEngineerAssessmentStats = async (req, res) => {
 // @desc    Count engineer's assessments waiting on my action (sidebar badge)
 // @route   GET /api/pre-assessments/engineer/assessment-action-counts
 // @access  Private (Engineer)
-// Counts actionable items (mirrors siteassessment.jsx isAssessmentNeedsAction):
-// FreeQuote pending/assigned/processing + PreAssessment scheduled/site_visit_ongoing/device_deployed/data_collecting/data_analyzing (report_draft excluded).
+// Counts actionable items. Uses the same ASSESSMENT_NEEDS_ACTION /
+// QUOTE_NEEDS_ACTION constants as the 'action' row sort (itemNeedsAction), so
+// the sidebar badge can never disagree with the table's needs-action dots.
+// Mirrored client-side by siteassessment.jsx isAssessmentNeedsAction.
 exports.getEngineerAssessmentActionCounts = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -2082,11 +2088,11 @@ exports.getEngineerAssessmentActionCounts = async (req, res) => {
     const [freeQuoteNeeds, preAssessmentNeeds] = await Promise.all([
       FreeQuote.countDocuments({
         assignedEngineerId: engineerId,
-        status: { $in: ['pending', 'assigned', 'processing'] }
+        status: { $in: QUOTE_NEEDS_ACTION }
       }),
       PreAssessment.countDocuments({
         assignedEngineerId: engineerId,
-        assessmentStatus: { $in: ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing'] }
+        assessmentStatus: { $in: ASSESSMENT_NEEDS_ACTION }
       })
     ]);
     res.json({
@@ -2134,33 +2140,45 @@ exports.getEngineerDeviceActionCounts = async (req, res) => {
     }
 
     const SensorData = require('../models/SensorData');
-    const map = new Map(); // deviceId -> assessmentId
-    const deviceIds = [];
-    assessments.forEach(a => {
-      const devId = a.iotDeviceId?.deviceId;
-      if (devId) {
-        deviceIds.push(devId);
-        map.set(devId, String(a._id));
-      }
-    });
 
-    if (deviceIds.length === 0) {
-      return res.json({ success: true, total: 0, retrievableIds: [] });
-    }
-
-    // Distinct deviceIds that have at least one reading
-    const agg = await SensorData.aggregate([
-      { $match: { deviceId: { $in: deviceIds } } },
-      { $group: { _id: '$deviceId' } }
-    ]);
-
-    const deviceIdsWithData = new Set(agg.map(r => r._id));
+    // Evaluate each assessment on its own, and scope the reading check to THIS
+    // deployment via dataCollectionStart.
+    //
+    // Device ids are reused across deployments, so matching SensorData by
+    // deviceId alone attributes a *previous* deployment's readings to the
+    // current assessment. Observed on IOT-260425-0003: 23 rows dated Apr 2026
+    // and some dated Jan 2000, while the live assessment had been deployed only
+    // minutes earlier with totalReadings 0. The badge lit up for a device that
+    // had in fact recorded nothing.
+    //
+    // "Usable" also means at least one non-zero measurement — a device can be
+    // reporting rows that are all 0/0/0 (just powered on, or a dead sensor).
+    // This matches the client rule (hasValidSensorData in
+    // pages/Engineer/iotdevice.jsx) so the badge and the button cannot disagree.
     const retrievableIds = [];
-    deviceIds.forEach(devId => {
-      if (deviceIdsWithData.has(devId)) {
-        retrievableIds.push(map.get(devId));
+
+    await Promise.all(assessments.map(async (a) => {
+      const deviceId = a.iotDeviceId?.deviceId;
+      if (!deviceId) return;
+
+      const query = { deviceId };
+      if (a.dataCollectionStart) {
+        query.timestamp = { $gte: new Date(a.dataCollectionStart) };
       }
-    });
+
+      const usable = await SensorData.findOne({
+        ...query,
+        $or: [
+          { irradiance: { $gt: 0 } },
+          { temperature: { $gt: 0 } },
+          { humidity: { $gt: 0 } },
+        ],
+      })
+        .select('_id')
+        .lean();
+
+      if (usable) retrievableIds.push(String(a._id));
+    }));
 
     res.json({ success: true, total: retrievableIds.length, retrievableIds });
   } catch (error) {

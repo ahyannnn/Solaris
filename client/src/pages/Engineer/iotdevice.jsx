@@ -43,9 +43,19 @@ const IoTDevice = () => {
   const [retrieving, setRetrieving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
-  const [hasStats, setHasStats] = useState(false);
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [retrievableIds, setRetrievableIds] = useState(() => new Set());
+
+  // Assessment statuses where the engineer's device is deployed and collecting,
+  // so a retrieval is possible. Single source of truth for this rule, shared by:
+  //   - the /my-assessments row filter in fetchMyDevices
+  //   - the sidebar badge / row dot (/engineer/device-action-counts)
+  //   - the modal's Retrieve Device button
+  // Must stay in step with the server's $in clause in
+  // preAssessmentControllers.getEngineerDeviceActionCounts. 'data_collecting'
+  // is never assigned by the server — deployment only ever sets
+  // 'device_deployed' — but it is kept for safety.
+  const DEVICE_ACTIVE_STATUSES = ['device_deployed', 'data_collecting'];
 
   const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL || '';
@@ -213,11 +223,10 @@ const IoTDevice = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const assessmentsWithDevices = (response.data.assessments || []).filter(
-        assessment => assessment.iotDeviceId &&
-          (assessment.assessmentStatus === 'device_deployed' ||
-            assessment.assessmentStatus === 'data_collecting')
-      );
+    const assessmentsWithDevices = (response.data.assessments || []).filter(
+    assessment => assessment.iotDeviceId &&
+    DEVICE_ACTIVE_STATUSES.includes(assessment.assessmentStatus)
+    );
 
       const deviceList = assessmentsWithDevices.map(assessment => ({
         _id: assessment.iotDeviceId._id,
@@ -289,27 +298,25 @@ const IoTDevice = () => {
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
 
-      const hasValidStats = stats.totalReadings > 0 && stats.peakSunHours > 0;
-      setHasStats(hasValidStats);
-
+      // No `hasStats` state: whether there is anything to retrieve is derived
+      // from `sensorData` via `hasValidSensorData` below, and duplicating it in
+      // state is what let the badge, the empty state and the button drift apart.
     } catch (error) {
       console.error('Error fetching sensor data:', error);
       showToast('Failed to fetch sensor data', 'error');
       setSensorData([]);
       setSensorStats({});
       setGpsData(null);
-      setHasStats(false);
     }
   };
 
   const handleViewDeviceData = async (device) => {
     setSensorData([]);
     setSensorStats({});
-    setGpsData(null);
-    setLastUpdated(null);
-    setHasStats(false);
+      setGpsData(null);
+      setLastUpdated(null);
 
-    setSelectedDevice(device);
+      setSelectedDevice(device);
     setShowDataModal(true);
 
     await fetchSensorData(device.assessmentId);
@@ -353,7 +360,6 @@ const IoTDevice = () => {
       setSelectedDevice(null);
       setSensorStats({});
       setSensorData([]);
-      setHasStats(false);
       fetchMyDevices();
       fetchRetrievableIds();
 
@@ -804,13 +810,18 @@ const IoTDevice = () => {
 
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
-                {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
+                {DEVICE_ACTIVE_STATUSES.includes(selectedDevice.assessmentStatus) && (
                   <span className="retrieve-btn-anchor-iotdevicead">
                     <button
                       className="retrieve-btn-iotdevicead"
                       onClick={openConfirmModal}
-                      disabled={retrieving || !hasStats}
-                      title={!hasStats ? 'No data available to retrieve' : ''}
+                      // One rule for "there is something to retrieve", shared with
+                      // the empty state above and with the server's badge query.
+                      // Using a separate count-based check here is what let the
+                      // badge stay lit while this button was enabled against an
+                      // empty modal.
+                      disabled={retrieving || !hasValidSensorData}
+                      title={!hasValidSensorData ? 'No usable sensor readings recorded yet' : ''}
                     >
                       {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                       {retrieving ? 'Retrieving...' : 'Retrieve Device'}
@@ -818,7 +829,7 @@ const IoTDevice = () => {
                     {/* Same red dot as the sidebar / table row: retrieval is
                         actually available right now. Anchored to this button's
                         right edge. */}
-                    {!retrieving && hasStats && (
+                    {!retrieving && hasValidSensorData && (
                       <span className="view-data-needs-dot-iotdevicead" title="Ready to retrieve" />
                     )}
                   </span>
@@ -859,7 +870,7 @@ const IoTDevice = () => {
                 </div>
 
                 {/* Show stats summary in confirmation */}
-                {sensorStats && hasStats && (
+                {sensorStats && hasValidSensorData && (
                   <div className="stats-summary-confirm-iotdevicead">
                     <p><strong>Data Summary:</strong></p>
                     <ul>

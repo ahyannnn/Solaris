@@ -9,7 +9,8 @@ import {
   FaSyncAlt,
   FaCheckCircle,
   FaChevronDown,
-  FaSearch
+  FaSearch,
+  FaLock
 } from 'react-icons/fa';
 import {
   ResponsiveContainer,
@@ -865,14 +866,74 @@ const MyAssessments = () => {
   };
 
   // Engineer: needs-action = items waiting on my action (same as sidebar badge)
-  // Free Quote: pending/assigned/processing | Pre-Assessment: scheduled/site_visit/device/data (report_draft excluded — no action left)
+  // Free Quote: pending/assigned/processing
+  // Pre-Assessment: scheduled, site_visit_ongoing, data_analyzing.
+  //
+  // 'device_deployed' is deliberately NOT here: once the device is deployed the
+  // engineer is only waiting out the 7-14 day data-collection window, so there
+  // is nothing to act on. The dot comes back at 'data_analyzing', which is the
+  // status set the moment the device is retrieved (server
+  // preAssessmentControllers.js:4309) - i.e. exactly "once retrieved".
+  // 'data_collecting' is excluded for the same reason (passive collection) and
+  // is in fact never assigned anywhere in the server.
   const isAssessmentNeedsAction = (item) => {
     if (!item) return false;
     if (item.type === 'free_quote') {
       return ['pending', 'assigned', 'processing'].includes(item.status);
     }
     const s = item.status || item.assessmentStatus;
-    return ['scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing'].includes(s);
+    return ['scheduled', 'site_visit_ongoing', 'data_analyzing'].includes(s);
+  };
+
+  // Quotation tab badge: pre-assessments only. Once the device is retrieved the
+  // status becomes 'data_analyzing' and the collected data has to be turned into
+  // a quotation, so the Quotation tab is where the engineer's next action lives.
+  // Free quotes are excluded - they are quotations from the start and have no
+  // equivalent "waiting on analysis" gate.
+  //
+  // Reads the type from `selectedType`, NOT from the item. The detail object is
+  // rebuilt by fetchPreAssessmentDetails from the raw PreAssessment document, so
+  // it carries `assessmentStatus` but no `type`/`itemType` - those are only set
+  // on the *list* items. Keying off the item's own fields never matches.
+  const quotationTabNeedsAttention = (item, type) => {
+    if (type !== 'pre_assessment') return false;
+    return (item?.status || item?.assessmentStatus) === 'data_analyzing';
+  };
+
+  // Site Inspection tab badge: pre-assessments only. 'scheduled' means the
+  // booking is set but the engineer has not been out to the site yet, so the
+  // inspection is the next action. Free quotes have no site-inspection step.
+  // Mutually exclusive with the Quotation dot, so an assessment never shows two.
+  const siteInspectionTabNeedsAttention = (item, type) => {
+    if (type !== 'pre_assessment') return false;
+    return (item?.status || item?.assessmentStatus) === 'scheduled';
+  };
+
+  // Statuses where the engineer holds the collected data and can size the
+  // system. Retrieval sets 'data_analyzing' (server
+  // preAssessmentControllers.js:4309), so this opens exactly when the device
+  // data comes back.
+  const CALC_UNLOCKED_STATUSES = [
+    'data_analyzing',
+    'report_draft',
+    'quotation_generated',
+    'quotation_accepted',
+    'completed',
+  ];
+
+  // The system size calculation reads the device's irradiance/temperature
+  // readings, so it is meaningless before the data is retrieved. Locked while
+  // the assessment is still booked, under inspection, or waiting out the
+  // 7-14 day collection window.
+  //
+  // Also honours deviceRetrievedAt / recorded readings as a fallback so the
+  // calculation unlocks even if the status was advanced by some other path.
+  // Free quotes are exempt — they have no IoT collection step.
+  const canRunSystemSizeCalculation = (item) => {
+    if (!item) return false;
+    if (item.type === 'free_quote' || item.itemType === 'free_quote') return true;
+    if (CALC_UNLOCKED_STATUSES.includes(item.assessmentStatus)) return true;
+    return !!(item.deviceRetrievedAt || (item.assessmentResults?.totalReadings > 0));
   };
 
   const ROOF_CONDITIONS = [
@@ -1639,6 +1700,30 @@ const MyAssessments = () => {
   // Assessment is closed (done) once completed or cancelled — editing controls lock.
   const isAssessmentClosed = (item) => {
     return ['completed', 'cancelled'].includes(item?.assessmentStatus);
+  };
+
+  // Site-inspection data (appliances, roof measurements, notes) stays editable
+  // for the whole site visit, and locks once the engineer has left the site —
+  // which is when the device is deployed and IoT collection takes over.
+  //
+  // This must NOT be keyed off `engineerAssessment` existing: that subdocument is
+  // created by "Start Site Assessment" (server
+  // preAssessmentControllers.js:2200-2205), so testing for it disabled the
+  // appliance buttons the instant the engineer opened the inspection — exactly
+  // when they most need to use them. The field only records that a visit was
+  // started, not that it finished.
+  //
+  // The backend has no status guard on update-assessment (only a 404 and an
+  // assignment 403), so this is purely a UI rule.
+  const isSiteVisitOver = (item) => {
+    return isAssessmentClosed(item) || [
+      'device_deployed',
+      'data_collecting',
+      'data_analyzing',
+      'report_draft',
+      'quotation_generated',
+      'quotation_accepted',
+    ].includes(item?.assessmentStatus);
   };
 
   // Quotation already generated → hide the system size calculation cards.
@@ -2963,6 +3048,9 @@ const MyAssessments = () => {
                       className={`tab-btn-enad ${activeTab === tab.key ? 'active-enad' : ''}`}
                     >
                       {tab.label}
+                      {tab.key === 'site-inspection' && siteInspectionTabNeedsAttention(selectedItem, selectedType) && (
+                        <span className="tab-needs-dot-enad" title="Scheduled - site inspection needs to be done" />
+                      )}
                     </button>
                   ))}
                   {OVERFLOW_DETAIL_TABS.map(tab => (
@@ -2972,6 +3060,9 @@ const MyAssessments = () => {
                       className={`tab-btn-enad overflow-tab ${activeTab === tab.key ? 'active-enad' : ''}`}
                     >
                       {tab.label}
+                      {tab.key === 'quotation' && quotationTabNeedsAttention(selectedItem, selectedType) && (
+                        <span className="tab-needs-dot-enad" title="Data retrieved - quotation needs to be prepared" />
+                      )}
                     </button>
                   ))}
                   <div className="tabs-more-enad" ref={tabsMoreRef}>
@@ -2993,6 +3084,9 @@ const MyAssessments = () => {
                             onClick={() => { setActiveTab(tab.key); setShowMoreTabs(false); }}
                           >
                             {tab.label}
+                            {tab.key === 'quotation' && quotationTabNeedsAttention(selectedItem, selectedType) && (
+                              <span className="tab-needs-dot-enad" title="Data retrieved - quotation needs to be prepared" />
+                            )}
                           </button>
                         ))}
                       </div>
@@ -3122,7 +3216,7 @@ const MyAssessments = () => {
                 // Device and status props
                 deviceAssigned={deviceAssigned}
                 assessmentStatus={selectedItem?.assessmentStatus}
-                appliancesLocked={isAssessmentClosed(selectedItem) || !!selectedItem?.engineerAssessment}
+                appliancesLocked={isSiteVisitOver(selectedItem)}
                 deployNotes={deployNotes}
                 onDeployNotesChange={setDeployNotes}
 
@@ -3234,6 +3328,22 @@ const MyAssessments = () => {
                   </div>
                 )}
 
+                {!canRunSystemSizeCalculation(selectedItem) ? (
+                  <div className="no-device-card-enad calc-locked-card-enad">
+                    <FaLock className="calc-locked-icon-enad" />
+                    <div className="calc-locked-title-enad">System size calculation locked</div>
+                    <p className="calc-locked-text-enad">
+                      Retrieve the device data first. The calculation runs on the
+                      collected irradiance and temperature readings, which only
+                      become available once you retrieve the device and the
+                      status moves to <strong>Analyzing Data</strong>.
+                    </p>
+                    <p className="calc-locked-status-enad">
+                      Current status: <strong>{PRE_ASSESSMENT_STATUS[selectedItem.assessmentStatus]?.label || selectedItem.assessmentStatus?.replace(/_/g, ' ') || 'Unknown'}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  <>
                 {calculation.showCalculationCards && preAssessmentHasQuotation(selectedItem) && !showCalcAfterQuotation && (
                   <div className="no-device-card-enad">
                     <div>Quotation already generated</div>
@@ -3516,6 +3626,8 @@ const MyAssessments = () => {
                   <>
                     {/* Keep the existing equipment selection code from the original file */}
                     {/* ... existing equipment selection code ... */}
+                  </>
+                )}
                   </>
                 )}
               </div>

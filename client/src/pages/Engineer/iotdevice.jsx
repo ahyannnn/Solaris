@@ -21,7 +21,8 @@ import {
   FaArrowCircleUp,
   FaBoxOpen,
   FaFilter,
-  FaEye
+  FaEye,
+  FaCalendarPlus
 } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
@@ -45,6 +46,12 @@ const IoTDevice = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [brokenPhotos, setBrokenPhotos] = useState(() => new Set());
   const [retrievableIds, setRetrievableIds] = useState(() => new Set());
+  // Monitoring extension (Terms §5) — extra days when data is too poor to retrieve
+  const [extensionRequest, setExtensionRequest] = useState(null);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [extending, setExtending] = useState(false);
+  const [extendDays, setExtendDays] = useState(7);
+  const [extendReason, setExtendReason] = useState('');
 
   // Assessment statuses where the engineer's device is deployed and collecting,
   // so a retrieval is possible. Single source of truth for this rule, shared by:
@@ -177,6 +184,35 @@ const IoTDevice = () => {
     return null;
   };
 
+  // ============ DATA SUFFICIENCY (Terms §5) ============
+  // Thresholds must stay in step with MONITORING_EXTENSION in
+  // preAssessmentControllers.js. Data failing any of these is "not enough
+  // to retrieve" (e.g. a cloudy week) — the Extend Monitoring button is
+  // offered instead of locking poor data in via retrieval.
+  const SUFFICIENCY = {
+    MIN_PEAK_SUN_HOURS: 3.0,
+    MIN_AVG_IRRADIANCE: 200, // W/m²
+    MAX_AFFECTED_DAYS: 2, // 3+ affected days triggers Terms §5
+  };
+
+  // Returns { sufficient, reasons[] } — reasons explain WHY data is insufficient.
+  const getDataSufficiency = (stats) => {
+    if (!stats || Object.keys(stats).length === 0 || !stats.totalReadings) {
+      return { sufficient: false, reasons: ['No sensor readings recorded yet.'] };
+    }
+    const reasons = [];
+    if ((stats.peakSunHours || 0) < SUFFICIENCY.MIN_PEAK_SUN_HOURS) {
+      reasons.push(`Peak sun hours too low (${stats.peakSunHours?.toFixed(2) || 0} h/day — needs ${SUFFICIENCY.MIN_PEAK_SUN_HOURS}).`);
+    }
+    if ((stats.averageIrradiance || 0) < SUFFICIENCY.MIN_AVG_IRRADIANCE) {
+      reasons.push(`Average irradiance too low (${stats.averageIrradiance?.toFixed(0) || 0} W/m² — needs ${SUFFICIENCY.MIN_AVG_IRRADIANCE}).`);
+    }
+    if ((stats.affectedDays || 0) > SUFFICIENCY.MAX_AFFECTED_DAYS) {
+      reasons.push(`${stats.affectedDays} of ${stats.monitoredDays || 0} monitoring days affected by poor weather (Terms §5 allows extension at 3+).`);
+    }
+    return { sufficient: reasons.length === 0, reasons };
+  };
+
   // Exact body the retrieve-device endpoint expects.
   const buildRetrievePayload = (stats) => ({
     totalReadings: stats.totalReadings || 0,
@@ -284,6 +320,8 @@ const IoTDevice = () => {
         maxIrradiance: stats.maxIrradiance || 0,
         minIrradiance: stats.minIrradiance || 0,
         peakSunHours: stats.peakSunHours || 0,
+        affectedDays: stats.affectedDays || 0,
+        monitoredDays: stats.monitoredDays || 0,
         averageTemperature: stats.averageTemperature || 0,
         minTemperature: stats.minTemperature || 0,
         maxTemperature: stats.maxTemperature || 0,
@@ -295,6 +333,7 @@ const IoTDevice = () => {
         dataCollectionEnd: stats.dataCollectionEnd,
         gps: stats.gps || null
       });
+      setExtensionRequest(response.data.extension || null);
       setGpsData(stats.gps || null);
       setLastUpdated(new Date());
 
@@ -315,6 +354,10 @@ const IoTDevice = () => {
     setSensorStats({});
       setGpsData(null);
       setLastUpdated(null);
+      setExtensionRequest(null);
+      setShowExtendModal(false);
+      setExtendDays(7);
+      setExtendReason('');
 
       setSelectedDevice(device);
     setShowDataModal(true);
@@ -360,6 +403,7 @@ const IoTDevice = () => {
       setSelectedDevice(null);
       setSensorStats({});
       setSensorData([]);
+      setExtensionRequest(null);
       fetchMyDevices();
       fetchRetrievableIds();
 
@@ -368,6 +412,53 @@ const IoTDevice = () => {
       showToast(error.response?.data?.message || 'Failed to retrieve device', 'error');
     } finally {
       setRetrieving(false);
+    }
+  };
+
+  const openExtendModal = () => {
+    const { sufficient, reasons } = getDataSufficiency(sensorStats);
+    if (sufficient) {
+      showToast('Collected data is sufficient — please retrieve the device instead.', 'info');
+      return;
+    }
+    if (!reasons.length) return;
+    setExtendDays(7);
+    setExtendReason('');
+    setShowExtendModal(true);
+  };
+
+  const handleRequestExtension = async () => {
+    if (!selectedDevice) return;
+
+    const { sufficient } = getDataSufficiency(sensorStats);
+    if (sufficient) {
+      showToast('Collected data is sufficient — please retrieve the device instead.', 'error');
+      return;
+    }
+    if (!extendReason.trim()) {
+      showToast('Please state a reason (e.g. extended cloud cover, low irradiance).', 'warning');
+      return;
+    }
+    const days = Math.min(14, Math.max(1, parseInt(extendDays, 10) || 7));
+
+    setExtending(true);
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const response = await axios.post(
+        `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/extend-monitoring-request`,
+        { requestedDays: days, reason: extendReason.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      showToast(response.data.message || 'Extension request sent to admin.', 'success');
+      setExtensionRequest(response.data.extension || { status: 'pending', requestedDays: days });
+      setShowExtendModal(false);
+    } catch (error) {
+      console.error('Error requesting monitoring extension:', error);
+      showToast(error.response?.data?.message || 'Failed to request extension', 'error');
+    } finally {
+      setExtending(false);
     }
   };
 
@@ -431,6 +522,17 @@ const IoTDevice = () => {
   const hasValidSensorData = sensorData.length > 0 && sensorData.some(reading =>
     reading.irradiance > 0 || reading.temperature > 0 || reading.humidity > 0
   );
+
+  // Extend Monitoring is offered only when data EXISTS but is too poor to
+  // retrieve (Terms §5), and no request is pending or already granted.
+  const dataSufficiency = getDataSufficiency(sensorStats);
+  const extensionStatus = extensionRequest?.status || 'none';
+  const alreadyExtended = extensionStatus === 'approved' ||
+    (extensionRequest?.history || []).some((h) => h.action === 'approved');
+  const canRequestExtension = hasValidSensorData
+    && !dataSufficiency.sufficient
+    && (extensionStatus === 'none' || extensionStatus === 'declined')
+    && !alreadyExtended;
 
   const SkeletonLoader = () => (
     <div className="iot-device-engineer-iotdevicead">
@@ -625,6 +727,22 @@ const IoTDevice = () => {
                   </div>
                 )}
 
+                {/* Insufficient-data warning (Terms §5) */}
+                {hasValidSensorData && !dataSufficiency.sufficient && (
+                  <div className="info-message-iotdevicead warning-iotdevicead">
+                    <p><strong>Data may be insufficient for accurate sizing (Terms §5):</strong></p>
+                    <ul>
+                      {dataSufficiency.reasons.map((reason, idx) => (
+                        <li key={idx}>{reason}</li>
+                      ))}
+                      <li>Weather-affected days: {sensorStats.affectedDays || 0} of {sensorStats.monitoredDays || 0}</li>
+                    </ul>
+                    {extensionStatus === 'declined' && (
+                      <p><small>Previous extension request was declined{extensionRequest?.adminNote ? `: ${extensionRequest.adminNote}` : '.'}</small></p>
+                    )}
+                  </div>
+                )}
+
                 {/* Controls */}
                 {hasValidSensorData && (
                   <div className="range-selector-iotdevicead">
@@ -812,6 +930,23 @@ const IoTDevice = () => {
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {DEVICE_ACTIVE_STATUSES.includes(selectedDevice.assessmentStatus) && (
                   <span className="retrieve-btn-anchor-iotdevicead">
+                    {extensionStatus === 'pending' ? (
+                      <span className="extension-pending-iotdevicead" title="Extension request awaiting admin approval">
+                        <FaClock /> Extension pending approval
+                      </span>
+                    ) : (
+                      canRequestExtension && (
+                        <button
+                          className="extend-btn-iotdevicead"
+                          onClick={openExtendModal}
+                          disabled={extending}
+                          title={dataSufficiency.reasons.join(' ')}
+                        >
+                          <FaCalendarPlus />
+                          Extend Monitoring
+                        </button>
+                      )
+                    )}
                     <button
                       className="retrieve-btn-iotdevicead"
                       onClick={openConfirmModal}
@@ -898,6 +1033,68 @@ const IoTDevice = () => {
                 <button className="confirm-retrieve-btn-iotdevicead" onClick={handleRetrieveDevice} disabled={retrieving}>
                   {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                   {retrieving ? 'Retrieving...' : 'Yes, Retrieve Device'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Extension Request Modal (Terms §5) */}
+        {showExtendModal && selectedDevice && (
+          <div className="modal-overlay-iotdevicead" onClick={() => setShowExtendModal(false)}>
+            <div className="modal-content-iotdevicead confirm-modal-iotdevicead" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-iotdevicead">
+                <h3>Request Monitoring Extension</h3>
+                <button className="modal-close-iotdevicead" onClick={() => setShowExtendModal(false)}>×</button>
+              </div>
+              <div className="modal-body-iotdevicead confirm-modal-body-iotdevicead">
+                <p>Data quality is below the retrieval standard. Request extra monitoring days — the device stays deployed and all existing readings are kept.</p>
+
+                <div className="stats-summary-confirm-iotdevicead">
+                  <p><strong>Current data quality:</strong></p>
+                  <ul>
+                    <li>Total Readings: {sensorStats.totalReadings || 0}</li>
+                    <li>Peak Sun Hours: {sensorStats.peakSunHours?.toFixed(2) || 0} h/day (needs 3.0)</li>
+                    <li>Avg Irradiance: {sensorStats.averageIrradiance?.toFixed(0) || 0} W/m² (needs 200)</li>
+                    <li>Weather-affected days: {sensorStats.affectedDays || 0} of {sensorStats.monitoredDays || 0}</li>
+                  </ul>
+                </div>
+
+                <div className="extend-form-iotdevicead">
+                  <label htmlFor="extend-days-iotdevicead">Extra days (1–14)</label>
+                  <input
+                    id="extend-days-iotdevicead"
+                    type="number"
+                    min="1"
+                    max="14"
+                    value={extendDays}
+                    onChange={(e) => setExtendDays(e.target.value)}
+                  />
+                  <label htmlFor="extend-reason-iotdevicead">Reason <span className="required-iotdevicead">*</span></label>
+                  <textarea
+                    id="extend-reason-iotdevicead"
+                    rows="3"
+                    value={extendReason}
+                    onChange={(e) => setExtendReason(e.target.value)}
+                    placeholder="e.g. Extended cloud cover all week — irradiance too low for reliable sizing"
+                  />
+                </div>
+
+                <div className="info-message-iotdevicead">
+                  <p>This will:</p>
+                  <ul>
+                    <li>Send a request to the admin (approval required)</li>
+                    <li>Keep the device deployed and collecting</li>
+                    <li>Keep all existing readings — nothing is deleted</li>
+                    <li>Extension is free of charge per Terms §5</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="modal-actions-iotdevicead confirm-actions-iotdevicead">
+                <button className="cancel-btn-iotdevicead" onClick={() => setShowExtendModal(false)}>Cancel</button>
+                <button className="extend-btn-iotdevicead" onClick={handleRequestExtension} disabled={extending || !extendReason.trim()}>
+                  {extending ? <FaSpinner className="spinner-enad" /> : <FaCalendarPlus />}
+                  {extending ? 'Sending...' : 'Send Request'}
                 </button>
               </div>
             </div>

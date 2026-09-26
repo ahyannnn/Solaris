@@ -1096,6 +1096,157 @@ body.dark-mode {
   margin: 14px 0 0;
 }
 
+/* ============================================
+   FREE QUOTE DETAIL — CLIENT HEADER + GROUP CARDS
+   Each group is its own card, laid out two per row. A real grid with an
+   explicit gap (rather than margins on flex children) is what guarantees the
+   cards can never overlap or collide.
+   ============================================ */
+.fq-cards-grid-enad {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  /* stretch (not start) so both cards in a row are the same height — with
+     `start` the shorter card left a large void under it */
+  align-items: stretch;
+  margin-top: 16px;
+}
+
+/* The client header (photo + name) is the anchor for the whole page, so keep it
+   visible while scrolling the cards, and stop the flex column from ever
+   compressing it to nothing. */
+.detail-content-enad > .detail-header-enad {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  flex-shrink: 0;
+}
+
+/* --bg-detail-header is 86% opaque for the glassy look, but a sticky element
+   needs a solid backdrop or the cards scroll through it. */
+body .detail-content-enad > .detail-header-enad {
+  background: #FFFFFF;
+}
+
+body.dark-mode .detail-content-enad > .detail-header-enad {
+  background: #1A2533;
+}
+
+.fq-card-enad {
+  background: var(--bg-card, var(--bg-surface, #FFFFFF));
+  border: 1px solid var(--border-card, var(--border-medium, #E5E7EB));
+  border-radius: 14px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.06));
+  padding: 18px 22px 20px;
+  /* no margin-top: the grid gap owns the spacing */
+  min-width: 0;
+  overflow: hidden;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Inside a half-width card the 4-column field grid is too cramped. */
+.fq-card-enad .merged-details-grid-enad {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  padding-top: 0;
+}
+
+.fq-card-enad .merged-summary-grid-enad {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  padding-top: 0;
+}
+
+.fq-card-title-enad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--text-primary);
+  margin: 0 0 14px;
+}
+
+.fq-card-title-enad::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-medium, #E5E7EB);
+  opacity: 0.7;
+}
+
+/* Client avatar + identity block */
+.fq-head-identity-enad {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.fq-head-text-enad {
+  min-width: 0;
+}
+
+.fq-avatar-enad {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--accent-brand-tint, rgba(243, 156, 18, 0.12));
+  color: var(--accent-brand, #D97706);
+  border: 2px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+.fq-avatar-photo-enad {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fq-avatar-initials-enad {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Admin remarks read better as a sentence than as a label/value pair */
+.fq-remarks-enad {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-no-device, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--border-card, var(--border-medium, #E5E7EB));
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+/* Inline variant inside the client header card */
+.fq-remarks-inline-enad {
+  margin-top: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 0.8rem;
+}
+
+.fq-remarks-label-enad {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+
 .merged-details-grid-enad {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -3994,6 +4145,11 @@ body.dark-mode {
   .my-assessments-enad {
     padding-inline: 18px;
   }
+  /* One card per row before the pair gets too narrow to read comfortably */
+  .fq-cards-grid-enad {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
   .calculation-cards-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -4524,6 +4680,21 @@ body.dark-mode {
   }
   .client-meta-item-enad {
     font-size: 12px;
+  }
+  /* Free quote header + cards on small screens */
+  .fq-head-identity-enad {
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .fq-avatar-enad {
+    width: 46px;
+    height: 46px;
+  }
+  .fq-avatar-initials-enad {
+    font-size: 0.9rem;
+  }
+  .fq-card-enad {
+    padding: 14px 16px 16px;
   }
   .detail-title-enad {
     font-size: 18px;

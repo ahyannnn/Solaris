@@ -1264,6 +1264,13 @@ const engineerHasAction = (project) => {
 // @desc    Count my projects waiting on my update (engineer sidebar badge)
 // @route   GET /api/projects/engineer/action-counts
 // @access  Private (Engineer)
+// Also returns `actionableIds` so the client can list the SAME projects instead
+// of re-deriving the rule. engineerHasAction is not a simple status check — it
+// also inspects paymentPreference, the payment schedule and the modal lock — so
+// any client-side copy drifts. Observed: a 152-day-old `initial_paid` project
+// with paymentPreference 'installment' is correctly excluded here, but the
+// dashboard's "Needs Your Attention" card showed it because it only tested
+// `status === 'initial_paid'`.
 exports.getEngineerActionCounts = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -1277,6 +1284,7 @@ exports.getEngineerActionCounts = async (req, res) => {
     res.json({
       success: true,
       total: actionable.length,
+      actionableIds: actionable.map(p => String(p._id)),
       assigned: mine.filter(p => p.status !== 'completed' && p.status !== 'cancelled').length
     });
   } catch (error) {

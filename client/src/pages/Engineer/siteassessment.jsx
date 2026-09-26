@@ -55,6 +55,15 @@ const DETAIL_TABS = [
 const VISIBLE_DETAIL_TABS = DETAIL_TABS.slice(0, 2);
 const OVERFLOW_DETAIL_TABS = DETAIL_TABS.slice(2);
 
+// Two-letter fallback when a client has no profile photo.
+const getInitials = (name) => {
+  const clean = (name || '').trim();
+  if (!clean) return '?';
+  const parts = clean.split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const MyAssessments = () => {
   const { toast, showToast, hideToast } = useToast();
   const [freeQuotes, setFreeQuotes] = useState([]);
@@ -1240,6 +1249,10 @@ const MyAssessments = () => {
         clientName: quote.clientId?.contactFirstName || '',
         clientLastName: quote.clientId?.contactLastName || '',
         clientEmail: quote.clientId?.userId?.email || '',
+        // Needed for the detail-header avatar. The list rows already map this
+        // (see formattedFreeQuotes); the detail object did not, so the header
+        // always fell back to initials.
+        clientPhotoURL: typeof quote.clientId?.userId === 'object' ? (quote.clientId?.userId?.photoURL || null) : null,
         clientPhone: quote.clientId?.contactNumber || '',
         clientType: quote.clientId?.client_type || 'Residential',
         address: addressData,
@@ -1337,6 +1350,9 @@ const MyAssessments = () => {
         clientName: assessment.clientId?.contactFirstName || '',
         clientLastName: assessment.clientId?.contactLastName || '',
         clientEmail: assessment.clientId?.userId?.email || '',
+        // The endpoint already populates userId.photoURL, but the detail object
+        // never mapped it, so the header avatar could only fall back to initials.
+        clientPhotoURL: typeof assessment.clientId?.userId === 'object' ? (assessment.clientId?.userId?.photoURL || null) : null,
         clientPhone: assessment.clientId?.contactNumber || '',
         clientType: assessment.clientId?.client_type || 'Residential',
         assignedDevice: assessment.assignedDevice,
@@ -2480,16 +2496,33 @@ const MyAssessments = () => {
             <div className="detail-content-enad">
               <div className="detail-header-enad detail-header-merged-enad">
                 <div className="merged-head-top-enad">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="detail-title-enad">{selectedItem.quotationReference}</h1>
-                    </div>
-                    <div className="client-meta-enad">
-                      <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
-                      <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
-                      <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
-                      <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
-                      <div className="client-meta-item-enad">{getFullAddress(selectedItem.address) || 'No address'}</div>
+                  <div className="fq-head-identity-enad">
+                    <span className="fq-avatar-enad">
+                      {selectedItem.clientPhotoURL && !brokenPhotos.has(`fq-${selectedItem._id}`) ? (
+                        <img
+                          src={selectedItem.clientPhotoURL}
+                          alt=""
+                          className="fq-avatar-photo-enad"
+                          loading="lazy"
+                          onError={() => setBrokenPhotos((prev) => new Set(prev).add(`fq-${selectedItem._id}`))}
+                        />
+                      ) : (
+                        <span className="fq-avatar-initials-enad">
+                          {getInitials(`${selectedItem.clientName || ''} ${selectedItem.clientLastName || ''}`)}
+                        </span>
+                      )}
+                    </span>
+                    <div className="fq-head-text-enad">
+                      <div className="mb-2">
+                        <h1 className="detail-title-enad">{selectedItem.quotationReference}</h1>
+                      </div>
+                      <div className="client-meta-enad">
+                        <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                        <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                        <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                        <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                        <div className="client-meta-item-enad">{getFullAddress(selectedItem.address) || 'No address'}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2509,99 +2542,103 @@ const MyAssessments = () => {
                     <span className="detail-fact-value-enad">{getSystemTypeLabel(freeQuoteForm.systemType)}</span>
                   </div>
                 </div>
-                <div className="merged-head-div-enad" />
-                <div className="merged-details-title-enad">Details</div>
+                {/* Admin remarks sat in their own card, which was almost always a
+                    single short line. It belongs with the client context anyway. */}
+                {selectedItem.adminRemarks && (
+                  <div className="fq-remarks-enad fq-remarks-inline-enad">
+                    <span className="fq-remarks-label-enad">Admin Remarks</span>
+                    <span>{selectedItem.adminRemarks}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* ---- Group cards, two per row ---- */}
+              <div className="fq-cards-grid-enad">
+              {/* ---- Property & Roof ---- */}
+              <div className="fq-card-enad">
+                <div className="fq-card-title-enad">Property &amp; Roof</div>
                 <div className="merged-details-grid-enad">
                   <div className="info-item-enad"><span className="info-label-enad">Address</span><span className="info-value-enad">{getFullAddress(selectedItem.address)}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Property Type</span><span className="info-value-enad capitalize">{selectedItem.propertyType}</span></div>
                   <div className="info-item-enad"><span className="info-label-enad">Preferred System Type</span><span className="info-value-enad">{getSystemTypeLabel(selectedItem.systemType)}</span></div>
-                  {selectedItem.desiredCapacity && <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity}</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Roof Type</span><span className="info-value-enad capitalize">{selectedItem.roofType || 'Not specified'}</span></div>
                   {(selectedItem.roofLength || selectedItem.roofWidth) && (
                     <div className="info-item-enad">
                       <span className="info-label-enad">Roof Dimensions</span>
                       <span className="info-value-enad">
                         {selectedItem.roofLength ? `${selectedItem.roofLength}m` : '?'} × {selectedItem.roofWidth ? `${selectedItem.roofWidth}m` : '?'}
-                        {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) && (
+                        {calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth) > 0 && (
                           <span className="roof-area-text">({calculateRoofArea(selectedItem.roofLength, selectedItem.roofWidth)} m²)</span>
                         )}
                       </span>
                     </div>
                   )}
+                  {selectedItem.desiredCapacity && <div className="info-item-enad"><span className="info-label-enad">Desired Capacity</span><span className="info-value-enad">{selectedItem.desiredCapacity}</span></div>}
+                </div>
+              </div>
+
+              {/* ---- Energy Consumption ----
+                  Paired figures share one row (day/night, load/bill) instead of
+                  taking a row each — same data, half the vertical space. */}
+              <div className="fq-card-enad">
+                <div className="fq-card-title-enad">Energy Consumption</div>
+                <div className="merged-details-grid-enad">
                   <div className="info-item-enad"><span className="info-label-enad">Monthly Bill</span><span className="info-value-enad">{formatCurrency(selectedItem.monthlyBill || 0)}</span></div>
                   {selectedItem.monthlyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Monthly Consumption</span><span className="info-value-enad">{selectedItem.monthlyConsumption} kWh</span></div>}
                   {selectedItem.rate > 0 && <div className="info-item-enad"><span className="info-label-enad">Rate per kWh</span><span className="info-value-enad">₱{(selectedItem.rate || 0).toFixed(2)}</span></div>}
                   {(selectedItem.dayConsumption > 0 || selectedItem.nightConsumption > 0) && (
-                    <>
-                      <div className="info-item-enad"><span className="info-label-enad">Day Consumption</span><span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} kWh</span></div>
-                      <div className="info-item-enad"><span className="info-label-enad">Night Consumption</span><span className="info-value-enad">{selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span></div>
-                    </>
+                    <div className="info-item-enad">
+                      <span className="info-label-enad">Day / Night Consumption</span>
+                      <span className="info-value-enad">{selectedItem.dayConsumption?.toFixed(2) || 0} / {selectedItem.nightConsumption?.toFixed(2) || 0} kWh</span>
+                    </div>
                   )}
-                  {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day/Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
-                  {selectedItem.totalDailyConsumption > 0 && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Load Profile)</span><span className="info-value-enad">{selectedItem.totalDailyConsumption} kWh/day</span></div>}
-                  {(parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0) && <div className="info-item-enad"><span className="info-label-enad">Total Daily Consumption (Electric Bill)</span><span className="info-value-enad">{(parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)} kWh/day</span></div>}
+                  {(selectedItem.dayPercentage || selectedItem.nightPercentage) && <div className="info-item-enad"><span className="info-label-enad">Day / Night Usage</span><span className="info-value-enad">{selectedItem.dayPercentage || 0}% / {selectedItem.nightPercentage || 0}%</span></div>}
                   {(() => {
                     const { motorW, nonMotorW } = getMotorNonMotorWatts(selectedItem);
                     return (motorW > 0 || nonMotorW > 0) && (
                       <div className="info-item-enad"><span className="info-label-enad">Motor / Non-Motor Power</span><span className="info-value-enad">{motorW} W | {nonMotorW} W</span></div>
                     );
                   })()}
-                  {selectedItem.targetSavings && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Target Savings</span>
-                      <span className="info-value-enad">{selectedItem.targetSavings}%</span>
-                    </div>
-                  )}
-                  {selectedItem.recommendedSystemSize && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Recommended System Size</span>
-                      <span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span>
-                    </div>
-                  )}
-                  {selectedItem.inverterSize && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Inverter Size</span>
-                      <span className="info-value-enad">{selectedItem.inverterSize} kW</span>
-                    </div>
-                  )}
-                  {selectedItem.batteryCapacityKwh > 0 && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Battery Capacity</span>
-                      <span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span>
-                    </div>
-                  )}
-                  {selectedItem.panelsNeeded && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Panels Needed</span>
-                      <span className="info-value-enad">{selectedItem.panelsNeeded} panels</span>
-                    </div>
-                  )}
-                  {selectedItem.estimatedAnnualProduction > 0 && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">Est. Annual Production</span>
-                      <span className="info-value-enad">{selectedItem.estimatedAnnualProduction} kWh/year</span>
-                    </div>
-                  )}
-                  {selectedItem.co2Offset > 0 && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">CO₂ Offset</span>
-                      <span className="info-value-enad">{selectedItem.co2Offset} kg/year</span>
-                    </div>
-                  )}
-                  {selectedItem.roiYears > 0 && (
-                    <div className="info-item-enad">
-                      <span className="info-label-enad">ROI / Payback Period</span>
-                      <span className="info-value-enad">{selectedItem.roiYears} years</span>
-                    </div>
-                  )}
+                  {(() => {
+                    const loadProfile = selectedItem.totalDailyConsumption > 0 ? `${selectedItem.totalDailyConsumption}` : null;
+                    const fromBill = (parseFloat(selectedItem.monthlyBill) > 0 && parseFloat(selectedItem.rate) > 0)
+                      ? (parseFloat(selectedItem.monthlyBill) / (parseFloat(selectedItem.rate) * 30)).toFixed(2)
+                      : null;
+                    if (!loadProfile && !fromBill) return null;
+                    return (
+                      <div className="info-item-enad">
+                        <span className="info-label-enad">Total Daily Consumption</span>
+                        <span className="info-value-enad">
+                          {[loadProfile, fromBill].filter(Boolean).join(' / ')} kWh/day
+                          {loadProfile && fromBill && <span className="roof-area-text"> (load / bill)</span>}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* ---- System, Outcomes & Timeline (merged — Timeline alone was a
+                      2-field card leaving a large void) ---- */}
+              <div className="fq-card-enad">
+                <div className="fq-card-title-enad">System &amp; Outcomes</div>
+                <div className="merged-details-grid-enad">
+                  {selectedItem.recommendedSystemSize && <div className="info-item-enad"><span className="info-label-enad">Recommended System Size</span><span className="info-value-enad">{selectedItem.recommendedSystemSize} kWp</span></div>}
+                  {selectedItem.inverterSize && <div className="info-item-enad"><span className="info-label-enad">Inverter Size</span><span className="info-value-enad">{selectedItem.inverterSize} kW</span></div>}
+                  {selectedItem.batteryCapacityKwh > 0 && <div className="info-item-enad"><span className="info-label-enad">Battery Capacity</span><span className="info-value-enad">{selectedItem.batteryCapacityKwh} kWh</span></div>}
+                  {selectedItem.panelsNeeded && <div className="info-item-enad"><span className="info-label-enad">Panels Needed</span><span className="info-value-enad">{selectedItem.panelsNeeded} panels</span></div>}
+                  {selectedItem.targetSavings && <div className="info-item-enad"><span className="info-label-enad">Target Savings</span><span className="info-value-enad">{selectedItem.targetSavings}%</span></div>}
+                  {selectedItem.estimatedAnnualProduction > 0 && <div className="info-item-enad"><span className="info-label-enad">Est. Annual Production</span><span className="info-value-enad">{selectedItem.estimatedAnnualProduction} kWh/year</span></div>}
+                  {selectedItem.co2Offset > 0 && <div className="info-item-enad"><span className="info-label-enad">CO₂ Offset</span><span className="info-value-enad">{selectedItem.co2Offset} kg/year</span></div>}
+                  {selectedItem.roiYears > 0 && <div className="info-item-enad"><span className="info-label-enad">ROI / Payback Period</span><span className="info-value-enad">{selectedItem.roiYears} years</span></div>}
                   <div className="info-item-enad"><span className="info-label-enad">Requested Date</span><span className="info-value-enad">{formatDate(selectedItem.requestedAt || selectedItem.createdAt)}</span></div>
                   {selectedItem.processedAt && <div className="info-item-enad"><span className="info-label-enad">Processed Date</span><span className="info-value-enad">{formatDateTime(selectedItem.processedAt)}</span></div>}
-                  {selectedItem.adminRemarks && <div className="info-item-enad"><span className="info-label-enad">Admin Remarks</span><span className="info-value-enad">{selectedItem.adminRemarks}</span></div>}
                 </div>
+              </div>
+
                 {(selectedItem.quotationDetails || selectedItem.quotationFile || selectedItem.quotationUrl) && (
-                  <>
-                    <div className="merged-head-div-enad" />
-                    <div className="merged-details-title-enad">Quotation Summary</div>
+                  <div className="fq-card-enad">
+                    <div className="fq-card-title-enad">Quotation Summary</div>
                     <div className="merged-summary-grid-enad">
                       {selectedItem.quotationDetails?.systemSize > 0 && (
                         <div className="info-item-enad"><span className="info-label-enad">System Size</span><span className="info-value-enad">{selectedItem.quotationDetails.systemSize} kWp</span></div>
@@ -2640,7 +2677,7 @@ const MyAssessments = () => {
                         <button type="button" className="btn-secondary-enad" onClick={() => setShowCalcAfterQuotation(true)}>Recalculate system size</button>
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
 
@@ -3028,16 +3065,33 @@ const MyAssessments = () => {
       <div className="my-assessments-enad">
         <div className="detail-view-enad">
           <div className="detail-content-enad">
-            <div className="detail-header-enad">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="detail-title-enad">{selectedItem.bookingReference}</h1>
-                  </div>
-                  <div className="client-meta-enad">
-                    <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
-                    <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
-                    <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
-                    <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+              <div className="detail-header-enad">
+                <div className="fq-head-identity-enad">
+                  <span className="fq-avatar-enad">
+                    {selectedItem.clientPhotoURL && !brokenPhotos.has(`pa-${selectedItem._id}`) ? (
+                      <img
+                        src={selectedItem.clientPhotoURL}
+                        alt=""
+                        className="fq-avatar-photo-enad"
+                        loading="lazy"
+                        onError={() => setBrokenPhotos((prev) => new Set(prev).add(`pa-${selectedItem._id}`))}
+                      />
+                    ) : (
+                      <span className="fq-avatar-initials-enad">
+                        {getInitials(`${selectedItem.clientName || ''} ${selectedItem.clientLastName || ''}`)}
+                      </span>
+                    )}
+                  </span>
+                  <div className="fq-head-text-enad">
+                    <div className="mb-2">
+                      <h1 className="detail-title-enad">{selectedItem.bookingReference}</h1>
+                    </div>
+                    <div className="client-meta-enad">
+                      <div className="client-meta-item-enad">{selectedItem.clientName} {selectedItem.clientLastName}</div>
+                      <div className="client-meta-item-enad">{selectedItem.clientEmail || 'No email'}</div>
+                      <div className="client-meta-item-enad">{selectedItem.clientPhone || 'No contact'}</div>
+                      <div className="client-meta-item-enad"><span className="capitalize">{selectedItem.clientType || 'Residential'}</span></div>
+                    </div>
                   </div>
                 </div>
                 <div className="tabs-enad detail-tabs-merged-enad">

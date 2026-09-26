@@ -239,15 +239,17 @@ const Dashboard = () => {
 
       const headers = { Authorization: `Bearer ${token}` };
       const base = import.meta.env.VITE_API_URL;
-      const [quotesRes, assessmentsRes, invoicesRes] = await Promise.all([
+      const [quotesRes, assessmentsRes, invoicesRes, projectsRes] = await Promise.all([
         axios.get(`${base}/api/free-quotes/my-quotes`, { headers }),
         axios.get(`${base}/api/pre-assessments/my-bookings`, { headers }),
         axios.get(`${base}/api/solar-invoices/my-invoices`, { headers }),
+        axios.get(`${base}/api/projects/my-projects`, { headers }).catch(() => ({ data: { projects: [] } })),
       ]);
 
       const quotes = quotesRes.data?.quotes || [];
       const assessments = assessmentsRes.data?.assessments || [];
       const invoices = invoicesRes.data?.invoices || [];
+      const projects = projectsRes.data?.projects || [];
 
       const needsAction =
         assessments.some((a) => a?.assessmentStatus === 'quotation_generated') ||
@@ -260,17 +262,23 @@ const Dashboard = () => {
       const billableAssessments = assessments.filter((a) =>
         a?.invoiceNumber != null && a?.assessmentStatus !== 'pending_review'
       );
-      // Resolved = paid/verified/cancelled/refunded/failed (mirrors billing:
-      // cancelled and refund-flow bookings are never payable again).
+      // Resolved = paid/verified/cancelled/refund-flow (mirrors billing
+      // isPayableNow/isNonPayablePreAssessment in quotation.jsx).
+      // 'failed' stays repayable — a failed pre-assessment still needs Pay Now.
+      // Old admin rejects left cancelled+failed with no cancellation object —
+      // those stay payable so the customer can resubmit.
       const isPayableAssessment = (a) => {
-        if (!a || a.assessmentStatus === 'cancelled') return false;
-        return !['paid', 'for_verification', 'cancelled', 'failed', 'refund_pending', 'refunded', 'no_refund'].includes(a?.paymentStatus);
+        if (!a) return false;
+        if (a.assessmentStatus === 'cancelled' && a?.paymentStatus === 'failed') return true;
+        if (a.assessmentStatus === 'cancelled') return false;
+        return !['paid', 'for_verification', 'cancelled', 'refund_pending', 'refunded', 'no_refund'].includes(a?.paymentStatus);
       };
 
-      // Sequential gating (mirrors billing Pay Now rules): future installments
-      // are NOT due until the prior stage is paid — otherwise not-yet-due
-      // invoices would wrongly light the dot (e.g. progress+final counted
-      // while initial is still unverified).
+      // Sequential + payment-plan gating (mirrors billing Pay Now rules in
+      // quotation.jsx): future installments are NOT due until the prior
+      // stage is paid — otherwise not-yet-due invoices would wrongly light
+      // the dot (e.g. progress+final counted while initial is still
+      // unverified). fifty_fifty final waits on initial (no progress stage).
       const getInvoicePid = (inv) => {
         const pid = inv?.projectId?._id || inv?.projectId || null;
         return pid ? String(pid) : null;
@@ -278,10 +286,29 @@ const Dashboard = () => {
       const isStagePaid = (pid, type) => invoices.some((o) =>
         getInvoicePid(o) === pid && o?.invoiceType === type && o?.paymentStatus === 'paid'
       );
+      const getProjectPaymentPlan = (pid) => {
+        const project = projects.find((p) => String(p?._id) === String(pid));
+        return project?.paymentPreference || 'installment';
+      };
+      // Payable invoice statuses (mirrors billing isPayableNow): pending,
+      // partial (balance left), overdue, and failed/pending_payment for safety.
+      // for_verification/paid/cancelled are never due again.
+      const PAYABLE_INVOICE_STATUSES = ['pending', 'partial', 'failed', 'overdue', 'pending_payment'];
       const isInvoiceDueNow = (inv) => {
-        if (!inv || inv.paymentStatus !== 'pending' || (inv.balance ?? 1) <= 0) return false;
+        if (!inv || !PAYABLE_INVOICE_STATUSES.includes(inv.paymentStatus) || (inv.balance ?? 1) <= 0) return false;
         const pid = getInvoicePid(inv);
         if (!pid) return true; // standalone invoice (no project schedule)
+        const paymentPlan = getProjectPaymentPlan(pid);
+        if (paymentPlan === 'full') return true;
+        if (paymentPlan === 'fifty_fifty') {
+          if (inv.invoiceType === 'final') return isStagePaid(pid, 'initial');
+          return true;
+        }
+        if (paymentPlan === 'thirty_sixty_ten') {
+          if (inv.invoiceType === 'progress') return isStagePaid(pid, 'initial');
+          if (inv.invoiceType === 'final') return isStagePaid(pid, 'progress');
+          return true;
+        }
         switch (inv.invoiceType) {
           case 'progress': return isStagePaid(pid, 'initial');
           case 'final': return isStagePaid(pid, 'progress');
@@ -290,12 +317,12 @@ const Dashboard = () => {
         }
       };
 
-      const pendingPayable =
-        billableAssessments.some((a) => isPayableAssessment(a)) ||
-        invoices.some((inv) => isInvoiceDueNow(inv));
+      const pendingPayableCount =
+        billableAssessments.filter(isPayableAssessment).length +
+        invoices.filter((inv) => isInvoiceDueNow(inv)).length;
 
       setBookNeedsAction(needsAction);
-      setBillingPending(pendingPayable);
+      setBillingPending(pendingPayableCount > 0);
     } catch (error) {
       console.error('Error fetching action alerts:', error);
     }
@@ -1055,14 +1082,17 @@ const Dashboard = () => {
     socketService.on('notification:deleted', handleNotificationDeleted);
 
     // Pre-assessment / free-quote / invoice / bank-transfer / project changes
-    // affect the admin sidebar badges — refresh instantly instead of waiting.
+    // affect the admin sidebar badges - refresh instantly instead of waiting.
     // Project changes also refresh the engineer badge. Sensor data changes refresh device badge.
+    // A rejected payment reverts to pending, which changes the customer Billing
+    // count too, so refresh the customer action alerts on the same event.
     const handleTableChanged = (data) => {
       if (['pre-assessments', 'free-quotes', 'bank-transfers', 'solar-invoices', 'projects', 'sensor-data'].includes(data?.entity)) {
         fetchSidebarActionCounts();
         fetchEngineerActionCounts();
         fetchEngineerAssessmentCounts();
         fetchEngineerDeviceCounts();
+        fetchActionAlerts();
       }
       // iot-data / sensor-data ingest also affects device badge
       if (data?.entity === 'sensor-data' || data?.entity === 'iot-data') {
@@ -1487,7 +1517,7 @@ const Dashboard = () => {
                       {item.actionCountKey === 'engineerDevices' && engineerDeviceCount > 0 && (
                         <span className="notification-badge-sidebar">{engineerDeviceCount > 99 ? '99+' : engineerDeviceCount}</span>
                       )}
-                      {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
+                      {(item.path === '/app/customer/book-assessment' && bookNeedsAction ||
                         (item.path === '/app/customer/billing' && billingPending)) && (
                         <span className="nav-alert-dot" aria-label="Action needed" />
                       )}
@@ -1701,7 +1731,7 @@ const Dashboard = () => {
                 {item.badge && unreadCount > 0 && (
                   <span className="notification-badge-sidebar floating">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
-                {((item.path === '/app/customer/book-assessment' && bookNeedsAction) ||
+                {(item.path === '/app/customer/book-assessment' && bookNeedsAction ||
                   (item.path === '/app/customer/billing' && billingPending)) && (
                   <span className="nav-alert-dot floating" aria-label="Action needed" />
                 )}

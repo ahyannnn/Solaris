@@ -939,16 +939,15 @@ const AdminSchedule = () => {
                   <th>Engineer</th>
                   <th>{activeTab === 'pre_assessment' ? 'Title / ID' : 'Project / ID'}</th>
                   <th>Date &amp; Time</th>
-                  <th>Type</th>
                   <th>Status</th>
                   <th style={{ width: '100px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan="7" className="loading-cell">Loading schedules...</td></tr>
+                  <tr><td colSpan="6" className="loading-cell">Loading schedules...</td></tr>
                 ) : schedules.length === 0 ? (
-                  <tr><td colSpan="7" className="empty-cell">
+                  <tr><td colSpan="6" className="empty-cell">
                     {activeTab === 'pre_assessment'
                       ? 'No Pre-Assessment schedules found'
                       : 'No Installation projects found'}
@@ -1039,7 +1038,6 @@ const AdminSchedule = () => {
                             </div>
                           </div>
                         </td>
-                        <td data-label="Type">{getTypeBadge(schedule.type)}</td>
                         <td data-label="Status">{getStatusBadge(displayStatus)}</td>
                         <td data-label="Action" style={{ textAlign: 'center' }}>
                           <button

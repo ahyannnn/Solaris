@@ -526,7 +526,9 @@ exports.getFreeQuoteById = async (req, res) => {
       .populate('assignedEngineerId', 'fullName email')
       .populate({
         path: 'clientId',
-        populate: { path: 'userId', select: 'email' }
+        // photoURL is needed for the engineer's free-quote detail header avatar.
+        // Without it the client can only fall back to initials.
+        populate: { path: 'userId', select: 'email photoURL' }
       })
       .populate('processedBy', 'email firstName lastName');
 

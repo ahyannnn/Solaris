@@ -2085,19 +2085,27 @@ exports.getEngineerAssessmentActionCounts = async (req, res) => {
   try {
     const engineerId = req.user.id;
     const FreeQuote = require('../models/FreeQuote');
-    const [freeQuoteNeeds, preAssessmentNeeds] = await Promise.all([
-      FreeQuote.countDocuments({
+    const [freeQuoteDocs, preAssessmentDocs] = await Promise.all([
+      FreeQuote.find({
         assignedEngineerId: engineerId,
         status: { $in: QUOTE_NEEDS_ACTION }
-      }),
-      PreAssessment.countDocuments({
+      }).select('_id').lean(),
+      PreAssessment.find({
         assignedEngineerId: engineerId,
         assessmentStatus: { $in: ASSESSMENT_NEEDS_ACTION }
-      })
+      }).select('_id').lean()
     ]);
+
+    const freeQuoteNeeds = freeQuoteDocs.length;
+    const preAssessmentNeeds = preAssessmentDocs.length;
+
     res.json({
       success: true,
       total: freeQuoteNeeds + preAssessmentNeeds,
+      // Same reason as /projects/engineer/action-counts: let the client list the
+      // same rows instead of re-deriving the status rule.
+      assessmentIds: preAssessmentDocs.map(d => String(d._id)),
+      freeQuoteIds: freeQuoteDocs.map(d => String(d._id)),
       breakdown: {
         freeQuotes: freeQuoteNeeds,
         preAssessments: preAssessmentNeeds

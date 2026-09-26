@@ -397,13 +397,23 @@ const EngineerDashboard = () => {
 
       // Sort by date (oldest first - priority)
       pending.sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Provisional list. Replaced below once the server tells us which of these
+      // it considers actionable; kept as the fallback if that request fails.
       setPendingTasks(pending.slice(0, 5));
 
-      // Pending-tasks total = sidebar red dots (server action counts for
-      // My Assessments + My Projects). The local list above is only a
-      // top-5 preview with different predicates, so it must not drive
-      // the count.
+      // Pending-tasks total AND the list itself both come from the server.
+      //
+      // The list used to be filtered with a local copy of the rule
+      // (`status === 'in_progress' || 'initial_paid' || 'full_paid'`), which is
+      // far weaker than the server's engineerHasAction — that also inspects
+      // paymentPreference, the payment schedule and the modal lock. So the card
+      // listed projects the server had already ruled out, e.g. a 152-day-old
+      // `initial_paid` project with paymentPreference 'installment'. The server
+      // now returns `actionableIds` / `assessmentIds` and the local list is
+      // intersected with them, so card, KPI and sidebar badge always agree.
       let actionTotal = pending.length;
+      let actionableProjectIds = null;
+      let actionableAssessmentIds = null;
       try {
         const [projCountRes, assessCountRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL}/api/projects/engineer/action-counts`, {
@@ -413,9 +423,32 @@ const EngineerDashboard = () => {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
+
+        actionableProjectIds = projCountRes.data?.actionableIds;
+        actionableAssessmentIds = assessCountRes.data?.assessmentIds;
         actionTotal = (projCountRes.data?.total || 0) + (assessCountRes.data?.total || 0);
+
+        // Older server without actionableIds: keep the local list rather than
+        // showing nothing, and the console line makes the mismatch obvious.
+        if (!Array.isArray(actionableProjectIds) || !Array.isArray(actionableAssessmentIds)) {
+          console.warn('action-counts response missing actionableIds/assessmentIds — falling back to the local pending list');
+        }
       } catch (countErr) {
         console.error('Error fetching action counts for dashboard:', countErr);
+      }
+
+      if (Array.isArray(actionableProjectIds) && Array.isArray(actionableAssessmentIds)) {
+        const projectOk = new Set(actionableProjectIds);
+        const assessmentOk = new Set(actionableAssessmentIds);
+        setPendingTasks(
+          pending
+            .filter(t =>
+              t.type === 'update_project'
+                ? projectOk.has(String(t.id))
+                : assessmentOk.has(String(t.id))
+            )
+            .slice(0, 5)
+        );
       }
 
       setStats({
@@ -687,10 +720,10 @@ const EngineerDashboard = () => {
             </div>
             <div className="engdas-welcome-actions">
               <Link to="/app/engineer/assessment" className="btn-primary-engdas">
-                <FaClipboardCheck /> View Assessments
+                View Assessments
               </Link>
               <Link to="/app/engineer/schedule" className="btn-secondary-engdas">
-                <FaCalendarCheck /> My Schedule
+                My Schedule
               </Link>
               <div className="engdas-quick-actions">
                 <span className="engdas-squares-caption">Quick Actions</span>

@@ -559,6 +559,7 @@ exports.getActionCounts = async (req, res) => {
     const [
       preAssessments,
       freeQuotesPending,
+      preAssessmentsToVerify,
       invoicesToSend,
       invoicesToVerify,
       bankWaiting,
@@ -569,21 +570,13 @@ exports.getActionCounts = async (req, res) => {
         $or: [
           // 1. Approve / Reject Booking
           { assessmentStatus: 'pending_review' },
-          // 2. Verify Cash Payment
-          { paymentMethod: 'cash', paymentStatus: 'pending' },
-          // 3. Verify GCash Payment (manual proof, not yet auto-verified)
-          {
-            paymentMethod: 'gcash',
-            paymentStatus: 'for_verification',
-            paymentGateway: { $in: [null, ''] }
-          },
-          // 4. Assign Engineer & Device (null matches missing field too)
+          // 2. Assign Engineer & Device (null matches missing field too)
           {
             paymentStatus: 'paid',
             assessmentStatus: 'scheduled',
             assignedEngineerId: null
           },
-          // 5. Process Refund
+          // 3. Process Refund
           {
             assessmentStatus: 'cancelled',
             'cancellation.refundStatus': { $in: ['pending', 'processing'] }
@@ -592,9 +585,16 @@ exports.getActionCounts = async (req, res) => {
       }),
       // 6. Free quotes waiting for engineer assignment (no owner yet)
       FreeQuote.countDocuments({ status: 'pending' }),
-      // NOTE: pre-assessment payment verifications are NOT counted here —
-      // they already count in the Site Assessments badge. Counting them in
-      // both badges double-counted the same work.
+      // 7. Billing: pre-assessment payments waiting for verification. These are
+      // verified on the Billing page, so the count belongs to the Billing badge.
+      // Previously excluded here on the assumption that the Site Assessments
+      // bucket already covered them, but that bucket matched cash+pending and
+      // gcash+for_verification only, so cash+for_verification was counted by
+      // neither badge. Mirrors hasBillingPreNeedsAction in Admin/billing.jsx.
+      PreAssessment.countDocuments({
+        paymentStatus: 'for_verification',
+        assessmentStatus: { $ne: 'cancelled' }
+      }),
       // 8. Billing: draft invoices waiting to be sent to customer
       SolarInvoice.countDocuments({ status: 'draft' }),
       // 9. Billing: invoices with payment to verify/reject
@@ -613,7 +613,7 @@ exports.getActionCounts = async (req, res) => {
       // and Mark as Completed is the engineer's job, not the admin's, so in_progress is excluded.
     ]);
 
-    const billingTotal = invoicesToSend + invoicesToVerify + bankWaiting;
+    const billingTotal = preAssessmentsToVerify + invoicesToSend + invoicesToVerify + bankWaiting;
     const projectsTotal = projApprove + projAssign;
 
     res.json({
@@ -622,6 +622,7 @@ exports.getActionCounts = async (req, res) => {
       freeQuotesPending,
       total: preAssessments + freeQuotesPending,
       billing: {
+        preAssessmentsToVerify,
         invoicesToSend,
         invoicesToVerify,
         bankTransfers: bankWaiting,

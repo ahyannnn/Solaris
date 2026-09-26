@@ -1183,26 +1183,10 @@ const MyAssessments = () => {
   };
 
   // Realtime: new assignments or admin/customer updates refresh the current
-  // page + stats without reload. Also refreshes open detail so IoT
-  // auto-deploy (device_deployed via ESP32 portal) appears without reload.
+  // page + stats without reload.
   useRealtimeTable(
     ['pre-assessments', 'free-quotes', 'schedules'],
-    (payload) => {
-      fetchAllAssessments();
-      fetchAssessmentStats();
-      try {
-        const changedId = String(payload?.id || payload?.record?._id || '');
-        if (
-          payload?.entity === 'pre-assessments' &&
-          changedId &&
-          selectedType === 'pre_assessment' &&
-          selectedItem?._id &&
-          String(selectedItem._id) === changedId
-        ) {
-          fetchPreAssessmentDetails(changedId);
-        }
-      } catch { /* ignore realtime detail refresh errors */ }
-    },
+    () => { fetchAllAssessments(); fetchAssessmentStats(); },
     { debounceMs: 600 }
   );
 
@@ -3252,17 +3236,9 @@ const MyAssessments = () => {
                         <span className="device-info-value-enad">{selectedItem.iotDeviceId?.deviceName || selectedItem.assignedDevice?.deviceName || 'IoT Device'}</span>
                       </div>
                       <div className="device-info-item-enad">
-                        <span className="device-info-label-enad">BookingRef for ESP32 portal</span>
-                        <span className="device-info-value-enad">{selectedItem.bookingReference || 'N/A'}</span>
-                      </div>
-                      <div className="device-info-item-enad">
                         <span className="device-info-label-enad">Status</span>
                         <span className={`device-info-value-enad ${selectedItem.deviceDeployedAt ? 'text-green-600' : 'text-yellow-600'}`}>
-                          {selectedItem.deviceDeployedAt
-                            ? (selectedItem.deviceDeployment?.calibrationNotes?.includes('Auto-deployed via IoT')
-                              ? 'Deployed (Auto via IoT)'
-                              : 'Deployed')
-                            : 'Ready for Deployment'}
+                          {selectedItem.deviceDeployedAt ? 'Deployed' : 'Ready for Deployment'}
                         </span>
                       </div>
                       {selectedItem.deviceDeployedAt && (
@@ -3294,7 +3270,6 @@ const MyAssessments = () => {
                 // Device and status props
                 deviceAssigned={deviceAssigned}
                 assessmentStatus={selectedItem?.assessmentStatus}
-                bookingReference={selectedItem?.bookingReference}
                 appliancesLocked={isSiteVisitOver(selectedItem)}
                 deployNotes={deployNotes}
                 onDeployNotesChange={setDeployNotes}

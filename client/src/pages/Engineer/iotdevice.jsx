@@ -130,19 +130,60 @@ const IoTDevice = () => {
     return null;
   };
 
-  // Strictly retrievable assessmentIds (sidebar badge source — data_collecting + has at least 1 reading)
+  // Strictly retrievable assessmentIds (drives the sidebar badge and the
+  // "ready to retrieve" dot on each View Data button).
   const fetchRetrievableIds = async () => {
     try {
-      const token = sessionStorage.getItem('token');
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) return;
       const resp = await axios.get(`${API_BASE_URL}/api/pre-assessments/engineer/device-action-counts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRetrievableIds(new Set(resp.data?.retrievableIds || []));
     } catch (e) {
-      // silent — table still works without dots
+      // Not silent — a failure here looks identical to "nothing to retrieve",
+      // which is exactly what made this hard to spot.
+      console.error('Error fetching retrievable device ids:', e);
     }
   };
+
+  // ============ SHARED RETRIEVAL HELPERS ============
+  // Single source of truth for "can this be retrieved" and for the PUT body,
+  // so the guard in openConfirmModal and the write in handleRetrieveDevice
+  // can never disagree.
+
+  // Returns a human-readable reason the device cannot be retrieved, or null
+  // when it is safe to proceed.
+  const getRetrieveBlockReason = (stats) => {
+    if (!stats || Object.keys(stats).length === 0) {
+      return 'No data to retrieve. Please wait for data collection.';
+    }
+    if (!stats.totalReadings) {
+      return 'No readings available. Device has not collected data yet.';
+    }
+    if (stats.peakSunHours === undefined || stats.peakSunHours === null) {
+      return 'Peak sun hours data is missing. Please try again later.';
+    }
+    return null;
+  };
+
+  // Exact body the retrieve-device endpoint expects.
+  const buildRetrievePayload = (stats) => ({
+    totalReadings: stats.totalReadings || 0,
+    dataCollectionStart: stats.dataCollectionStart || null,
+    dataCollectionEnd: stats.dataCollectionEnd || null,
+    averageIrradiance: stats.averageIrradiance || 0,
+    maxIrradiance: stats.maxIrradiance || 0,
+    minIrradiance: stats.minIrradiance || 0,
+    peakSunHours: stats.peakSunHours || 0,
+    averageTemperature: stats.averageTemperature || 0,
+    maxTemperature: stats.maxTemperature || 0,
+    minTemperature: stats.minTemperature || 0,
+    averageHumidity: stats.averageHumidity || 0,
+    maxHumidity: stats.maxHumidity || 0,
+    minHumidity: stats.minHumidity || 0,
+    gps: stats.gps || null,
+  });
 
   // ==================== DATA FETCHING ====================
   useEffect(() => {
@@ -275,29 +316,20 @@ const IoTDevice = () => {
   };
 
   const openConfirmModal = () => {
-    if (!hasStats || Object.keys(sensorStats).length === 0) {
-      showToast('No data available to retrieve. Please wait for data collection.', 'warning');
+    const blocked = getRetrieveBlockReason(sensorStats);
+    if (blocked) {
+      showToast(blocked, 'warning');
       return;
     }
-
-    if (!sensorStats.totalReadings || sensorStats.totalReadings === 0) {
-      showToast('No readings available. Device may not have collected data yet.', 'warning');
-      return;
-    }
-
-    if (!sensorStats.peakSunHours && sensorStats.peakSunHours !== 0) {
-      showToast('Peak sun hours data is missing. Please try again later.', 'warning');
-      return;
-    }
-
     setShowConfirmModal(true);
   };
 
   const handleRetrieveDevice = async () => {
     if (!selectedDevice) return;
 
-    if (!sensorStats || Object.keys(sensorStats).length === 0) {
-      showToast('No data to save. Please refresh and try again.', 'error');
+    const blocked = getRetrieveBlockReason(sensorStats);
+    if (blocked) {
+      showToast(blocked, 'error');
       return;
     }
 
@@ -307,32 +339,7 @@ const IoTDevice = () => {
     try {
       const token = sessionStorage.getItem('token');
 
-      const statsPayload = {
-        totalReadings: sensorStats.totalReadings || 0,
-        dataCollectionStart: sensorStats.dataCollectionStart || null,
-        dataCollectionEnd: sensorStats.dataCollectionEnd || null,
-
-        averageIrradiance: sensorStats.averageIrradiance || 0,
-        maxIrradiance: sensorStats.maxIrradiance || 0,
-        minIrradiance: sensorStats.minIrradiance || 0,
-        peakSunHours: sensorStats.peakSunHours || 0,
-
-        averageTemperature: sensorStats.averageTemperature || 0,
-        maxTemperature: sensorStats.maxTemperature || 0,
-        minTemperature: sensorStats.minTemperature || 0,
-
-        averageHumidity: sensorStats.averageHumidity || 0,
-        maxHumidity: sensorStats.maxHumidity || 0,
-        minHumidity: sensorStats.minHumidity || 0,
-
-        gps: sensorStats.gps || null
-      };
-
-      if (statsPayload.totalReadings === 0) {
-        showToast('Cannot retrieve device: No readings found.', 'error');
-        setRetrieving(false);
-        return;
-      }
+      const statsPayload = buildRetrievePayload(sensorStats);
 
       const response = await axios.put(
         `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/retrieve-device`,
@@ -798,15 +805,23 @@ const IoTDevice = () => {
               <div className="modal-actions-iotdevicead">
                 <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
                 {(selectedDevice.assessmentStatus === 'data_collecting' || selectedDevice.status === 'deployed') && (
-                  <button
-                    className="retrieve-btn-iotdevicead"
-                    onClick={openConfirmModal}
-                    disabled={retrieving || !hasStats}
-                    title={!hasStats ? 'No data available to retrieve' : ''}
-                  >
-                    {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
-                    {retrieving ? 'Retrieving...' : 'Retrieve Device'}
-                  </button>
+                  <span className="retrieve-btn-anchor-iotdevicead">
+                    <button
+                      className="retrieve-btn-iotdevicead"
+                      onClick={openConfirmModal}
+                      disabled={retrieving || !hasStats}
+                      title={!hasStats ? 'No data available to retrieve' : ''}
+                    >
+                      {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
+                      {retrieving ? 'Retrieving...' : 'Retrieve Device'}
+                    </button>
+                    {/* Same red dot as the sidebar / table row: retrieval is
+                        actually available right now. Anchored to this button's
+                        right edge. */}
+                    {!retrieving && hasStats && (
+                      <span className="view-data-needs-dot-iotdevicead" title="Ready to retrieve" />
+                    )}
+                  </span>
                 )}
               </div>
             </div>

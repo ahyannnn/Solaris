@@ -1,16 +1,49 @@
 /* ============================================
    ENGINEER DASHBOARD - UNIFIED LIGHT/DARK SOLAR THEME
+
+   Poppins is loaded once via <link> in index.html — do not re-add an
+   @import for it here.
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+/* ============================================
+   ⚠️  READ THIS BEFORE ADDING A TOKEN HERE
+   ============================================
+   There is no single design-token file in this project. Every stylesheet
+   re-declares its own COMPLETE token set on the global `:root` plus a
+   `body.dark-mode` override — there are ~26 such pairs under src/styles/.
+
+   `vite.config.js` enables no CSS code-splitting and every page is
+   statically imported in `App.jsx`, so all of those `:root` blocks are
+   concatenated into ONE stylesheet at equal specificity. The result:
+
+       LAST `:root` DECLARATION WINS, APP-WIDE.
+
+   Today the shared values happen to be byte-identical across files, so
+   nothing visibly breaks. That is luck, not design. If any page ever
+   declares `--bg-card`, `--text-primary`, `--border-card`, etc. with a
+   different value, it will silently restyle this dashboard (and every
+   other page) with no error and no obvious cause.
+
+   Two related traps in this file:
+     1. `--radius-2xl` is NOT defined here. It only exists in
+        styles/Dashboard/dashboard.css. Using it here is a cross-file
+        dependency on the shell stylesheet being loaded.
+     2. Anything not already declared in another stylesheet IS safe to
+        own here — e.g. the `--accent-*` ramp and `--chart-*` below are
+        unique to this file, which is why the icon accents can be themed
+        per-page without touching anyone else's palette.
+
+   Fixing this properly means extracting one theme.css and scoping the
+   per-page blocks to their own root class. Not done yet.
+   ============================================ */
 
 /* ============================================
    CSS VARIABLES - LIGHT MODE (Default)
    ============================================ */
 :root {
-  --bg-primary: #F3F5F1;
-  --bg-card: rgba(255, 255, 255, 0.86);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-primary: #F1F3EF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FCFCFB;
   --bg-surface: #FFFFFF;
   --bg-elevated: #FFFFFF;
   --bg-hover: rgba(0, 0, 0, 0.02);
@@ -19,20 +52,20 @@
   --bg-table-row-hover: rgba(0, 0, 0, 0.03);
   --bg-schedule-item: rgba(255, 255, 255, 0.5);
   --bg-schedule-item-hover: rgba(243, 156, 18, 0.06);
-  --bg-empty: rgba(255, 255, 255, 0.86);
-  --bg-today-alert: rgba(255, 255, 255, 0.86);
+  --bg-empty: #FFFFFF;
+  --bg-today-alert: #FFFFFF;
   --text-primary: #17212B;
   --text-secondary: #667085;
   --text-muted: #98A2B3;
   --text-white: #17212B;
-  --border-color: #EEF0ED;
-  --border-card: rgba(255, 255, 255, 0.9);
-  --border-medium: #E5E7EB;
-  --shadow-card: 0 8px 30px rgba(23, 33, 43, 0.08), 0 2px 8px rgba(23, 33, 43, 0.04);
-  --shadow-card-hover: 0 12px 32px rgba(23, 33, 43, 0.10), 0 3px 10px rgba(23, 33, 43, 0.05);
-  --divider-color: #EEF0ED;
-  --skeleton-bg: #EEF0ED;
-  --skeleton-gradient: linear-gradient(90deg, #EEF0ED 25%, rgba(255, 255, 255, 0.6) 50%, #EEF0ED 75%);
+  --border-color: #E4E8E1;
+  --border-card: #DCE2D6;
+  --border-medium: #CBD2C4;
+  --shadow-card: 0 1px 2px rgba(23, 33, 43, 0.06), 0 4px 14px rgba(23, 33, 43, 0.07);
+  --shadow-card-hover: 0 2px 5px rgba(23, 33, 43, 0.08), 0 10px 24px rgba(23, 33, 43, 0.10);
+  --divider-color: #E4E8E1;
+  --skeleton-bg: #E9EDE6;
+  --skeleton-gradient: linear-gradient(90deg, #E9EDE6 25%, #F4F7F2 50%, #E9EDE6 75%);
   --icon-color: #F39C12;
   --icon-info: #2563EB;
   --icon-success: #059669;
@@ -44,12 +77,12 @@
   --text-edit: #2563EB;
   --btn-primary-bg: #F39C12;
   --btn-primary-hover: #E67E22;
-  --btn-secondary-bg: rgba(255, 255, 255, 0.5);
-  --btn-secondary-hover: rgba(255, 255, 255, 0.8);
-  --btn-secondary-border: #EEF0ED;
-  --btn-secondary-border-hover: #D1D5DB;
-  --alert-bg: rgba(255, 255, 255, 0.86);
-  --alert-border: rgba(255, 255, 255, 0.9);
+  --btn-secondary-bg: #FFFFFF;
+  --btn-secondary-hover: #F7F9F6;
+  --btn-secondary-border: #CBD2C4;
+  --btn-secondary-border-hover: #A9B29E;
+  --alert-bg: #FFFFFF;
+  --alert-border: #DCE2D6;
   --alert-action-bg: #F39C12;
   --alert-action-hover: #E67E22;
   --status-scheduled-bg: rgba(59, 130, 246, 0.10);
@@ -72,6 +105,30 @@
   --status-cancelled-text: #DC2626;
   --status-approved-bg: rgba(16, 185, 129, 0.10);
   --status-approved-text: #059669;
+
+  /* Accent ramp — semantic, themeable. Replaces the hardcoded inline hexes
+     that used to live in dashboard.jsx so every accent follows the theme. */
+  --accent-brand: #D97706;
+  --accent-brand-tint: rgba(243, 156, 18, 0.12);
+  --accent-purple: #7C3AED;
+  --accent-purple-tint: rgba(139, 92, 246, 0.12);
+  --accent-blue: #2563EB;
+  --accent-blue-tint: rgba(59, 130, 246, 0.12);
+  --accent-green: #059669;
+  --accent-green-tint: rgba(16, 185, 129, 0.12);
+  --accent-amber: #B45309;
+  --accent-amber-tint: rgba(245, 158, 11, 0.14);
+  --accent-slate: #64748B;
+  --accent-slate-tint: rgba(100, 116, 139, 0.12);
+
+  --caughtup-bg: rgba(16, 185, 129, 0.08);
+  --caughtup-border: rgba(5, 150, 105, 0.30);
+  --avatar-bg: rgba(243, 156, 18, 0.12);
+  --avatar-color: #D97706;
+  --focus-ring: rgba(243, 156, 18, 0.35);
+  --hover-border-accent: rgba(243, 156, 18, 0.45);
+  --chart-bar: #F39C12;
+  --chart-cursor: rgba(243, 156, 18, 0.08);
   --quick-action-icon-bg: #F6F8F5;
   --quick-action-icon-color: #D97706;
   --quick-action-arrow-color: #D1D5DB;
@@ -115,8 +172,8 @@ body.dark-mode {
   --border-color: rgba(255, 255, 255, 0.06);
   --border-card: rgba(255, 255, 255, 0.06);
   --border-medium: rgba(255, 255, 255, 0.08);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.40), 0 8px 20px rgba(0, 0, 0, 0.36);
   --divider-color: rgba(255, 255, 255, 0.06);
   --skeleton-bg: #131C28;
   --skeleton-gradient: linear-gradient(90deg, #131C28 25%, rgba(255, 255, 255, 0.04) 50%, #131C28 75%);
@@ -131,12 +188,12 @@ body.dark-mode {
   --text-edit: #3B82F6;
   --btn-primary-bg: #F39C12;
   --btn-primary-hover: #E67E22;
-  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
-  --btn-secondary-hover: rgba(255, 255, 255, 0.1);
-  --btn-secondary-border: rgba(255, 255, 255, 0.06);
-  --btn-secondary-border-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+  --btn-secondary-border: rgba(255, 255, 255, 0.12);
+  --btn-secondary-border-hover: rgba(255, 255, 255, 0.22);
   --alert-bg: #1A2533;
-  --alert-border: rgba(255, 255, 255, 0.06);
+  --alert-border: rgba(255, 255, 255, 0.08);
   --alert-action-bg: #F39C12;
   --alert-action-hover: #E67E22;
   --status-scheduled-bg: rgba(59, 130, 246, 0.12);
@@ -159,6 +216,29 @@ body.dark-mode {
   --status-cancelled-text: #EF4444;
   --status-approved-bg: rgba(16, 185, 129, 0.12);
   --status-approved-text: #10B981;
+
+  /* Accent ramp — brighter variants for dark surfaces */
+  --accent-brand: #F39C12;
+  --accent-brand-tint: rgba(243, 156, 18, 0.16);
+  --accent-purple: #8B5CF6;
+  --accent-purple-tint: rgba(139, 92, 246, 0.16);
+  --accent-blue: #3B82F6;
+  --accent-blue-tint: rgba(59, 130, 246, 0.16);
+  --accent-green: #10B981;
+  --accent-green-tint: rgba(16, 185, 129, 0.16);
+  --accent-amber: #F59E0B;
+  --accent-amber-tint: rgba(245, 158, 11, 0.16);
+  --accent-slate: #94A3B8;
+  --accent-slate-tint: rgba(148, 163, 184, 0.16);
+
+  --caughtup-bg: rgba(16, 185, 129, 0.10);
+  --caughtup-border: rgba(16, 185, 129, 0.28);
+  --avatar-bg: rgba(243, 156, 18, 0.16);
+  --avatar-color: #F39C12;
+  --focus-ring: rgba(243, 156, 18, 0.40);
+  --hover-border-accent: rgba(243, 156, 18, 0.40);
+  --chart-bar: #F39C12;
+  --chart-cursor: rgba(243, 156, 18, 0.10);
   --quick-action-icon-bg: #131C28;
   --quick-action-icon-color: #F39C12;
   --quick-action-arrow-color: rgba(255, 255, 255, 0.2);
@@ -192,13 +272,15 @@ body.dark-mode {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-.engdas-welcome-section {
+/* Page head — greeting + date + CTAs on the left, status pill on the right */
+.engdas-page-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 24px;
   flex-wrap: wrap;
   transition: border-color 0.3s ease;
 }
@@ -206,7 +288,15 @@ body.dark-mode {
 .engdas-welcome-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 14px;
+  min-width: 0;
+}
+
+.engdas-welcome-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .engdas-welcome-greeting-wrapper {
@@ -216,22 +306,24 @@ body.dark-mode {
 }
 
 .engdas-welcome-icon {
-  font-size: 28px;
-  color: var(--icon-primary);
+  font-size: 26px;
+  color: var(--accent-brand);
   transition: color 0.3s ease;
+  flex-shrink: 0;
 }
 
 .engdas-welcome-greeting {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.5px;
   transition: color 0.3s ease;
+  line-height: 1.2;
 }
 
 .engdas-welcome-subtitle {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text-muted);
   margin: 0;
   font-weight: 400;
@@ -240,33 +332,27 @@ body.dark-mode {
 
 .engdas-welcome-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.engdas-topbar-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--border-medium);
-  margin: 0 4px;
-  flex-shrink: 0;
-}
-
-.engdas-topbar-squares {
+/* ---- quick actions: 4 square icon links ---- */
+.engdas-quick-actions {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+  padding-left: 10px;
+  border-left: 1px solid var(--border-color);
 }
 
 .engdas-squares-caption {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
-  margin-right: 2px;
   white-space: nowrap;
 }
 
@@ -277,21 +363,19 @@ body.dark-mode {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 15px;
   flex-shrink: 0;
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
-  transition: all 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
   text-decoration: none;
 }
 
 .engdas-square-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(243, 156, 18, 0.25);
-}
-
-/* ============================================
+  border-color: var(--hover-border-accent);
+}/* ============================================
    BUTTONS
    ============================================ */
 .btn-primary-engdas {
@@ -299,7 +383,7 @@ body.dark-mode {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #F39C12;
+  background: var(--btn-primary-bg);
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -313,9 +397,9 @@ body.dark-mode {
 }
 
 .btn-primary-engdas:hover {
-  background: #E67E22;
+  background: var(--btn-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.35);
+  box-shadow: 0 4px 16px var(--focus-ring);
   color: #FFFFFF;
 }
 
@@ -326,7 +410,7 @@ body.dark-mode {
   padding: 10px 20px;
   background: var(--btn-secondary-bg);
   color: var(--text-primary);
-  border: 1px solid #000;
+  border: 1px solid var(--btn-secondary-border);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -342,72 +426,7 @@ body.dark-mode {
   border-color: var(--btn-secondary-border-hover);
   transform: translateY(-2px);
   color: var(--text-primary);
-}
-
-/* ============================================
-   TODAY ALERT - GLASS
-   ============================================ */
-.engdas-today-alert {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--bg-today-alert);
-  border: 1px solid var(--border-card);
-  border-radius: 14px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-/* ============================================
-   PENDING ALERT - NEW
-   ============================================ */
-.engdas-pending-alert {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--bg-today-alert);
-  border: 1px solid var(--border-card);
-  border-radius: 14px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-.alert-icon-engdas {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  transition: color 0.3s ease;
-}
-
-.alert-content-engdas {
-  flex: 1;
-}
-
-.alert-content-engdas strong {
-  display: block;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  margin-bottom: 0.1rem;
-  transition: color 0.3s ease;
-}
-
-.alert-content-engdas p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin: 0;
-  transition: color 0.3s ease;
-}
-
-.alert-action-engdas {
+}.alert-action-engdas {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -428,105 +447,24 @@ body.dark-mode {
   background: var(--alert-action-hover);
   transform: translateY(-2px);
   color: #FFFFFF;
-}
-
-/* ============================================
-   QUICK ACTIONS
-   ============================================ */
-.engdas-quick-actions {
-  margin-bottom: 24px;
-}
-
-.quick-actions-title-engdas {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 12px 0;
-  transition: color 0.3s ease;
-}
-
-.engdas-action-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-.quick-action-item-engdas {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: 14px;
-  text-decoration: none;
-  transition: all 200ms ease;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.quick-action-item-engdas:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: rgba(243, 156, 18, 0.12);
-}
-
-.quick-action-icon-engdas {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  background: var(--quick-action-icon-bg);
-  color: var(--quick-action-icon-color);
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.quick-action-label-engdas {
-  flex: 1;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: color 0.3s ease;
-}
-
-.quick-action-arrow-engdas {
-  color: var(--quick-action-arrow-color);
-  font-size: 0.75rem;
-  transition: transform 200ms ease, color 0.3s ease;
-}
-
-.quick-action-item-engdas:hover .quick-action-arrow-engdas {
-  transform: translateX(4px);
-  color: var(--quick-action-arrow-hover);
-}
-
-/* ============================================
-   STATS GRID - GLASS (FIXED: 4 columns)
+}/* ============================================
+   STATS GRID - 4 columns
    ============================================ */
 .engdas-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  margin-bottom: 28px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .stat-card-engdas {
   background: var(--bg-card);
   border-radius: 12px;
-  padding: 22px 24px 18px 24px;
+  padding: 16px 18px 12px 18px;
   border: 1px solid var(--border-card);
   transition: all 200ms ease;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  min-height: 190px;
+  min-height: 128px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -536,7 +474,7 @@ body.dark-mode {
 .stat-card-engdas:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
-  border-color: var(--border-color);
+  border-color: var(--hover-border-accent);
 }
 
 .stat-card-link-engdas {
@@ -549,19 +487,55 @@ body.dark-mode {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .stat-icon-wrapper-engdas {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
   flex-shrink: 0;
   transition: all 200ms ease;
+}
+
+/* Semantic accent modifiers — these replace hardcoded inline hexes in the
+   JSX so every icon colour follows the active theme. */
+.stat-icon--brand,
+.accent-icon--brand {
+  background: var(--accent-brand-tint);
+  color: var(--accent-brand);
+}
+
+.stat-icon--purple,
+.accent-icon--purple {
+  background: var(--accent-purple-tint);
+  color: var(--accent-purple);
+}
+
+.stat-icon--blue,
+.accent-icon--blue {
+  background: var(--accent-blue-tint);
+  color: var(--accent-blue);
+}
+
+.stat-icon--amber,
+.accent-icon--amber {
+  background: var(--accent-amber-tint);
+  color: var(--accent-amber);
+}
+
+.accent-icon--green {
+  background: var(--accent-green-tint);
+  color: var(--accent-green);
+}
+
+.accent-icon--slate {
+  background: var(--accent-slate-tint);
+  color: var(--accent-slate);
 }
 
 .stat-card-engdas:hover .stat-icon-wrapper-engdas {
@@ -571,11 +545,11 @@ body.dark-mode {
 .stat-content-engdas {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
 }
 
 .stat-label-engdas {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -584,32 +558,38 @@ body.dark-mode {
 }
 
 .stat-value-engdas {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.15;
   transition: color 0.3s ease;
   letter-spacing: -0.3px;
 }
 
 .stat-trend-engdas {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
+/* Sparkline sits in the card header row, opposite the icon */
 .stat-sparkline-engdas {
-  margin-top: 12px;
-  height: 30px;
-  opacity: 0.4;
+  margin-left: auto;
+  width: 72px;
+  height: 24px;
+  opacity: 0.55;
 }
 
 /* ============================================
    PENDING TASKS SECTION - NEW
    ============================================ */
+/* Pending-tasks section is now a live half-width column, not a standalone
+   full-width block */
 .engdas-pending-tasks-section {
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .section-header-engdas {
@@ -631,63 +611,91 @@ body.dark-mode {
   transition: color 0.3s ease;
 }
 
-.section-icon-engdas {
-  color: var(--icon-warning);
-  font-size: 1rem;
+/* Container card — mirrors .assessment-card-engdas so both columns in the
+   row share the same surface, padding and bottom edge. */
+.pending-card-engdas {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 8px 8px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.task-count-badge {
-  display: inline-flex;
-  align-items: center;
+.pending-card-engdas.is-clear {
   justify-content: center;
-  padding: 2px 12px;
-  background: var(--task-count-bg);
-  color: var(--task-count-color);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .pending-tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .pending-task-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: 12px;
+  gap: 14px;
+  padding: 12px 12px;
+  border-radius: 10px;
   text-decoration: none;
-  transition: all 200ms ease;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  transition: background 200ms ease;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.pending-task-item:last-child {
+  border-bottom: none;
 }
 
 .pending-task-item:hover {
-  transform: translateX(4px);
-  border-color: rgba(243, 156, 18, 0.2);
-  box-shadow: var(--shadow-card-hover);
   background: var(--pending-task-hover);
 }
 
-.task-item-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.pending-clear-engdas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 24px 20px;
+}
+
+.pending-clear-engdas strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pending-clear-engdas > span:last-child {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pending-clear-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.task-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
   flex-shrink: 0;
-  background: rgba(243, 156, 18, 0.10);
-  color: var(--icon-warning);
+  background: var(--accent-amber-tint);
+  color: var(--accent-amber);
   transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -696,48 +704,27 @@ body.dark-mode {
   min-width: 0;
 }
 
-.task-item-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .task-item-title {
-  font-size: 0.9rem;
+  display: block;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.3s ease;
-}
-
-.task-item-status {
-  flex-shrink: 0;
 }
 
 .task-item-ref {
   display: block;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-  transition: color 0.3s ease;
-}
-
-.task-item-date {
-  display: block;
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.3s ease;
-}
-
-.task-item-arrow {
-  color: var(--quick-action-arrow-color);
-  font-size: 0.8rem;
-  flex-shrink: 0;
-  transition: transform 200ms ease, color 0.3s ease;
-}
-
-.pending-task-item:hover .task-item-arrow {
+}.pending-task-item:hover .task-item-arrow {
   transform: translateX(4px);
   color: var(--quick-action-arrow-hover);
 }
@@ -750,15 +737,19 @@ body.dark-mode {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   align-items: stretch;
+  margin-bottom: 20px;
 }
 
 /* ============================================
-   ASSESSMENT SECTION - GLASS
+   ASSESSMENT SECTION
    ============================================ */
 .engdas-assessment-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  min-width: 0;
+  /* the section header carries its own bottom margin, so no flex gap here —
+     otherwise the left column gets header margin + gap and drifts out of
+     alignment with the right column */
   min-height: 280px;
 }
 
@@ -774,7 +765,7 @@ body.dark-mode {
 }
 
 .view-all-link-engdas:hover {
-  color: #E67E22;
+  color: var(--btn-primary-hover);
   gap: 8px;
 }
 
@@ -789,24 +780,46 @@ body.dark-mode {
 .assessment-card-engdas {
   background: var(--bg-card);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 18px 20px;
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
+  /* fill the grid row so this card and the pending-tasks card share a
+     bottom edge */
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 220px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .assessment-header-engdas {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   gap: 12px;
+}
+
+.assessment-avatar-engdas {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: var(--accent-brand-tint);
+  color: var(--accent-brand);
+  overflow: hidden;
+}
+
+.assessment-avatar-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .assessment-info-engdas {
@@ -815,110 +828,179 @@ body.dark-mode {
 }
 
 .assessment-name-engdas {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .assessment-reference-engdas {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   margin: 0;
   transition: color 0.3s ease;
 }
 
-.assessment-content-engdas {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+/* ============================================
+   PRE-ASSESSMENT WORKFLOW STEPPER
+   6 grouped phases driven by real persisted data.
+   ============================================ */
+.assessment-workflow {
+  margin-bottom: 18px;
 }
 
-.assessment-details-engdas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.assessment-metric-engdas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
+.assessment-workflow-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--divider-color);
-  transition: border-color 0.3s ease;
+  transition: color 0.3s ease;
 }
 
-.assessment-metric-engdas:last-child {
-  border-bottom: none;
+.workflow-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.metric-label-engdas {
+/* connector rail behind the nodes */
+.workflow-steps::before {
+  content: '';
+  position: absolute;
+  left: 8.33%;
+  right: 8.33%;
+  top: 11px;
+  height: 2px;
+  background: var(--border-medium);
+}
+
+/* painted portion, through the last completed node */
+.workflow-steps::after {
+  content: '';
+  position: absolute;
+  left: 8.33%;
+  top: 11px;
+  height: 2px;
+  width: var(--done, 0%);
+  max-width: 83.34%;
+  background: var(--status-completed-text);
+  transition: width 0.5s ease;
+}
+
+.workflow-steps.is-cancelled::after {
+  display: none;
+}
+
+.workflow-step {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 0 4px;
+}
+
+.workflow-node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
+  justify-content: center;
+  font-size: 0.6rem;
+  margin-bottom: 7px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-medium);
+  color: var(--text-muted);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.workflow-step.is-done .workflow-node {
+  background: var(--status-completed-text);
+  border-color: var(--status-completed-text);
+  color: #FFFFFF;
+}
+
+.workflow-step.is-current .workflow-node {
+  background: var(--icon-color);
+  border-color: var(--icon-color);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px var(--accent-brand-tint);
+}
+
+.workflow-name {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.workflow-step.is-pending .workflow-name {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.workflow-state {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.workflow-step.is-done .workflow-state {
+  color: var(--status-completed-text);
+}
+
+.workflow-step.is-current .workflow-state {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.workflow-overall {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider-color);
+  text-align: center;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
-.metric-value-engdas {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  text-align: right;
-  transition: color 0.3s ease;
+.workflow-overall strong {
+  color: var(--icon-color);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ============================================
-   ACTIVITIES SECTION - GLASS
-   ============================================ */
-.engdas-activities-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 280px;
-}
-
-.activities-card-engdas {
-  background: var(--bg-card);
-  border-radius: 14px;
-  padding: 16px 20px;
-  border: 1px solid var(--border-card);
-  box-shadow: var(--shadow-card);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 220px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-.activities-list-engdas {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.activity-item-engdas {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  transition: all 200ms ease;
-  flex: 1;
-}
-
-.activity-item-engdas:hover {
-  background: var(--bg-hover-light);
-}
-
-.activity-icon-wrapper-engdas {
+/* visually hidden, still announced */
+.sr-only-engdas {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}.activity-icon-wrapper-engdas {
   width: 40px;
   height: 40px;
   border-radius: 10px;
@@ -930,44 +1012,6 @@ body.dark-mode {
   background: var(--activity-icon-bg);
   color: var(--activity-icon-color);
   transition: background 0.3s ease, color 0.3s ease;
-}
-
-.activity-content-engdas {
-  flex: 1;
-  min-width: 0;
-}
-
-.activity-header-engdas {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.activity-title-engdas {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: color 0.3s ease;
-}
-
-.activity-reference-engdas {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 400;
-  transition: color 0.3s ease;
-}
-
-.activity-date-engdas {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  display: block;
-  margin-top: 2px;
-  transition: color 0.3s ease;
-}
-
-.activity-status-engdas {
-  flex-shrink: 0;
 }
 
 .activity-divider-engdas {
@@ -1065,8 +1109,6 @@ body.dark-mode {
   align-items: center;
   justify-content: center;
   flex: 1;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -1108,108 +1150,7 @@ body.dark-mode {
   color: var(--text-muted);
   margin: 0;
   transition: color 0.3s ease;
-}
-
-/* ============================================
-   TODAY'S SCHEDULES
-   ============================================ */
-.today-schedules-section-engdas {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--divider-color);
-  transition: border-color 0.3s ease;
-}
-
-.schedules-title-engdas {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin: 0 0 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: color 0.3s ease;
-}
-
-.schedules-icon-engdas {
-  color: var(--icon-primary);
-  transition: color 0.3s ease;
-}
-
-.schedules-list-engdas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.schedule-item-engdas {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--bg-schedule-item);
-  border-radius: 10px;
-  transition: all 200ms ease;
-}
-
-.schedule-item-engdas:hover {
-  background: var(--bg-schedule-item-hover);
-}
-
-.schedule-time-engdas {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4px 8px;
-  background: var(--schedule-time-bg);
-  border-radius: 6px;
-  min-width: 48px;
-  transition: background 0.3s ease;
-}
-
-.schedule-hour-engdas {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.2;
-  transition: color 0.3s ease;
-}
-
-.schedule-info-engdas {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.schedule-title-engdas {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: color 0.3s ease;
-}
-
-.schedule-client-engdas {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  transition: color 0.3s ease;
-}
-
-.schedule-user-icon-engdas {
-  font-size: 0.7rem;
-  color: var(--schedule-user-icon);
-  transition: color 0.3s ease;
-}
-
-.schedule-status-engdas {
-  flex-shrink: 0;
-}
-
-/* ============================================
+}/* ============================================
    SKELETON LOADING
    ============================================ */
 .skeleton-line-engdas {
@@ -1244,6 +1185,35 @@ body.dark-mode {
   border-radius: 14px;
   border: 1px solid var(--border-card);
   padding: 20px;
+}
+
+/* Panel-shaped skeleton used for the attention + chart/recent rows */
+.skeleton-panel-engdas {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
+  min-height: 180px;
+}
+
+.skeleton-head-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton-icon-engdas {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+.skeleton-btn-engdas {
+  width: 132px;
+  height: 38px;
+  border-radius: 10px;
 }
 
 .skeleton-label-engdas {
@@ -1287,23 +1257,8 @@ body.dark-mode {
 }
 
 /* ============================================
-   TOPBAR (welcome text removed) + CHARTS + RECENT CUSTOMERS
-   Cards only — no new buttons
+   PAGE-HEAD STATUS PILL + CHARTS + RECENT WORK
    ============================================ */
-.engdas-topbar {
-  align-items: center;
-  padding-bottom: 16px;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.engdas-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
 .engdas-topbar-right {
   display: flex;
   align-items: center;
@@ -1322,8 +1277,6 @@ body.dark-mode {
   border: 1px solid var(--border-card);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   max-width: 100%;
 }
 
@@ -1336,7 +1289,7 @@ body.dark-mode {
   justify-content: center;
   font-size: 0.9rem;
   flex-shrink: 0;
-  background: rgba(23, 33, 43, 0.06);
+  background: var(--bg-hover-light);
   color: var(--text-primary);
 }
 
@@ -1364,12 +1317,10 @@ body.dark-mode {
   align-items: center;
   gap: 10px;
   padding: 6px 16px 6px 6px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: var(--caughtup-bg);
+  border: 1px solid var(--caughtup-border);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   max-width: 100%;
 }
 
@@ -1389,15 +1340,7 @@ body.dark-mode {
 .engdas-caughtup-text span {
   font-size: 0.72rem;
   color: var(--text-muted);
-}
-
-.engdas-topbar-date {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.engdas-charts-row {
+}.engdas-charts-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
@@ -1413,11 +1356,9 @@ body.dark-mode {
   border-radius: 14px;
   padding: 18px 20px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
-  min-height: 300px;
+  min-height: 260px;
 }
 
 .engdas-chart-sub {
@@ -1428,7 +1369,7 @@ body.dark-mode {
 
 .engdas-chart-body {
   flex: 1;
-  min-height: 220px;
+  min-height: 190px;
   margin-top: 8px;
 }
 
@@ -1451,66 +1392,26 @@ body.dark-mode {
   font-size: 0.75rem;
   color: var(--text-secondary);
   margin: 0;
-}
-
-.engdas-donut-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--divider-color);
-}
-
-.engdas-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-}
-
-.engdas-legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.engdas-legend-label {
-  color: var(--text-secondary);
-}
-
-.engdas-legend-value {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.engdas-recent-section {
-  margin-bottom: 24px;
-}
-
-.engdas-recent-side {
+}.engdas-recent-side {
   display: flex;
   flex-direction: column;
-  min-height: 340px;
+  min-height: 300px;
 }
 
 .engdas-recent-side .engdas-recent-list {
   flex: 1;
   justify-content: flex-start;
-  /* Fixed height for 5 rows (60px each: 40px avatar + 20px padding) so the
-     card keeps its size even with only 1-2 customers */
-  min-height: 304px;
+  /* Fixed height for 6 rows so the card keeps its size even with only 1-2
+     items of assigned work */
+  min-height: 268px;
 }
 
 .engdas-recent-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 14px;
-  padding: 12px 20px;
+  padding: 16px 20px 12px 20px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .engdas-recent-list {
@@ -1521,24 +1422,35 @@ body.dark-mode {
 .engdas-recent-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 4px;
+  gap: 12px;
+  padding: 9px 4px;
 }
 
+/* Holds either a client photo (circular, object-fit cover) or a tinted
+   work-type icon when no photo exists. */
 .engdas-recent-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  color: var(--text-secondary);
+}
+
+.engdas-recent-avatar .activity-icon-wrapper-engdas {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  background: rgba(243, 156, 18, 0.12);
-  color: #D97706;
-  position: relative;
-  overflow: hidden;
 }
 
 .engdas-recent-photo {
@@ -1563,10 +1475,6 @@ body.dark-mode {
   color: var(--text-muted);
   pointer-events: none;
   padding-bottom: 24px;
-}
-
-body.dark-mode .engdas-recent-avatar {
-  color: #F39C12;
 }
 
 .engdas-recent-info {
@@ -1623,11 +1531,6 @@ body.dark-mode .engdas-recent-avatar {
     gap: 14px;
   }
 
-  .engdas-action-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
   .engdas-charts-row {
     grid-template-columns: 1fr;
   }
@@ -1639,11 +1542,12 @@ body.dark-mode .engdas-recent-avatar {
     padding-top: 12px;
   }
 
-  .engdas-welcome-section {
+  .engdas-page-head {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 0 0 16px 0;
+    align-items: stretch;
+    gap: 14px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
   }
 
   .engdas-welcome-greeting {
@@ -1655,7 +1559,7 @@ body.dark-mode .engdas-recent-avatar {
   }
 
   .engdas-welcome-subtitle {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .engdas-welcome-actions {
@@ -1670,14 +1574,29 @@ body.dark-mode .engdas-recent-avatar {
     font-size: 13px;
   }
 
+  /* drop the quick actions onto their own row once the buttons go full-width */
+  .engdas-quick-actions {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 10px;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .engdas-inline-alert,
+  .engdas-caughtup-card {
+    width: 100%;
+    min-width: 0;
+  }
+
   .engdas-stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 
   .stat-card-engdas {
-    padding: 16px 14px 12px;
-    min-height: 170px;
+    padding: 14px 13px 10px;
+    min-height: 112px;
     border-radius: 10px;
   }
 
@@ -1698,29 +1617,9 @@ body.dark-mode .engdas-recent-avatar {
 
   .stat-trend-engdas {
     font-size: 0.7rem;
-  }
-
-  .engdas-square-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-
-  .engdas-topbar-divider {
-    display: none;
-  }
-
-  /* Topbar groups go full-width and stack on tablet/mobile */
-  .engdas-topbar-left,
-  .engdas-topbar-right {
+  }  .engdas-topbar-right{
     width: 100%;
-  }
-
-  .engdas-topbar-squares {
-    width: 100%;
-  }
-
-  /* Inline alerts stack full-width, text wraps, button drops below */
+  }  /* Inline alerts stack full-width, text wraps, button drops below */
   .engdas-inline-alert {
     flex: 1 1 100%;
     flex-wrap: wrap;
@@ -1755,39 +1654,10 @@ body.dark-mode .engdas-recent-avatar {
 
   .engdas-recent-side {
     min-height: 0;
-  }
-
-  .engdas-action-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .quick-action-item-engdas {
-    padding: 12px 14px;
-    border-radius: 10px;
-  }
-
-  .quick-action-icon-engdas {
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
-  }
-
-  .quick-action-label-engdas {
-    font-size: 0.8rem;
-  }
-
-  .assessment-card-engdas {
+  }  .assessment-card-engdas {
     padding: 16px 18px;
     min-height: 180px;
-  }
-
-  .activities-card-engdas {
-    padding: 14px 16px;
-    min-height: 180px;
-  }
-
-  .assessment-name-engdas {
+  }  .assessment-name-engdas {
     font-size: 1rem;
   }
 
@@ -1797,82 +1667,28 @@ body.dark-mode .engdas-recent-avatar {
 
   .view-all-link-engdas {
     font-size: 0.8rem;
-  }
-
-  .engdas-today-alert,
-  .engdas-pending-alert {
-    flex-direction: column;
-    text-align: center;
-    padding: 14px 16px;
-    gap: 10px;
-  }
-
-  .alert-action-engdas {
+  }  .alert-action-engdas {
     width: 100%;
     justify-content: center;
-  }
-
-  .schedule-item-engdas {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 12px;
-  }
-
-  .schedule-time-engdas {
-    min-width: 40px;
-    padding: 2px 6px;
-  }
-
-  .schedule-hour-engdas {
-    font-size: 0.8rem;
-  }
-
-  .activity-item-engdas {
-    flex-wrap: wrap;
-    padding: 8px 10px;
-    gap: 8px;
-  }
-
-  .activity-icon-wrapper-engdas {
+  }  .activity-icon-wrapper-engdas {
     width: 34px;
     height: 34px;
     font-size: 0.85rem;
   }
 
-  .activity-title-engdas {
-    font-size: 0.8rem;
+  .engdas-assessment-section{
+    min-height: 200px;
   }
 
-  .activity-reference-engdas {
-    font-size: 0.7rem;
-  }
-
-  .activity-date-engdas {
-    font-size: 0.7rem;
-  }
-
-  .activity-status-engdas {
-    margin-left: auto;
-  }
-
-  .engdas-assessment-section,
-  .engdas-activities-section {
+  .pending-card-engdas {
     min-height: 200px;
   }
 
   .empty-state-engdas {
     min-height: 180px;
     padding: 16px;
-  }
-
-  .today-schedules-section-engdas {
-    margin-top: 8px;
-    padding-top: 8px;
-  }
-
-  .pending-task-item {
-    padding: 12px 16px;
-    flex-wrap: wrap;
+  }  .pending-task-item {
+    padding: 12px;
   }
 
   .task-item-title {
@@ -1928,16 +1744,9 @@ body.dark-mode .engdas-recent-avatar {
   }
 
   /* Topbar: tighter pills + caption on small phones */
-  .engdas-topbar {
+  .engdas-page-head {
     padding-bottom: 12px;
-  }
-
-  .engdas-squares-caption {
-    font-size: 10px;
-    width: 100%;
-  }
-
-  .engdas-inline-alert-text {
+  }  .engdas-inline-alert-text {
     font-size: 0.75rem;
   }
 
@@ -1980,35 +1789,7 @@ body.dark-mode .engdas-recent-avatar {
 
   .engdas-recent-status {
     margin-left: auto;
-  }
-
-  .engdas-action-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .quick-action-item-engdas {
-    padding: 10px 12px;
-    gap: 8px;
-    border-radius: 8px;
-  }
-
-  .quick-action-icon-engdas {
-    width: 30px;
-    height: 30px;
-    font-size: 0.8rem;
-    border-radius: 8px;
-  }
-
-  .quick-action-label-engdas {
-    font-size: 0.7rem;
-  }
-
-  .quick-action-arrow-engdas {
-    font-size: 0.6rem;
-  }
-
-  .engdas-welcome-greeting {
+  }  .engdas-welcome-greeting {
     font-size: 18px;
   }
 
@@ -2033,69 +1814,62 @@ body.dark-mode .engdas-recent-avatar {
   }
 
   .assessment-card-engdas {
-    padding: 12px 14px;
+    padding: 14px 16px;
     min-height: 150px;
     border-radius: 10px;
   }
 
-  .activities-card-engdas {
-    padding: 10px 12px;
+  .pending-card-engdas {
+    padding: 6px 6px 10px;
     min-height: 150px;
     border-radius: 10px;
   }
 
-  .assessment-name-engdas {
+  /* 6 phases get cramped on tablets — let the rail scroll instead of
+     squashing the labels */
+  .workflow-steps {
+    grid-template-columns: repeat(6, minmax(92px, 1fr));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .workflow-steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .workflow-steps::before,
+  .workflow-steps::after {
+    left: 46px;
+    right: auto;
+    width: calc(100% - 92px);
+  }
+
+  .workflow-steps::after {
+    max-width: none;
+  }
+
+  .workflow-overall {
+    font-size: 0.74rem;
+  }
+
+  .assessment-avatar-engdas {
+    width: 34px;
+    height: 34px;
+    font-size: 0.78rem;
+  }  .assessment-name-engdas {
     font-size: 0.9rem;
+  }
+
+  .engdas-square-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
   }
 
   .assessment-reference-engdas {
     font-size: 0.75rem;
-  }
-
-  .metric-label-engdas {
-    font-size: 0.75rem;
-  }
-
-  .metric-value-engdas {
-    font-size: 0.8rem;
-  }
-
-  .engdas-today-alert,
-  .engdas-pending-alert {
-    padding: 10px 12px;
-    border-radius: 10px;
-  }
-
-  .alert-content-engdas strong {
-    font-size: 0.8rem;
-  }
-
-  .alert-content-engdas p {
-    font-size: 0.75rem;
-  }
-
-  .alert-action-engdas {
+  }  .alert-action-engdas {
     padding: 6px 12px;
-    font-size: 0.75rem;
-  }
-
-  .schedule-item-engdas {
-    padding: 6px 10px;
-  }
-
-  .schedule-title-engdas {
-    font-size: 0.75rem;
-  }
-
-  .schedule-client-engdas {
-    font-size: 0.65rem;
-  }
-
-  .activity-item-engdas {
-    padding: 6px 8px;
-  }
-
-  .activity-title-engdas {
     font-size: 0.75rem;
   }
 
@@ -2118,8 +1892,11 @@ body.dark-mode .engdas-recent-avatar {
     min-height: 150px;
   }
 
-  .engdas-assessment-section,
-  .engdas-activities-section {
+  .engdas-assessment-section{
+    min-height: 160px;
+  }
+
+  .pending-card-engdas {
     min-height: 160px;
   }
 
@@ -2139,17 +1916,7 @@ body.dark-mode .engdas-recent-avatar {
 
   .task-item-ref {
     font-size: 0.7rem;
-  }
-
-  .task-item-date {
-    font-size: 0.65rem;
-  }
-
-  .task-count-badge {
-    font-size: 0.7rem;
-    padding: 1px 10px;
-  }
-}
+  }}
 
 @media (max-width: 360px) {
   .engdas-dashboard {
@@ -2208,28 +1975,7 @@ body.dark-mode .engdas-recent-avatar {
 
   .engdas-chart-body {
     min-height: 160px;
-  }
-
-  .engdas-action-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-
-  .quick-action-item-engdas {
-    padding: 6px 8px;
-  }
-
-  .quick-action-icon-engdas {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-  }
-
-  .quick-action-label-engdas {
-    font-size: 0.65rem;
-  }
-
-  .engdas-welcome-greeting {
+  }  .engdas-welcome-greeting {
     font-size: 16px;
   }
 
@@ -2263,10 +2009,7 @@ body.dark-mode .engdas-recent-avatar {
   }
 
   .stat-card-engdas:hover,
-  .quick-action-item-engdas:hover,
-  .activity-item-engdas:hover,
-  .schedule-item-engdas:hover,
-  .pending-task-item:hover {
+.pending-task-item:hover{
     transform: none !important;
   }
 
@@ -2280,13 +2023,7 @@ body.dark-mode .engdas-recent-avatar {
   .alert-action-engdas:hover,
   .view-all-link-engdas:hover {
     transform: none !important;
-  }
-
-  .quick-action-item-engdas:hover .quick-action-arrow-engdas {
-    transform: none !important;
-  }
-
-  .view-all-link-engdas:hover .arrow-icon-engdas {
+  }  .view-all-link-engdas:hover .arrow-icon-engdas {
     transform: none !important;
   }
 

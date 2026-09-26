@@ -433,6 +433,14 @@ body.dark-mode {
   align-items: center;
 }
 
+/* Anchors the "ready to retrieve" dot to the modal's Retrieve Device button so
+   the dot stays pinned to that button's right edge. */
+.retrieve-btn-anchor-iotdevicead {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .view-data-needs-dot-iotdevicead {
   position: absolute;
   top: -4px;

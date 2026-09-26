@@ -2106,14 +2106,27 @@ exports.getEngineerAssessmentActionCounts = async (req, res) => {
 // @desc    Count engineer's devices waiting on retrieve (sidebar badge — strictly retrievable)
 // @route   GET /api/pre-assessments/engineer/device-action-counts
 // @access  Private (Engineer)
-// Strictly retrievable = assessmentStatus data_collecting + has at least 1 SensorData reading (so Retrieve button enabled)
+// Strictly retrievable = device is in its data-collection phase AND has at
+// least 1 SensorData reading, so the Retrieve action is genuinely available.
+//
+// NOTE: this must accept BOTH 'device_deployed' and 'data_collecting'.
+// Nothing in the server ever *assigns* assessmentStatus = 'data_collecting' —
+// deployment only ever sets 'device_deployed' (preAssessmentControllers.js:3341
+// / 3344, deviceControllers.js:565) and retrieval jumps straight to
+// 'data_analyzing'. Matching 'data_collecting' alone therefore always returned
+// an empty list, which silently killed the sidebar badge and the table's
+// "ready to retrieve" dot. Mirrors the real retrieve guard in
+// deviceControllers.js:631 and iotDataController.js:211.
 exports.getEngineerDeviceActionCounts = async (req, res) => {
   try {
     const engineerId = req.user.id;
     const assessments = await PreAssessment.find({
       assignedEngineerId: engineerId,
-      assessmentStatus: 'data_collecting',
-      iotDeviceId: { $ne: null }
+      assessmentStatus: { $in: ['device_deployed', 'data_collecting'] },
+      iotDeviceId: { $ne: null },
+      // Already pulled — retrieval stamps this, so it is a belt-and-braces
+      // guard on top of the status filter above.
+      deviceRetrievedAt: null
     }).populate('iotDeviceId', 'deviceId').lean();
 
     if (assessments.length === 0) {

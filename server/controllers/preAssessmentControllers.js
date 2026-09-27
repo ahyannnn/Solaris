@@ -2121,7 +2121,11 @@ exports.getEngineerAssessmentActionCounts = async (req, res) => {
 // @route   GET /api/pre-assessments/engineer/device-action-counts
 // @access  Private (Engineer)
 // Strictly retrievable = device is in its data-collection phase AND has at
-// least 1 SensorData reading, so the Retrieve action is genuinely available.
+// least 1 usable SensorData reading AND the data meets the quality standard,
+// so the sidebar badge and the table's "ready to retrieve" dot agree with
+// the Retrieve button (which stays disabled until dataSufficiency.sufficient).
+// Without the quality check the dots lit up on a single reading while the
+// button stayed disabled.
 //
 // NOTE: this must accept BOTH 'device_deployed' and 'data_collecting'.
 // Nothing in the server ever *assigns* assessmentStatus = 'data_collecting' —
@@ -2163,6 +2167,11 @@ exports.getEngineerDeviceActionCounts = async (req, res) => {
     // reporting rows that are all 0/0/0 (just powered on, or a dead sensor).
     // This matches the client rule (hasValidSensorData in
     // pages/Engineer/iotdevice.jsx) so the badge and the button cannot disagree.
+    //
+    // Quality gate (parity with the client Retrieve button): the button stays
+    // disabled until dataSufficiency.sufficient, so the dot must too — else
+    // it lights on a single reading while retrieval is unavailable. Runs
+    // after the cheap usable check so stats compute only for candidates.
     const retrievableIds = [];
 
     await Promise.all(assessments.map(async (a) => {
@@ -2184,8 +2193,12 @@ exports.getEngineerDeviceActionCounts = async (req, res) => {
       })
         .select('_id')
         .lean();
+      if (!usable) return;
 
-      if (usable) retrievableIds.push(String(a._id));
+      const stats = await computeMonitoringStats(a, deviceId);
+      if (!evaluateDataSufficiency(stats).sufficient) return;
+
+      retrievableIds.push(String(a._id));
     }));
 
     res.json({ success: true, total: retrievableIds.length, retrievableIds });

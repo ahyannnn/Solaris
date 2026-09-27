@@ -83,6 +83,12 @@ const SiteAssessment = () => {
   const [deviceSearch, setDeviceSearch] = useState('');
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
   const [showDeviceDropdown, setShowDeviceDropdown] = useState(false);
+  // Engineer busy dates: days the selected engineer already has an active
+  // schedule / another assessment on (fetched from Schedule + PreAssessment).
+  const [busyDates, setBusyDates] = useState([]);
+  const [busyLoading, setBusyLoading] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   // In-flight lock: blocks double-clicks within the same frame before
   // isSubmitting state re-renders and disables the buttons.
   const assigningRef = useRef(false);
@@ -468,12 +474,17 @@ const SiteAssessment = () => {
       return { valid: false, message: 'Site visit date is required' };
     }
 
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // String compare on YYYY-MM-DD avoids timezone drift from `new Date(date)`.
+    // Same-day booking is not allowed — must be strictly after today.
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    if (selectedDate < today) {
-      return { valid: false, message: 'Site visit date cannot be in the past' };
+    if (date <= todayStr) {
+      return { valid: false, message: 'Site visit must be a future date — same-day booking is not allowed' };
+    }
+
+    if (busyDatesSet?.has(date)) {
+      return { valid: false, message: 'Engineer already has a schedule on this date — please choose another date' };
     }
 
     return { valid: true, message: '' };
@@ -489,6 +500,10 @@ const SiteAssessment = () => {
     setSiteVisitNotes('');
     setEngineerSearch('');
     setDeviceSearch('');
+    setBusyDates([]);
+    setBusyLoading(false);
+    setShowCalendar(false);
+    setCalendarMonth(new Date());
     setAssignmentStep('engineer');
     setShowAssignModal(true);
     setOpenDropdownId(null);
@@ -538,20 +553,23 @@ const SiteAssessment = () => {
     // Validate engineer
     if (!selectedEngineerId) {
       showToast('Please select an engineer', 'warning');
+      assigningRef.current = false;
       return;
     }
 
     // Validate device (pre-assessments only — free quotes assign engineer only)
     if (activeTab !== 'free-quotes' && !selectedDeviceId) {
       showToast('Please select an IoT device', 'warning');
+      assigningRef.current = false;
       return;
     }
 
-    // Validate site visit date for pre-assessments
+    // Validate site visit date for pre-assessments (past + engineer busy dates)
     if (activeTab !== 'free-quotes') {
       const validation = validateSiteVisitDate(siteVisitDate);
       if (!validation.valid) {
         showToast(validation.message, 'warning');
+        assigningRef.current = false;
         return;
       }
     }
@@ -607,6 +625,8 @@ const SiteAssessment = () => {
       setSelectedDeviceId('');
       setSiteVisitDate('');
       setSiteVisitNotes('');
+      setBusyDates([]);
+      setShowCalendar(false);
       setAssignmentStep('engineer');
       setOpenDropdownId(null);
       fetchData();
@@ -614,6 +634,20 @@ const SiteAssessment = () => {
       fetchDevices();
     } catch (error) {
       console.error('Error in assignment:', error);
+      // Backend 409 = engineer just became busy (race / stale picker) — refresh
+      // busy dates so the calendar disables the date immediately.
+      if (error.response?.status === 409 && selectedEngineerId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/busy-dates`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { engineerId: selectedEngineerId }
+          });
+          setBusyDates(res.data?.busyDates || []);
+        } catch (refreshErr) {
+          console.error('Busy-date refresh failed:', refreshErr.message);
+        }
+      }
       showToast(error.response?.data?.message || 'Failed to complete assignment', 'error');
     } finally {
       setIsSubmitting(false);
@@ -843,6 +877,55 @@ const SiteAssessment = () => {
 
   const engineerMoreCount = Math.max(0, (engineerSearch ? engineers.filter(e => `${e.fullName || ''} ${e.email || ''}`.toLowerCase().includes(engineerSearch.trim().toLowerCase())).length : engineers.length) - filteredEngineers.length);
   const deviceMoreCount = Math.max(0, (deviceSearch ? devices.filter(d => `${d.deviceName || ''} ${d.deviceId || ''}`.toLowerCase().includes(deviceSearch.trim().toLowerCase())).length : devices.length) - filteredDevices.length);
+
+  // Fast lookup for disabled calendar days (API returns YYYY-MM-DD UTC strings).
+  const busyDatesSet = useMemo(() => new Set(busyDates || []), [busyDates]);
+  const isDateBusy = (dateStr) => !!dateStr && busyDatesSet.has(dateStr);
+  const toLocalDayString = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  // Fetch busy dates whenever the selected engineer changes; clear a stale
+  // picked date that just became busy for the new engineer.
+  useEffect(() => {
+    if (!showAssignModal || !selectedEngineerId) {
+      setBusyDates([]);
+      setBusyLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const fetchBusy = async () => {
+      setBusyLoading(true);
+      try {
+        const token = sessionStorage.getItem('token');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/schedules/busy-dates`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { engineerId: selectedEngineerId }
+        });
+        if (cancelled) return;
+        const days = res.data?.busyDates || [];
+        setBusyDates(days);
+        if (siteVisitDate && days.includes(siteVisitDate)) {
+          setSiteVisitDate('');
+          setShowCalendar(false);
+          showToast('Previously picked date is busy for this engineer — please choose another date', 'warning');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error fetching engineer busy dates:', err);
+          setBusyDates([]);
+        }
+      } finally {
+        if (!cancelled) setBusyLoading(false);
+      }
+    };
+    fetchBusy();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEngineerId, showAssignModal]);
 
   const closeRefundModal = (refresh = false) => {
     setShowRefundModal(false);
@@ -1374,6 +1457,8 @@ const SiteAssessment = () => {
                   setSelectedDeviceId('');
                   setEngineerSearch('');
                   setDeviceSearch('');
+                  setBusyDates([]);
+                  setShowCalendar(false);
                   setAssignmentStep('engineer');
                 }}>×</button>
               </div>
@@ -1449,20 +1534,114 @@ const SiteAssessment = () => {
                         <label>
                           Site Visit Date <span className="required-field-adminbills_">*</span>
                         </label>
-                        <input
-                          type="date"
-                          className={`date-input-adminbills_ ${siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) ? 'invalid-date-adminbills_' : ''}`}
-                          value={siteVisitDate}
-                          onChange={(e) => setSiteVisitDate(e.target.value)}
-                          min={getTodayDate()}
-                          required
-                        />
-                        {siteVisitDate && new Date(siteVisitDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
-                          <div className="validation-error-adminbills_">
-                            <label>Site visit date cannot be in the past</label>
+                        {!selectedEngineerId ? (
+                          <div className="validation-hint-adminbills_">
+                            <label>Select an engineer first to see their busy dates</label>
+                          </div>
+                        ) : busyLoading ? (
+                          <div className="validation-hint-adminbills_">
+                            <label>Checking engineer schedule…</label>
+                          </div>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={`date-input-adminbills_ busy-cal-toggle-adminbills_ ${siteVisitDate && isDateBusy(siteVisitDate) ? 'invalid-date-adminbills_' : ''}`}
+                          onClick={() => {
+                            setCalendarMonth(siteVisitDate ? new Date(siteVisitDate + 'T00:00:00') : new Date());
+                            setShowCalendar((v) => !v);
+                          }}
+                        >
+                          <FaCalendarAlt style={{ marginRight: 8 }} />
+                          {siteVisitDate ? formatDate(siteVisitDate) : 'Select site visit date'}
+                        </button>
+                        {showCalendar && (
+                          <div className="busy-cal-adminbills_">
+                            <div className="busy-cal-header-adminbills_">
+                              <button
+                                type="button"
+                                className="busy-cal-nav-adminbills_"
+                                onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                              >
+                                <FaChevronLeft />
+                              </button>
+                              <strong>
+                                {calendarMonth.toLocaleString('en-PH', { month: 'long', year: 'numeric' })}
+                              </strong>
+                              <button
+                                type="button"
+                                className="busy-cal-nav-adminbills_"
+                                onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                              >
+                                <FaChevronRight />
+                              </button>
+                            </div>
+                            <div className="busy-cal-weekdays-adminbills_">
+                              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
+                                <span key={d}>{d}</span>
+                              ))}
+                            </div>
+                            <div className="busy-cal-grid-adminbills_">
+                              {(() => {
+                                const y = calendarMonth.getFullYear();
+                                const m = calendarMonth.getMonth();
+                                const startDay = new Date(y, m, 1).getDay();
+                                const daysInMonth = new Date(y, m + 1, 0).getDate();
+                                const todayStr = toLocalDayString(new Date());
+                                const cells = [];
+                                for (let i = 0; i < startDay; i++) {
+                                  cells.push(<span key={`blank-${i}`} className="busy-cal-blank-adminbills_" />);
+                                }
+                                for (let d = 1; d <= daysInMonth; d++) {
+                                  const dateObj = new Date(y, m, d);
+                                  const dayStr = toLocalDayString(dateObj);
+                                  const isPastOrToday = dayStr <= todayStr;
+                                  const isToday = dayStr === todayStr;
+                                  const busy = isDateBusy(dayStr);
+                                  const disabled = isPastOrToday || busy;
+                                  const selected = siteVisitDate === dayStr;
+                                  cells.push(
+                                    <button
+                                      key={dayStr}
+                                      type="button"
+                                      disabled={disabled}
+                                      title={busy ? 'Engineer has a schedule on this date' : isToday ? 'Same-day booking is not allowed' : isPastOrToday ? 'Past date' : dayStr}
+                                      className={`busy-cal-day-adminbills_${selected ? ' selected-adminbills_' : ''}${busy ? ' busy-adminbills_' : ''}${isPastOrToday ? ' past-adminbills_' : ''}`}
+                                      onClick={() => {
+                                        setSiteVisitDate(dayStr);
+                                        setShowCalendar(false);
+                                      }}
+                                    >
+                                      {d}
+                                    </button>
+                                  );
+                                }
+                                return cells;
+                              })()}
+                            </div>
+                            <div className="busy-cal-legend-adminbills_">
+                              <span><i className="busy-cal-dot-adminbills_ busy-legend_" /> Engineer has schedule</span>
+                              {busyDates.length > 0 && <span>{busyDates.length} busy day{busyDates.length === 1 ? '' : 's'}</span>}
+                            </div>
                           </div>
                         )}
-                        {!siteVisitDate && (
+                        {siteVisitDate && isDateBusy(siteVisitDate) && (
+                          <div className="validation-error-adminbills_">
+                            <label>Engineer already has a schedule on this date — please choose another date</label>
+                          </div>
+                        )}
+                        {siteVisitDate && (() => {
+                          const n = new Date();
+                          const tStr = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+                          if (siteVisitDate <= tStr) {
+                            return (
+                              <div className="validation-error-adminbills_">
+                                <label>Site visit must be a future date — same-day booking is not allowed</label>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                        {!siteVisitDate && !showCalendar && (
                           <div className="validation-hint-adminbills_">
                             <label>Please select a future date for the site visit</label>
                           </div>
@@ -1588,6 +1767,8 @@ const SiteAssessment = () => {
                     setSelectedDeviceId('');
                     setEngineerSearch('');
                     setDeviceSearch('');
+                    setBusyDates([]);
+                    setShowCalendar(false);
                     setAssignmentStep('engineer');
                   }}
                 >

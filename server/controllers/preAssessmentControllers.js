@@ -3720,6 +3720,27 @@ exports.assignEngineer = async (req, res) => {
       });
     }
 
+    // Block double-booking: engineer already has an active schedule /
+    // another assessment on the same day (frontend disables these dates too).
+    // Same-day booking is also rejected — must be strictly after today.
+    if (siteVisitDate) {
+      const { isEngineerBusyOnDate, toBusyDayString } = require('./scheduleController');
+      const dayStr = toBusyDayString(siteVisitDate);
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (dayStr && dayStr <= todayStr) {
+        return res.status(400).json({
+          message: 'Site visit must be a future date — same-day booking is not allowed.'
+        });
+      }
+      const busy = await isEngineerBusyOnDate(engineerId, siteVisitDate, assessment._id);
+      if (busy) {
+        return res.status(409).json({
+          message: 'Engineer already has a schedule on this date. Please choose another date.',
+          busyDate: toBusyDayString(siteVisitDate)
+        });
+      }
+    }
+
     assessment.assignedEngineerId = engineerId;
     if (siteVisitDate) assessment.siteVisitDate = new Date(siteVisitDate);
     if (notes) assessment.siteVisitNotes = notes;

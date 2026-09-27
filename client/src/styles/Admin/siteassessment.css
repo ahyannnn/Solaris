@@ -2621,3 +2621,120 @@ body.dark-mode {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* --- Engineer busy-date calendar (assign modal) --- */
+.busy-cal-toggle-adminbills_ {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+}
+
+.busy-cal-adminbills_ {
+  margin-top: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.busy-cal-header-adminbills_ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.busy-cal-nav-adminbills_ {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-input);
+  background: var(--bg-section);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.busy-cal-weekdays-adminbills_ {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.busy-cal-grid-adminbills_ {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.busy-cal-blank-adminbills_ {
+  min-height: 32px;
+}
+
+.busy-cal-day-adminbills_ {
+  min-height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--bg-section);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.busy-cal-day-adminbills_:hover:not(:disabled) {
+  border-color: var(--icon-color);
+}
+
+.busy-cal-day-adminbills_.selected-adminbills_ {
+  background: var(--icon-color);
+  color: #fff;
+  font-weight: 700;
+}
+
+.busy-cal-day-adminbills_.busy-adminbills_ {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error-color);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.busy-cal-day-adminbills_.past-adminbills_:not(.busy-adminbills_) {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.busy-cal-day-adminbills_:disabled {
+  cursor: not-allowed;
+}
+
+.busy-cal-legend-adminbills_ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.busy-cal-dot-adminbills_ {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: baseline;
+}
+
+.busy-cal-dot-adminbills_.busy-legend_ {
+  background: var(--error-color);
+}

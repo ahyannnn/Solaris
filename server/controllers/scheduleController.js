@@ -124,7 +124,98 @@ const buildScheduleSearchFilter = async (search) => {
   return { $or: or };
 };
 
+// ============ ENGINEER BUSY-DATE HELPERS ============
+
+const ACTIVE_SCHEDULE_STATUSES = ['scheduled', 'confirmed', 'in_progress', 'rescheduled'];
+
+const toBusyDayString = (d) => {
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return null;
+  return dt.toISOString().split('T')[0];
+};
+
+const getDayRange = (dateStr) => {
+  const start = new Date(dateStr);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { start, end };
+};
+
+// True if the engineer already has an ACTIVE schedule OR another
+// non-cancelled/non-completed pre-assessment on the same calendar day.
+const isEngineerBusyOnDate = async (engineerId, dateStr, excludePreAssessmentId = null) => {
+  if (!engineerId || !dateStr) return false;
+  const day = toBusyDayString(dateStr);
+  if (!day) return false;
+  const { start, end } = getDayRange(day);
+
+  const clashingSchedule = await Schedule.findOne({
+    assignedEngineerId: engineerId,
+    status: { $in: ACTIVE_SCHEDULE_STATUSES },
+    scheduledDate: { $gte: start, $lt: end }
+  }).select('_id').lean();
+  if (clashingSchedule) return true;
+
+  const preQuery = {
+    assignedEngineerId: engineerId,
+    siteVisitDate: { $gte: start, $lt: end },
+    assessmentStatus: { $nin: ['cancelled', 'completed'] }
+  };
+  if (excludePreAssessmentId) {
+    preQuery._id = { $ne: excludePreAssessmentId };
+  }
+  const clashingAssessment = await PreAssessment.findOne(preQuery).select('_id').lean();
+  return !!clashingAssessment;
+};
+
+const collectEngineerBusyDates = async (engineerId) => {
+  const [schedules, assessments] = await Promise.all([
+    Schedule.find({
+      assignedEngineerId: engineerId,
+      status: { $in: ACTIVE_SCHEDULE_STATUSES }
+    }).select('scheduledDate').lean(),
+    PreAssessment.find({
+      assignedEngineerId: engineerId,
+      siteVisitDate: { $exists: true, $ne: null },
+      assessmentStatus: { $nin: ['cancelled', 'completed'] }
+    }).select('siteVisitDate').lean()
+  ]);
+  const days = new Set();
+  schedules.forEach((s) => {
+    const day = s.scheduledDate ? toBusyDayString(s.scheduledDate) : null;
+    if (day) days.add(day);
+  });
+  assessments.forEach((a) => {
+    const day = a.siteVisitDate ? toBusyDayString(a.siteVisitDate) : null;
+    if (day) days.add(day);
+  });
+  return [...days].sort();
+};
+
 // ============ ADMIN FUNCTIONS ============
+
+// Reused by preAssessmentControllers.assignEngineer for the same 409 guard.
+exports.isEngineerBusyOnDate = isEngineerBusyOnDate;
+exports.toBusyDayString = toBusyDayString;
+exports.ACTIVE_SCHEDULE_STATUSES = ACTIVE_SCHEDULE_STATUSES;
+
+// @desc    Get busy dates for one engineer (Admin)
+// @route   GET /api/schedules/busy-dates?engineerId=xxx
+// @access  Private (Admin)
+exports.getEngineerBusyDates = async (req, res) => {
+  try {
+    const engineerId = req.query.engineerId || req.params.engineerId;
+    if (!engineerId || !mongoose.Types.ObjectId.isValid(engineerId)) {
+      return res.status(400).json({ message: 'Valid engineerId is required' });
+    }
+    const busyDates = await collectEngineerBusyDates(engineerId);
+    res.json({ success: true, engineerId, busyDates });
+  } catch (error) {
+    console.error('Get engineer busy dates error:', error);
+    res.status(500).json({ message: 'Failed to fetch busy dates', error: error.message });
+  }
+};
 
 // @desc    Get all schedules (Admin)
 // @route   GET /api/schedules
@@ -747,6 +838,26 @@ exports.createScheduleFromPreAssessment = async (req, res) => {
     const existingSchedule = await Schedule.findOne({ preAssessmentId });
     if (existingSchedule) {
       return res.status(400).json({ message: 'Schedule already exists for this assessment' });
+    }
+
+    // Block double-booking: engineer already has an active schedule /
+    // another assessment on the same day (frontend disables these dates too).
+    // Same-day booking is also rejected — must be strictly after today.
+    if (engineerId && siteVisitDate) {
+      const dayStr = toBusyDayString(siteVisitDate);
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (dayStr && dayStr <= todayStr) {
+        return res.status(400).json({
+          message: 'Site visit must be a future date — same-day booking is not allowed.'
+        });
+      }
+      const busy = await isEngineerBusyOnDate(engineerId, siteVisitDate, preAssessmentId);
+      if (busy) {
+        return res.status(409).json({
+          message: 'Engineer already has a schedule on this date. Please choose another date.',
+          busyDate: toBusyDayString(siteVisitDate)
+        });
+      }
     }
 
     // Fixed schedule: starts at 6:00 AM, ends at 11:00 AM (5 hours duration)

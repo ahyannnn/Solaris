@@ -13,6 +13,7 @@ const {
   getScheduleStats,
   getCalendarSchedules,
     createScheduleFromPreAssessment,
+  getEngineerBusyDates,
 
   
   // Engineer functions
@@ -28,6 +29,8 @@ const { verifyToken } = authMiddleware;
 // ============ ADMIN ROUTES ============
 router.get('/stats', verifyToken, admin, getScheduleStats);
 router.get('/calendar', verifyToken, admin, getCalendarSchedules);
+// Must sit BEFORE /:id or "busy-dates" would be treated as an id.
+router.get('/busy-dates', verifyToken, admin, getEngineerBusyDates);
 router.get('/', verifyToken, admin, getAllSchedules);
 router.get('/:id', verifyToken, admin, getScheduleById);
 router.post('/', verifyToken, admin, createSchedule);

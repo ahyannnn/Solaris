@@ -438,11 +438,16 @@ body.dark-mode {
 }
 
 /* Anchors the "ready to retrieve" dot to the modal's Retrieve Device button so
-   the dot stays pinned to that button's right edge. */
+   the dot stays pinned to that button's right edge.
+   The gap is load-bearing: the anchor groups Extend Monitoring + Retrieve
+   Device into one box, so the `gap: 12px` on .modal-actions-iotdevicead only
+   separates the anchor from its siblings and does nothing between the two
+   buttons inside it — without this they butt straight up against each other. */
 .retrieve-btn-anchor-iotdevicead {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 12px;
 }
 
 .view-data-needs-dot-iotdevicead {
@@ -1690,6 +1695,16 @@ body.dark-mode {
   .modal-actions-iotdevicead {
     padding: 14px 16px 18px 16px;
     flex-direction: column;
+  }
+
+  /* The anchor wraps both action buttons, so it has to become a full-width
+     column too — otherwise its two 100%-wide children sit side by side and
+     overflow the stacked footer. */
+  .retrieve-btn-anchor-iotdevicead {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
   .modal-actions-iotdevicead .close-btn-iotdevicead,

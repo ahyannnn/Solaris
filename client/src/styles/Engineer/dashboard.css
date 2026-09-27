@@ -293,9 +293,9 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px 24px;
-  padding-bottom: 20px;
-  margin-bottom: 22px;
+  gap: 18px 24px;
+  padding-bottom: 24px;
+  margin-bottom: 26px;
   border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
   transition: border-color 0.3s ease;
@@ -358,7 +358,7 @@ body.dark-mode .engdas-dashboard {
 
 .engdas-welcome-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -367,27 +367,28 @@ body.dark-mode .engdas-dashboard {
 .engdas-quick-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex-wrap: wrap;
-  margin-left: 4px;
-  padding-left: 16px;
+  margin-left: 2px;
+  padding-left: 14px;
   border-left: 1px solid var(--border-color);
 }
 
 .engdas-squares-caption {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.9px;
   color: var(--text-muted);
   white-space: nowrap;
   margin-right: 2px;
+  line-height: 1;
 }
 
 .engdas-square-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -400,7 +401,7 @@ body.dark-mode .engdas-dashboard {
 }
 
 .engdas-square-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-card-hover);
   border-color: var(--hover-border-accent);
 }/* ============================================
@@ -481,18 +482,18 @@ body.dark-mode .engdas-dashboard {
 .engdas-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
 .stat-card-engdas {
   background: var(--bg-card);
-  border-radius: 12px;
-  padding: 16px 18px 12px 18px;
+  border-radius: 16px;
+  padding: 18px 20px 16px 20px;
   border: 1px solid var(--border-card);
   transition: all 200ms ease;
   box-shadow: var(--shadow-card);
-  min-height: 128px;
+  min-height: 132px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -515,13 +516,13 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .stat-icon-wrapper-engdas {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,40 +574,50 @@ body.dark-mode .engdas-dashboard {
 .stat-content-engdas {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .stat-label-engdas {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.7px;
   transition: color 0.3s ease;
 }
 
 .stat-value-engdas {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.15;
+  line-height: 1.1;
   transition: color 0.3s ease;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.6px;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-trend-engdas {
   font-size: 12px;
   font-weight: 400;
+  line-height: 1.35;
   color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
-/* Sparkline sits in the card header row, opposite the icon */
+/* Sparkline sits in the card header row, opposite the icon.
+   Full opacity + a thicker stroke: at the old 0.55 opacity and 2px the trend
+   read as a stray hairline floating in dead space (see dashboard screenshot). */
 .stat-sparkline-engdas {
   margin-left: auto;
-  width: 72px;
-  height: 24px;
-  opacity: 0.55;
+  width: 84px;
+  height: 26px;
+  opacity: 0.9;
+}
+
+/* The svg sets strokeWidth via a presentation attribute, which any CSS
+   declaration outranks — so the trend weight is tuned here, not in JSX. */
+.stat-sparkline-engdas path {
+  stroke-width: 2.5;
 }
 
 /* ============================================
@@ -624,18 +635,19 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px;
-  margin-bottom: 12px;
+  padding: 0;
+  margin-bottom: 14px;
 }
 
 .section-title-engdas {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: -0.2px;
   transition: color 0.3s ease;
 }
 
@@ -644,9 +656,9 @@ body.dark-mode .engdas-dashboard {
 .pending-card-engdas {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
-  padding: 8px 8px 12px;
+  padding: 8px 10px 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -667,7 +679,7 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 12px;
+  padding: 11px 12px;
   border-radius: 10px;
   text-decoration: none;
   transition: background 200ms ease;
@@ -692,31 +704,31 @@ body.dark-mode .engdas-dashboard {
 }
 
 .pending-clear-engdas strong {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .pending-clear-engdas > span:last-child {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 
 .pending-clear-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  margin-bottom: 2px;
+  font-size: 1.15rem;
+  margin-bottom: 4px;
 }
 
 .task-item-icon {
   width: 36px;
   height: 36px;
-  border-radius: 9px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -734,7 +746,7 @@ body.dark-mode .engdas-dashboard {
 
 .task-item-title {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -745,9 +757,9 @@ body.dark-mode .engdas-dashboard {
 
 .task-item-ref {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -765,7 +777,7 @@ body.dark-mode .engdas-dashboard {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   align-items: stretch;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 /* ============================================
@@ -778,7 +790,7 @@ body.dark-mode .engdas-dashboard {
   /* the section header carries its own bottom margin, so no flex gap here —
      otherwise the left column gets header margin + gap and drifts out of
      alignment with the right column */
-  min-height: 280px;
+  min-height: 300px;
 }
 
 .view-all-link-engdas {
@@ -807,8 +819,8 @@ body.dark-mode .engdas-dashboard {
 
 .assessment-card-engdas {
   background: var(--bg-card);
-  border-radius: 14px;
-  padding: 18px 20px;
+  border-radius: 16px;
+  padding: 20px 22px;
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
   /* fill the grid row so this card and the pending-tasks card share a
@@ -824,13 +836,13 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   gap: 12px;
 }
 
 .assessment-avatar-engdas {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -856,10 +868,10 @@ body.dark-mode .engdas-dashboard {
 }
 
 .assessment-name-engdas {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 2px 0;
+  margin: 0 0 3px 0;
   transition: color 0.3s ease;
   white-space: nowrap;
   overflow: hidden;
@@ -867,7 +879,7 @@ body.dark-mode .engdas-dashboard {
 }
 
 .assessment-reference-engdas {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
   margin: 0;
   transition: color 0.3s ease;
@@ -887,8 +899,8 @@ body.dark-mode .engdas-dashboard {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0 0 14px;
-  padding-bottom: 8px;
+  margin: 0 0 16px;
+  padding-bottom: 9px;
   border-bottom: 1px solid var(--divider-color);
   transition: color 0.3s ease;
 }
@@ -908,8 +920,9 @@ body.dark-mode .engdas-dashboard {
   position: absolute;
   left: 8.33%;
   right: 8.33%;
-  top: 11px;
-  height: 2px;
+  top: 12.5px;
+  height: 3px;
+  border-radius: 2px;
   background: var(--border-medium);
 }
 
@@ -918,8 +931,9 @@ body.dark-mode .engdas-dashboard {
   content: '';
   position: absolute;
   left: 8.33%;
-  top: 11px;
-  height: 2px;
+  top: 12.5px;
+  height: 3px;
+  border-radius: 2px;
   width: var(--done, 0%);
   max-width: 83.34%;
   background: var(--status-completed-text);
@@ -937,19 +951,19 @@ body.dark-mode .engdas-dashboard {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 3px;
-  padding: 0 4px;
+  gap: 4px;
+  padding: 0 2px;
 }
 
 .workflow-node {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
-  margin-bottom: 7px;
+  font-size: 0.68rem;
+  margin-bottom: 9px;
   background: var(--bg-card);
   border: 2px solid var(--border-medium);
   color: var(--text-muted);
@@ -966,15 +980,15 @@ body.dark-mode .engdas-dashboard {
   background: var(--icon-color);
   border-color: var(--icon-color);
   color: #FFFFFF;
-  box-shadow: 0 0 0 4px var(--accent-brand-tint);
+  box-shadow: 0 0 0 5px var(--accent-brand-tint);
 }
 
 .workflow-name {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.25;
-  min-height: 2.4em;
+  line-height: 1.3;
+  min-height: 2.6em;
   display: flex;
   align-items: center;
   transition: color 0.3s ease;
@@ -985,35 +999,49 @@ body.dark-mode .engdas-dashboard {
   font-weight: 500;
 }
 
+/* State reads as a small pill so the six phases can be scanned left-to-right
+   instead of picked out one word at a time. Capped at 100% width and left
+   wrappable so a long state never bleeds into the neighbouring column. */
 .workflow-state {
-  font-size: 0.65rem;
-  font-weight: 500;
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1.35;
   color: var(--text-muted);
-  transition: color 0.3s ease;
+  background: var(--bg-hover-light);
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 .workflow-step.is-done .workflow-state {
   color: var(--status-completed-text);
+  background: var(--status-completed-bg);
 }
 
 .workflow-step.is-current .workflow-state {
-  color: var(--text-primary);
-  font-weight: 600;
+  color: var(--icon-color);
+  background: var(--accent-brand-tint);
 }
 
 .workflow-overall {
-  margin: 16px 0 0;
-  padding-top: 12px;
+  margin: 18px 0 0;
+  padding-top: 14px;
   border-top: 1px solid var(--divider-color);
   text-align: center;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .workflow-overall strong {
   color: var(--icon-color);
+  font-size: 1.05rem;
   font-weight: 700;
+  margin-left: 4px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1128,7 +1156,7 @@ body.dark-mode .engdas-dashboard {
    ============================================ */
 .empty-state-engdas {
   background: var(--bg-empty);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px 20px;
   text-align: center;
   border: 2px dashed var(--empty-border);
@@ -1210,18 +1238,20 @@ body.dark-mode .engdas-dashboard {
 
 .skeleton-card-engdas {
   background: var(--bg-card);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--border-card);
   padding: 20px;
 }
 
-/* Panel-shaped skeleton used for the attention + chart/recent rows */
+/* Panel-shaped skeleton used for the attention + chart/recent rows.
+   Radii must track the real cards above or the skeleton -> content swap
+   visibly reflows. */
 .skeleton-panel-engdas {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
-  padding: 18px 20px;
+  padding: 20px 22px;
   min-height: 180px;
 }
 
@@ -1343,15 +1373,18 @@ body.dark-mode .engdas-dashboard {
 }
 
 /* All-caught-up card (shown when 0 pending tasks) — static, no buttons.
-   Height-matched to the greeting line so it sits level with the name. */
+   Height-matched to the greeting line so it sits level with the name.
+   min-width gives the right side of the page head enough visual weight to
+   balance the greeting block instead of floating in empty space. */
 .engdas-caughtup-card {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px 10px 12px;
+  min-width: 250px;
+  padding: 12px 20px 12px 14px;
   background: var(--caughtup-bg);
   border: 1px solid var(--caughtup-border);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow-card);
   max-width: 100%;
 }
@@ -1359,19 +1392,19 @@ body.dark-mode .engdas-dashboard {
 .engdas-caughtup-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   line-height: 1.3;
   text-align: left;
 }
 
 .engdas-caughtup-text strong {
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .engdas-caughtup-text span {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
 }.engdas-charts-row {
   display: grid;
@@ -1386,8 +1419,8 @@ body.dark-mode .engdas-dashboard {
 .engdas-chart-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
-  padding: 18px 20px;
+  border-radius: 16px;
+  padding: 20px 22px;
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
@@ -1395,9 +1428,9 @@ body.dark-mode .engdas-dashboard {
 }
 
 .engdas-chart-sub {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .engdas-chart-body {
@@ -1442,8 +1475,8 @@ body.dark-mode .engdas-dashboard {
 .engdas-recent-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
-  padding: 16px 20px 12px 20px;
+  border-radius: 16px;
+  padding: 18px 22px 14px 22px;
   box-shadow: var(--shadow-card);
 }
 
@@ -1456,7 +1489,7 @@ body.dark-mode .engdas-dashboard {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 4px;
+  padding: 10px 2px;
 }
 
 /* Holds either a client photo (circular, object-fit cover) or a tinted
@@ -1519,7 +1552,7 @@ body.dark-mode .engdas-dashboard {
 }
 
 .engdas-recent-name {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -1528,7 +1561,7 @@ body.dark-mode .engdas-dashboard {
 }
 
 .engdas-recent-meta {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1632,16 +1665,21 @@ body.dark-mode .engdas-dashboard {
   }
 
   .stat-card-engdas {
-    padding: 14px 13px 10px;
+    padding: 14px 14px 12px;
     min-height: 112px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .stat-icon-wrapper-engdas {
     width: 36px;
     height: 36px;
     font-size: 16px;
-    border-radius: 8px;
+    border-radius: 9px;
+  }
+
+  .stat-sparkline-engdas {
+    width: 64px;
+    height: 22px;
   }
 
   .stat-value-engdas {
@@ -1677,7 +1715,7 @@ body.dark-mode .engdas-dashboard {
 
   /* Chart + recent cards: tighter padding, natural heights */
   .engdas-chart-card {
-    padding: 16px;
+    padding: 18px;
     min-height: 0;
   }
 
@@ -1686,13 +1724,13 @@ body.dark-mode .engdas-dashboard {
   }
 
   .engdas-recent-card {
-    padding: 12px 14px;
+    padding: 14px 18px;
   }
 
   .engdas-recent-side {
     min-height: 0;
   }  .assessment-card-engdas {
-    padding: 16px 18px;
+    padding: 18px 20px;
     min-height: 180px;
   }  .assessment-name-engdas {
     font-size: 1rem;
@@ -1748,8 +1786,8 @@ body.dark-mode .engdas-dashboard {
   }
 
   .stat-card-engdas {
-    padding: 12px 10px 10px;
-    border-radius: 8px;
+    padding: 12px 11px 10px;
+    border-radius: 10px;
   }
 
   .stat-card-header-engdas {
@@ -1851,21 +1889,22 @@ body.dark-mode .engdas-dashboard {
   }
 
   .assessment-card-engdas {
-    padding: 14px 16px;
+    padding: 16px 18px;
     min-height: 150px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .pending-card-engdas {
-    padding: 6px 6px 10px;
+    padding: 8px 8px 10px;
     min-height: 150px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   /* 6 phases get cramped on tablets — let the rail scroll instead of
-     squashing the labels */
+     squashing the labels. Column width and the rail offsets must stay in
+     step: the rail is anchored to the centre of the first/last column. */
   .workflow-steps {
-    grid-template-columns: repeat(6, minmax(92px, 1fr));
+    grid-template-columns: repeat(6, minmax(100px, 1fr));
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -1876,9 +1915,9 @@ body.dark-mode .engdas-dashboard {
 
   .workflow-steps::before,
   .workflow-steps::after {
-    left: 46px;
+    left: 50px;
     right: auto;
-    width: calc(100% - 92px);
+    width: calc(100% - 100px);
   }
 
   .workflow-steps::after {
@@ -1966,7 +2005,8 @@ body.dark-mode .engdas-dashboard {
   }
 
   .stat-card-engdas {
-    padding: 10px 8px 8px;
+    padding: 10px 9px 8px;
+    border-radius: 10px;
   }
 
   .stat-card-header-engdas {

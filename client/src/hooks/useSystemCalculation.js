@@ -631,6 +631,7 @@ const calculateByNetMetering = (systemType) => {
     // Hybrid/off-grid: keep legacy ±1kW tolerance match, qty 1.
     const effectiveSystemType = systemType || calculationResults.systemTypeUsed || '';
     const isGridTieApply = effectiveSystemType === 'grid-tie';
+    let inverterShortfall = null;
     if (availableInverters.length > 0 && calculationResults.inverterSize > 0) {
       if (isGridTieApply) {
         const targetSize = calculationResults.inverterSize;
@@ -659,9 +660,11 @@ const calculateByNetMetering = (systemType) => {
         }
         setFreeQuoteSelectedInverter(bestInverter);
         setFreeQuoteInverterQuantity(targetQty);
+        // Deferred: folded into the single toast at the end so one click =
+        // exactly one toast. Null when stock meets the target.
         const matchedSize = bestInverter ? getInverterSizeKw(bestInverter) : 0;
         if (matchedSize > 0 && matchedSize + 1e-9 < targetSize) {
-          showToast(`Note: closest stock inverter (${matchedSize}kW) is below recommended ${targetSize}kW`, 'warning');
+          inverterShortfall = `closest stock inverter (${matchedSize}kW) is below recommended ${targetSize}kW`;
         }
       } else {
         const targetSize = calculationResults.inverterSize;
@@ -686,7 +689,13 @@ const calculateByNetMetering = (systemType) => {
 
     setShowCalculationCards(false);
     setShowEquipmentSelection(true);
-    showToast(`System size set to ${calculationResults.recommendedSystemSize} kWp`, 'success');
+    // THE single toast for this action. The below-target stock note folds in
+    // here (as a warning) instead of stacking a second toast.
+    if (inverterShortfall) {
+      showToast(`Configuration applied — system size set to ${calculationResults.recommendedSystemSize} kWp. Note: ${inverterShortfall}.`, 'warning');
+    } else {
+      showToast(`Configuration applied — system size set to ${calculationResults.recommendedSystemSize} kWp`, 'success');
+    }
     // Land on the equipment section (System Summary header) instead of the
     // page top. Deferred so it runs after render.
     if (typeof window !== 'undefined') {

@@ -1670,6 +1670,61 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
   transition: color 0.3s ease;
 }
 
+/* Payment Terms & Remarks card (quotation tab) — the two textareas used to
+   sit as bare fields floating between sections with no separation, and the
+   generate button hugged the left edge. Grouping them in one card gives the
+   pair breathing room and a clear visual home next to the cost summary. */
+.quotation-terms-enad {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--bg-quotation);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+  margin-top: 16px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.quotation-terms-enad .form-group-enad {
+  gap: 8px;
+}
+
+.quotation-terms-enad .form-label-enad {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Stronger border + taller box so the textareas stand out as real inputs,
+   with a clearer focus ring. Scoped here so the comment boxes elsewhere
+   keep their lighter style. */
+.quotation-terms-enad .assessment-form-textarea-enad {
+  border: 1.5px solid var(--border-medium);
+  min-height: 88px;
+}
+
+.quotation-terms-enad .assessment-form-textarea-enad:focus {
+  border-color: var(--icon-color);
+  box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.15);
+}
+
+@media (max-width: 768px) {
+  .quotation-terms-enad {
+    padding: 16px;
+    gap: 14px;
+  }
+}
+
+/* Breathing room between the terms card and the right-aligned generate
+   button — the shared .form-actions-bottom-enad only carries a 4px top
+   margin, which leaves the button glued to the card below. Scoped to the
+   adjacent sibling so the other .form-actions-bottom-enad user
+   (SiteInspectionTab) is untouched. */
+.quotation-terms-enad + .action-buttons-enad {
+  margin-top: 16px;
+}
+
 .form-grid-enad {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

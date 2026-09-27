@@ -1117,29 +1117,32 @@ export const SystemEquipmentSelection = ({
         </div>
       )}
 
-      {/* Payment Terms & Remarks */}
-      <div className="form-group-enad">
-        <label className="form-label-enad">Payment Terms</label>
-        <textarea
-          className="assessment-form-textarea-enad"
-          value={freeQuoteForm.paymentTerms}
-          onChange={(e) => handleFreeQuoteFormChange('paymentTerms', e.target.value)}
-          rows={2}
-          placeholder="e.g., 30% down payment, 70% upon completion"
-        />
-      </div>
-      <div className="form-group-enad">
-        <label className="form-label-enad">Remarks</label>
-        <textarea
-          className="assessment-form-textarea-enad"
-          value={freeQuoteForm.remarks}
-          onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)}
-          rows={2}
-          placeholder="Additional notes or special instructions"
-        />
+      {/* Payment Terms & Remarks — grouped in one card so the two fields
+          read as a pair with clear separation */}
+      <div className="quotation-terms-enad">
+        <div className="form-group-enad">
+          <label className="form-label-enad">Payment Terms</label>
+          <textarea
+            className="assessment-form-textarea-enad"
+            value={freeQuoteForm.paymentTerms}
+            onChange={(e) => handleFreeQuoteFormChange('paymentTerms', e.target.value)}
+            rows={2}
+            placeholder="e.g., 30% down payment, 70% upon completion"
+          />
+        </div>
+        <div className="form-group-enad">
+          <label className="form-label-enad">Remarks</label>
+          <textarea
+            className="assessment-form-textarea-enad"
+            value={freeQuoteForm.remarks}
+            onChange={(e) => handleFreeQuoteFormChange('remarks', e.target.value)}
+            rows={2}
+            placeholder="Additional notes or special instructions"
+          />
+        </div>
       </div>
 
-      <div className="action-buttons-enad">
+      <div className="action-buttons-enad form-actions-bottom-enad">
         <button
           onClick={handleGeneratePDF}
           disabled={isButtonDisabled}

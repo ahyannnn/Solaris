@@ -52,6 +52,10 @@ const IoTDevice = () => {
   const [extending, setExtending] = useState(false);
   const [extendDays, setExtendDays] = useState(7);
   const [extendReason, setExtendReason] = useState('');
+  // Early-retrieval override (Option A escape hatch) — required reason when
+  // the retrieval gates below are unmet (e.g. faulty device, site cannot
+  // yield more data). Sent along with the retrieve request for audit trail.
+  const [overrideReason, setOverrideReason] = useState('');
 
   // Assessment statuses where the engineer's device is deployed and collecting,
   // so a retrieval is possible. Single source of truth for this rule, shared by:
@@ -213,6 +217,50 @@ const IoTDevice = () => {
     return { sufficient: reasons.length === 0, reasons };
   };
 
+  // ============ RETRIEVAL GATES (Option A — frontend only) ============
+  // Why Retrieve used to enable on a single reading: the only gate was
+  // `hasValidSensorData` (any 1 positive reading). These soft gates add the
+  // missing "enough data" standard. They are SOFT on purpose — an engineer
+  // can always override with a written reason (faulty device, dead site),
+  // so nobody gets permanently stuck. Only "no data at all" stays a hard
+  // block (see getRetrieveBlockReason).
+  const RETRIEVAL_GATE = {
+    MIN_MONITORING_DAYS: 7,
+    MIN_READINGS: 300, // ≈ 3 days at one reading every 15 minutes
+  };
+
+  // Full days since monitoring started (deploy). Null when the start date is
+  // unknown — callers treat that as an unmet gate, never as a pass.
+  const getMonitoringDaysElapsed = (stats, device) => {
+    const startRaw = stats?.dataCollectionStart || device?.dataCollectionStart || device?.deployedAt;
+    if (!startRaw) return null;
+    const start = new Date(startRaw);
+    if (isNaN(start.getTime())) return null;
+    return Math.max(0, Math.floor((Date.now() - start.getTime()) / (24 * 60 * 60 * 1000)));
+  };
+
+  // List of unmet retrieval gates. Empty = ready to retrieve.
+  // Takes everything explicitly (same style as getDataSufficiency) so it can
+  // be called from both the render body and event handlers without worrying
+  // about declaration order. Callers must only pass assessments that HAVE
+  // data — no-data is a hard block, not an overridable gate.
+  const getRetrievalGateBlockers = ({ stats, device, sufficiency }) => {
+    const blockers = [];
+    const days = getMonitoringDaysElapsed(stats, device);
+    if (days === null) {
+      blockers.push('Monitoring start date is unknown — the minimum monitoring period cannot be verified.');
+    } else if (days < RETRIEVAL_GATE.MIN_MONITORING_DAYS) {
+      const left = RETRIEVAL_GATE.MIN_MONITORING_DAYS - days;
+      blockers.push(`Monitoring only ${days} of ${RETRIEVAL_GATE.MIN_MONITORING_DAYS} required days (${left} more day${left === 1 ? '' : 's'} to go).`);
+    }
+    const readings = stats?.totalReadings || 0;
+    if (readings < RETRIEVAL_GATE.MIN_READINGS) {
+      blockers.push(`Only ${readings} of ${RETRIEVAL_GATE.MIN_READINGS} minimum readings collected.`);
+    }
+    if (!sufficiency.sufficient) blockers.push(...sufficiency.reasons);
+    return blockers;
+  };
+
   // Exact body the retrieve-device endpoint expects.
   const buildRetrievePayload = (stats) => ({
     totalReadings: stats.totalReadings || 0,
@@ -354,10 +402,11 @@ const IoTDevice = () => {
     setSensorStats({});
       setGpsData(null);
       setLastUpdated(null);
-      setExtensionRequest(null);
-      setShowExtendModal(false);
-      setExtendDays(7);
-      setExtendReason('');
+    setExtensionRequest(null);
+    setShowExtendModal(false);
+    setExtendDays(7);
+    setExtendReason('');
+    setOverrideReason('');
 
       setSelectedDevice(device);
     setShowDataModal(true);
@@ -371,6 +420,9 @@ const IoTDevice = () => {
       showToast(blocked, 'warning');
       return;
     }
+    // Fresh reason each open — a stale reason from a previous device must
+    // never silently authorise this one.
+    setOverrideReason('');
     setShowConfirmModal(true);
   };
 
@@ -380,6 +432,19 @@ const IoTDevice = () => {
     const blocked = getRetrieveBlockReason(sensorStats);
     if (blocked) {
       showToast(blocked, 'error');
+      return;
+    }
+
+    // Soft gates (Option A): pass silently when met, require a written
+    // override reason when unmet. Recomputed here (not taken from render
+    // scope) so the guard can never act on stale values.
+    const softBlockers = getRetrievalGateBlockers({
+      stats: sensorStats,
+      device: selectedDevice,
+      sufficiency: getDataSufficiency(sensorStats),
+    });
+    if (softBlockers.length > 0 && !overrideReason.trim()) {
+      showToast('Please state a reason for early retrieval (e.g. faulty device).', 'warning');
       return;
     }
 
@@ -393,7 +458,12 @@ const IoTDevice = () => {
 
       const response = await axios.put(
         `${API_BASE_URL}/api/pre-assessments/${selectedDevice.assessmentId}/retrieve-device`,
-        { stats: statsPayload },
+        {
+          stats: statsPayload,
+          // Harmless to today's backend (it reads only `stats`) and keeps
+          // the override reason on record for when the server validates too.
+          ...(softBlockers.length > 0 ? { overrideReason: overrideReason.trim() } : {}),
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -533,6 +603,13 @@ const IoTDevice = () => {
     && !dataSufficiency.sufficient
     && (extensionStatus === 'none' || extensionStatus === 'declined')
     && !alreadyExtended;
+
+  // Soft retrieval gates for the open modal (Option A). Empty = ready.
+  // No-data stays out of here on purpose — that is the hard block handled
+  // by getRetrieveBlockReason and the disabled Retrieve button below.
+  const retrievalGateBlockers = hasValidSensorData
+    ? getRetrievalGateBlockers({ stats: sensorStats, device: selectedDevice, sufficiency: dataSufficiency })
+    : [];
 
   const SkeletonLoader = () => (
     <div className="iot-device-engineer-iotdevicead">
@@ -727,19 +804,25 @@ const IoTDevice = () => {
                   </div>
                 )}
 
-                {/* Insufficient-data warning (Terms §5) */}
-                {hasValidSensorData && !dataSufficiency.sufficient && (
+                {/* Retrieval readiness (Option A gates + Terms §5 quality).
+                    retrievalGateBlockers already contains the quality reasons
+                    when insufficient, so one box covers everything: waiting on
+                    time/readings, poor weather, or both. */}
+                {hasValidSensorData && retrievalGateBlockers.length > 0 && (
                   <div className="info-message-iotdevicead warning-iotdevicead">
-                    <p><strong>Data may be insufficient for accurate sizing (Terms §5):</strong></p>
+                    <p><strong>Not ready for retrieval yet:</strong></p>
                     <ul>
-                      {dataSufficiency.reasons.map((reason, idx) => (
+                      {retrievalGateBlockers.map((reason, idx) => (
                         <li key={idx}>{reason}</li>
                       ))}
-                      <li>Weather-affected days: {sensorStats.affectedDays || 0} of {sensorStats.monitoredDays || 0}</li>
+                      {!dataSufficiency.sufficient && (
+                        <li>Weather-affected days: {sensorStats.affectedDays || 0} of {sensorStats.monitoredDays || 0}</li>
+                      )}
                     </ul>
                     {extensionStatus === 'declined' && (
                       <p><small>Previous extension request was declined{extensionRequest?.adminNote ? `: ${extensionRequest.adminNote}` : '.'}</small></p>
                     )}
+                    <p><small>Retrieve stays available via override with a reason — or request an extension if poor weather is the cause.</small></p>
                   </div>
                 )}
 
@@ -926,9 +1009,12 @@ const IoTDevice = () => {
                 </div>
               )}
 
-              <div className="modal-actions-iotdevicead">
-                <button className="close-btn-iotdevicead" onClick={() => setShowDataModal(false)}>Close</button>
-                {DEVICE_ACTIVE_STATUSES.includes(selectedDevice.assessmentStatus) && (
+              {/* No Close button here — the header `×` (line 677) already
+                  dismisses this modal. The bar is rendered only when there is
+                  an action to show, otherwise it collapses to an empty
+                  bordered strip below the content. */}
+              {DEVICE_ACTIVE_STATUSES.includes(selectedDevice.assessmentStatus) && (
+                <div className="modal-actions-iotdevicead">
                   <span className="retrieve-btn-anchor-iotdevicead">
                     {extensionStatus === 'pending' ? (
                       <span className="extension-pending-iotdevicead" title="Extension request awaiting admin approval">
@@ -956,20 +1042,27 @@ const IoTDevice = () => {
                       // badge stay lit while this button was enabled against an
                       // empty modal.
                       disabled={retrieving || !hasValidSensorData}
-                      title={!hasValidSensorData ? 'No usable sensor readings recorded yet' : ''}
+                      title={
+                        !hasValidSensorData
+                          ? 'No usable sensor readings recorded yet'
+                          : retrievalGateBlockers.length > 0
+                            ? `Not ready yet — ${retrievalGateBlockers.join(' ')} You may still retrieve early with a reason.`
+                            : 'Data meets the retrieval standard — ready to retrieve'
+                      }
                     >
                       {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
                       {retrieving ? 'Retrieving...' : 'Retrieve Device'}
                     </button>
                     {/* Same red dot as the sidebar / table row: retrieval is
-                        actually available right now. Anchored to this button's
-                        right edge. */}
-                    {!retrieving && hasValidSensorData && (
+                        actually available right now. Gated on the soft gates
+                        too — with 1 reading the button is clickable (override)
+                        but the data is not "ready", so the dot stays off. */}
+                    {!retrieving && hasValidSensorData && retrievalGateBlockers.length === 0 && (
                       <span className="view-data-needs-dot-iotdevicead" title="Ready to retrieve" />
                     )}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1018,6 +1111,33 @@ const IoTDevice = () => {
                   </div>
                 )}
 
+                {/* Early-retrieval override (Option A escape hatch): when the
+                    soft gates are unmet the engineer must write down WHY
+                    (faulty device, dead site) before the confirm unlocks. */}
+                {retrievalGateBlockers.length > 0 && (
+                  <>
+                    <div className="info-message-iotdevicead warning-iotdevicead">
+                      <p><strong>Not ready for retrieval yet — a reason is required:</strong></p>
+                      <ul>
+                        {retrievalGateBlockers.map((reason, idx) => (
+                          <li key={idx}>{reason}</li>
+                        ))}
+                      </ul>
+                      <p><small>Standard: {RETRIEVAL_GATE.MIN_MONITORING_DAYS} days monitoring, {RETRIEVAL_GATE.MIN_READINGS}+ readings, PSH ≥ 3.0, irradiance ≥ 200 W/m².</small></p>
+                    </div>
+                    <div className="extend-form-iotdevicead">
+                      <label htmlFor="override-reason-iotdevicead">Reason for early retrieval <span className="required-iotdevicead">*</span></label>
+                      <textarea
+                        id="override-reason-iotdevicead"
+                        rows="3"
+                        value={overrideReason}
+                        onChange={(e) => setOverrideReason(e.target.value)}
+                        placeholder="e.g. Device stopped transmitting after day 2 — retrieving partial data for assessment"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div className="info-message-iotdevicead">
                   <p>This will:</p>
                   <ul>
@@ -1030,9 +1150,9 @@ const IoTDevice = () => {
               </div>
               <div className="modal-actions-iotdevicead confirm-actions-iotdevicead">
                 <button className="cancel-btn-iotdevicead" onClick={() => setShowConfirmModal(false)}>Cancel</button>
-                <button className="confirm-retrieve-btn-iotdevicead" onClick={handleRetrieveDevice} disabled={retrieving}>
+                <button className="confirm-retrieve-btn-iotdevicead" onClick={handleRetrieveDevice} disabled={retrieving || (retrievalGateBlockers.length > 0 && !overrideReason.trim())}>
                   {retrieving ? <FaSpinner className="spinner-enad" /> : <FaArrowCircleUp />}
-                  {retrieving ? 'Retrieving...' : 'Yes, Retrieve Device'}
+                  {retrieving ? 'Retrieving...' : (retrievalGateBlockers.length > 0 ? 'Yes, Retrieve Anyway' : 'Yes, Retrieve Device')}
                 </button>
               </div>
             </div>

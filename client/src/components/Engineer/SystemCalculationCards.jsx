@@ -891,8 +891,9 @@ export const CalculationResultsCard = ({
       showToast('No calculation results to apply. Please calculate first.', 'warning');
       return;
     }
+    // Single toast lives in applyCalculationResults (useSystemCalculation) —
+    // firing one here too stacked two success toasts per click.
     applyCalculationResults();
-    showToast('Configuration applied successfully!', 'success');
   };
 
   const handleRecalculate = () => {

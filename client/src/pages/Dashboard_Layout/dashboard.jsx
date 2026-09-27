@@ -251,9 +251,40 @@ const Dashboard = () => {
       const invoices = invoicesRes.data?.invoices || [];
       const projects = projectsRes.data?.projects || [];
 
+      // Book = quotation ready to ACCEPT (mirrors isAcceptableQuote /
+      // isAcceptableAssessment in scheduleassessment.jsx). NOTE: the old check
+      // used assessmentStatus === 'quotation_generated', but no server code
+      // ever sets that status — generateQuotationPDF leaves 'report_draft'
+      // and only attaches the quotation URL — so the dot never lit for
+      // pre-assessments. Readiness is "has quotation URL + not yet
+      // accepted/project-created", exactly like the page.
+      const isAcceptableSidebarQuote = (q) => {
+        const hasQuotation = q?.quotationFile || q?.quotationUrl;
+        if (!hasQuotation || q?.status === 'accepted' || q?.status === 'cancelled') return false;
+        return !projects.some((p) => {
+          if (p.sourceType === 'free-quote' && p.sourceId) {
+            const projectSourceId = typeof p.sourceId === 'object' ?
+              p.sourceId._id?.toString() : p.sourceId?.toString();
+            return projectSourceId === q._id?.toString();
+          }
+          return false;
+        });
+      };
+      const isAcceptableSidebarAssessment = (a) => {
+        const hasQuotation = a?.finalQuotation || a?.quotation?.quotationUrl;
+        if (!hasQuotation || a?.assessmentStatus === 'quotation_accepted') return false;
+        return !projects.some((p) => {
+          if (p.preAssessmentId) {
+            const projectPreAssessmentId = typeof p.preAssessmentId === 'object' ?
+              p.preAssessmentId._id?.toString() : p.preAssessmentId?.toString();
+            return projectPreAssessmentId === a._id?.toString();
+          }
+          return false;
+        });
+      };
       const needsAction =
-        assessments.some((a) => a?.assessmentStatus === 'quotation_generated') ||
-        quotes.some((q) => (q?.quotationFile || q?.quotationUrl) && q?.status !== 'accepted');
+        assessments.some(isAcceptableSidebarAssessment) ||
+        quotes.some(isAcceptableSidebarQuote);
 
       // Billable assessments only — mirrors the billing screens, which list
       // an assessment only once it has an invoice (never while pending

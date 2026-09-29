@@ -3,10 +3,30 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
-import { FaSpinner, FaFilePdf, FaFileExcel, FaTimes, FaChevronDown, FaExternalLinkAlt, FaSearch } from 'react-icons/fa';
+import {
+  FaFilePdf,
+  FaFileExcel,
+  FaChevronDown,
+  FaChevronLeft,
+  FaChevronRight,
+  FaExternalLinkAlt,
+  FaSearch,
+  FaRedo,
+  FaInbox
+} from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/reports.css';
-import logo from '../../assets/Salfare_Logo.png';
+
+const PAGE_SIZE = 10;
+
+// Windowed page numbers, e.g. 1 … 4 [5] 6 … 12
+const getPageNumbers = (currentPage, totalPages) => {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const pages = new Set([1, totalPages, currentPage]);
+  if (currentPage - 1 > 1) pages.add(currentPage - 1);
+  if (currentPage + 1 < totalPages) pages.add(currentPage + 1);
+  return [...pages].sort((a, b) => a - b);
+};
 
 // Helper function to convert assessment status string to number
 const getStatusNumber = (statusString) => {
@@ -27,11 +47,21 @@ const getStatusNumber = (statusString) => {
   return statusMap[statusString] || null;
 };
 
+const TABS = [
+  { key: 'site-assessment', label: 'Site Assessment', title: 'Site Assessment', description: 'Complete list of site evaluations with booking details and status.', empty: 'No site assessments found' },
+  { key: 'project-summary', label: 'Project Summary', title: 'Project Summary', description: 'Overview of all projects with key details and status.', empty: 'No projects found' },
+  { key: 'financial', label: 'Financial', title: 'Financial', description: 'Summary of all financial transactions including payments and status.', empty: 'No financial transactions found' },
+  { key: 'clients', label: 'Clients', title: 'Clients', description: 'Complete list of all clients with their contact details and information.', empty: 'No clients found' },
+  { key: 'services', label: 'Services', title: 'Services', description: 'Complete list of service requests with customer details and status.', empty: 'No service requests found' },
+  { key: 'quotations', label: 'Quotations', title: 'Quotations', description: 'Click any card to view the full quotation in a new tab. No PDF or Excel generation in this tab.', empty: 'No quotations found' }
+];
+
 const Reports = () => {
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState('site-assessment');  const [dateRange, setDateRange] = useState({
+  const [activeTab, setActiveTab] = useState('site-assessment');
+  const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setDate(1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
@@ -42,6 +72,7 @@ const Reports = () => {
   const [selectedServiceType, setSelectedServiceType] = useState('');
   const [selectedServiceStatus, setSelectedServiceStatus] = useState('');
   const [showMoreTabs, setShowMoreTabs] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const SERVICE_OPTIONS = [
     'Electrical Design and Wiring',
@@ -57,7 +88,6 @@ const Reports = () => {
   const [assessments, setAssessments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
-  const [transactions, setTransactions] = useState([]);
   const [quotations, setQuotations] = useState([]);
 
   // Quotation tab filters (client-side only, no PDF/Excel generation)
@@ -153,92 +183,11 @@ const Reports = () => {
       );
       setQuotations(allQuotations);
 
-      // Build transactions for financial report
-      const preTransactions = allAssessments
-        .filter(a => a.invoiceNumber)
-        .map(a => ({
-          id: a._id,
-          type: 'Pre-Assessment',
-          reference: a.bookingReference,
-          invoiceNumber: a.invoiceNumber,
-          amount: a.assessmentFee,
-          method: a.paymentGateway === 'paymongo' ? 'PayMongo' : (a.paymentMethod || 'cash'),
-          status: a.paymentStatus === 'paid' ? 'Paid' : a.paymentStatus === 'for_verification' ? 'For Verification' : 'Pending',
-          date: a.confirmedAt || a.bookedAt || a.createdAt,
-          client: `${a.clientId?.contactFirstName || ''} ${a.clientId?.contactLastName || ''}`.trim(),
-          clientId: a.clientId?._id,
-          clientEmail: a.clientId?.userId?.email,
-          clientPhone: a.clientId?.contactNumber,
-          clientType: a.clientId?.client_type || 'Residential',
-          address: a.clientId?.address
-        }));
-
-      // Build project payments
-      const projectTransactions = allProjects
-        .filter(p => p.amountPaid > 0)
-        .map(p => ({
-          id: p._id,
-          type: 'Project Payment',
-          reference: p.projectReference,
-          projectName: p.projectName,
-          amount: p.amountPaid,
-          method: 'Manual',
-          status: p.status === 'completed' ? 'Completed' : p.status === 'full_paid' ? 'Full Payment Received' : 'In Progress',
-          date: p.startDate || p.createdAt,
-          client: `${p.clientId?.contactFirstName || ''} ${p.clientId?.contactLastName || ''}`.trim(),
-          clientId: p.clientId?._id,
-          clientEmail: p.clientId?.userId?.email,
-          clientPhone: p.clientId?.contactNumber,
-          clientType: p.clientId?.client_type || 'Residential',
-          address: p.clientId?.address
-        }));
-
-      const allTransactions = [...preTransactions, ...projectTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-      setTransactions(allTransactions);
-
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
       showToast('Failed to fetch data', 'error');
       setLoading(false);
-    }
-  };
-
-  const generateReport = async () => {
-    setGenerating(true);
-    try {
-      const token = sessionStorage.getItem('token');
-
-      let reportPayload = {
-        type: activeTab === 'clients' ? 'client-transaction' : activeTab, // ✅ Map 'clients' to 'client-transaction'
-        dateRange,
-        filters: {}
-      };
-
-      if (activeTab === 'site-assessment' && selectedAssessment) {
-        reportPayload.filters.assessmentId = selectedAssessment;
-      } else if (activeTab === 'project-summary' && selectedProject) {
-        reportPayload.filters.projectId = selectedProject;
-      } else if (activeTab === 'clients' && selectedClient) {
-        reportPayload.filters.clientId = selectedClient;
-      } else if (activeTab === 'services') {
-        if (selectedServiceType) reportPayload.filters.serviceType = selectedServiceType;
-        if (selectedServiceStatus) reportPayload.filters.status = selectedServiceStatus;
-      }
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/admin/reports/generate`,
-        reportPayload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setReportData(response.data);
-      showToast('Report generated successfully!', 'success');
-    } catch (error) {
-      console.error('Error generating report:', error);
-      showToast(error.response?.data?.message || 'Failed to generate report', 'error');
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -289,59 +238,55 @@ const Reports = () => {
 
       let dataToExport = await fetchCurrentReport();
 
-      if (false && reportData && reportData.report) {
-        dataToExport = reportData.report;
-      } else {
-        const params = new URLSearchParams();
-        params.append('startDate', dateRange.startDate);
-        params.append('endDate', dateRange.endDate);
+      const params = new URLSearchParams();
+      params.append('startDate', dateRange.startDate);
+      params.append('endDate', dateRange.endDate);
 
-        if (activeTab === 'site-assessment' && selectedAssessment) {
-          params.append('assessmentId', selectedAssessment);
-        } else if (activeTab === 'project-summary' && selectedProject) {
-          params.append('projectId', selectedProject);
-        } else if (activeTab === 'financial' && selectedProject) {
-          params.append('projectId', selectedProject);
-        } else if (activeTab === 'clients' && selectedClient) {
-          params.append('clientId', selectedClient);
-        } else if (activeTab === 'services') {
-          if (selectedServiceType) params.append('serviceType', selectedServiceType);
-          if (selectedServiceStatus) params.append('status', selectedServiceStatus);
-        }
-
-        let response;
-        if (activeTab === 'site-assessment') {
-          response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/reports/site-assessment?${params}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else if (activeTab === 'project-summary') {
-          response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/reports/project-summary?${params}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else if (activeTab === 'financial') {
-          response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/reports/financial?${params}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else if (activeTab === 'clients') {
-          // ✅ Use client-transaction for the API endpoint
-          response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/reports/client-transaction?${params}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else if (activeTab === 'services') {
-          response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/admin/reports/services?${params}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        } else {
-          throw new Error('Invalid report type');
-        }
-
-        dataToExport = response.data?.report;
+      if (activeTab === 'site-assessment' && selectedAssessment) {
+        params.append('assessmentId', selectedAssessment);
+      } else if (activeTab === 'project-summary' && selectedProject) {
+        params.append('projectId', selectedProject);
+      } else if (activeTab === 'financial' && selectedProject) {
+        params.append('projectId', selectedProject);
+      } else if (activeTab === 'clients' && selectedClient) {
+        params.append('clientId', selectedClient);
+      } else if (activeTab === 'services') {
+        if (selectedServiceType) params.append('serviceType', selectedServiceType);
+        if (selectedServiceStatus) params.append('status', selectedServiceStatus);
       }
+
+      let response;
+      if (activeTab === 'site-assessment') {
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/admin/reports/site-assessment?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (activeTab === 'project-summary') {
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/admin/reports/project-summary?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (activeTab === 'financial') {
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/admin/reports/financial?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (activeTab === 'clients') {
+        // ✅ Use client-transaction for the API endpoint
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/admin/reports/client-transaction?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else if (activeTab === 'services') {
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/admin/reports/services?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        throw new Error('Invalid report type');
+      }
+
+      dataToExport = response.data?.report;
 
       if (!dataToExport) {
         showToast('No data matches the selected filters.', 'warning');
@@ -451,17 +396,140 @@ const Reports = () => {
 
   const quotationStatusOptions = [...new Set(quotations.map((q) => q.status).filter(Boolean))].sort();
 
-  // Skeleton Loader
-  const SkeletonLoader = () => (
-    <div className="reports-container">
-      <div className="reports-header-reports">
-        <div className="skeleton-line-large-reports"></div>
-        <div className="skeleton-line-medium-reports"></div>
+  // ============ PAGINATION (display only — export always refetches everything) ============
+  const tabRows = (() => {
+    switch (activeTab) {
+      case 'site-assessment': return reportData?.report?.assessments || [];
+      case 'project-summary': return reportData?.report?.projects || [];
+      case 'financial': return reportData?.report?.payments || [];
+      case 'clients': return reportData?.report?.clients || [];
+      case 'services': return reportData?.report?.services || [];
+      case 'quotations': return getFilteredQuotations();
+      default: return [];
+    }
+  })();
+
+  const totalRows = tabRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const pagedRows = totalRows === 0 ? [] : tabRows.slice(startIndex, startIndex + PAGE_SIZE);
+  const rangeStart = totalRows === 0 ? 0 : startIndex + 1;
+  const rangeEnd = Math.min(startIndex + PAGE_SIZE, totalRows);
+
+  // Reset to page 1 whenever the tab or any filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, dateRange.startDate, dateRange.endDate, selectedAssessment, selectedProject, selectedClient, selectedServiceType, selectedServiceStatus, quotationSearch, quotationSourceFilter, quotationStatusFilter]);
+
+  const handleResetFilters = () => {
+    setDateRange({
+      startDate: new Date(new Date().setDate(1)).toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0]
+    });
+    setSelectedAssessment('');
+    setSelectedProject('');
+    setSelectedClient('');
+    setSelectedServiceType('');
+    setSelectedServiceStatus('');
+    setQuotationSearch('');
+    setQuotationSourceFilter('');
+    setQuotationStatusFilter('');
+    setCurrentPage(1);
+  };
+
+  const activeTabMeta = TABS.find((t) => t.key === activeTab) || TABS[0];
+
+  // ============ SHARED PRESENTATION BLOCKS ============
+  const ReportCardHead = () => (
+    <div className="report-card-head-reports">
+      <div className="report-card-head-text-reports">
+        <h2>{activeTabMeta.title}</h2>
+        <p>{activeTabMeta.description}</p>
       </div>
+      <span className="report-count-reports">
+        {totalRows === 0
+          ? 'No records'
+          : `Showing ${rangeStart}–${rangeEnd} of ${totalRows}`}
+      </span>
+    </div>
+  );
+
+  const ReportEmpty = ({ message }) => (
+    <div className="report-empty-reports">
+      <span className="report-empty-icon-reports"><FaInbox /></span>
+      <h3>{message}</h3>
+      <p>Try widening the date range or clearing the filters above.</p>
+    </div>
+  );
+
+  const ReportPagination = () => {
+    if (totalRows <= PAGE_SIZE) return null;
+    return (
+      <div className="pagination">
+        <div className="pagination-info">
+          Showing {rangeStart} to {rangeEnd} of {totalRows} {totalRows === 1 ? 'record' : 'records'}
+        </div>
+        <div className="pagination-controls">
+          <button
+            className="page-btn"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+          >
+            <FaChevronLeft /> Previous
+          </button>
+          {getPageNumbers(safePage, totalPages).map((p, i, arr) => (
+            <React.Fragment key={p}>
+              {i > 0 && p - arr[i - 1] > 1 && <span className="pagination-info">…</span>}
+              <button
+                className={`page-number ${safePage === p ? 'active' : ''}`}
+                onClick={() => setCurrentPage(p)}
+                aria-current={safePage === p ? 'page' : undefined}
+              >
+                {p}
+              </button>
+            </React.Fragment>
+          ))}
+          <button
+            className="page-btn"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+          >
+            Next <FaChevronRight />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Skeleton Loader — mirrors the real shell (tab strip, toolbar, data card)
+  const SkeletonLoader = () => (
+    <div className="reports-container-reports">
       <div className="report-tabs-reports">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="skeleton-tab-reports"></div>
+        {TABS.map((t) => (
+          <div key={t.key} className="skeleton-tab-reports"></div>
         ))}
+      </div>
+      <div className="report-controls-reports">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: '0 0 auto' }}>
+          <div className="skeleton-row-reports" style={{ width: 64, height: 12 }}></div>
+          <div className="skeleton-field-reports" style={{ width: 210 }}></div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: '0 1 240px', minWidth: 200 }}>
+          <div className="skeleton-row-reports" style={{ width: 92, height: 12 }}></div>
+          <div className="skeleton-field-reports"></div>
+        </div>
+      </div>
+      <div className="skeleton-card-reports">
+        <div className="skeleton-card-head-reports">
+          <div className="skeleton-line-medium-reports" style={{ width: 180, height: 20 }}></div>
+          <div className="skeleton-row-reports" style={{ width: '60%' }}></div>
+        </div>
+        <div className="skeleton-card-body-reports">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="skeleton-row-reports" style={{ width: `${95 - (i % 3) * 12}%` }}></div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -477,47 +545,22 @@ const Reports = () => {
       </Helmet>
 
       <div className="reports-container-reports">
-        {/* --- Minimalist Header --- */}
-      
-
-        {/* Report Type Tabs */}
+        {/* Report Type Tabs — full-width segmented control, 6 equal cells */}
         <div className={`report-tabs-reports ${showMoreTabs ? 'show-more-reports' : ''}`}>
-          <button
-            className={`tab-btn-reports ${activeTab === 'site-assessment' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('site-assessment'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Site Assessment
-          </button>
-          <button
-            className={`tab-btn-reports ${activeTab === 'project-summary' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('project-summary'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Project Summary
-          </button>
-          <button
-            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('financial'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Financial
-          </button>
-          <button
-            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('clients'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Clients
-          </button>
-          <button
-            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'services' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('services'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Services
-          </button>
-          <button
-            className={`tab-btn-reports desktop-tab-reports ${activeTab === 'quotations' ? 'active-reports' : ''}`}
-            onClick={() => { setActiveTab('quotations'); setReportData(null); setShowMoreTabs(false); }}
-          >
-            Quotations
-          </button>
+          {TABS.map((t) => {
+            // On small screens only the first two tabs stay visible; the rest move into "More".
+            const isOverflowTab = ['financial', 'clients', 'services', 'quotations'].includes(t.key);
+            return (
+              <button
+                key={t.key}
+                className={`tab-btn-reports ${isOverflowTab ? 'desktop-tab-reports' : ''} ${activeTab === t.key ? 'active-reports' : ''}`}
+                onClick={() => { setActiveTab(t.key); setReportData(null); setShowMoreTabs(false); }}
+                aria-current={activeTab === t.key ? 'page' : undefined}
+              >
+                {t.label}
+              </button>
+            );
+          })}
           <div className="more-wrap-reports">
             <button
               className={`tab-btn-reports more-tab-btn-reports ${(activeTab === 'financial' || activeTab === 'clients' || activeTab === 'services' || activeTab === 'quotations') ? 'active-reports' : ''}`}
@@ -530,38 +573,21 @@ const Reports = () => {
             </button>
             {showMoreTabs && (
               <div className="more-menu-reports" role="menu">
-                <button
-                  role="menuitem"
-                  className={`more-item-reports ${activeTab === 'financial' ? 'active-reports' : ''}`}
-                  onClick={() => { setActiveTab('financial'); setReportData(null); setShowMoreTabs(false); }}
-                >
-                  Financial
-                </button>
-                <button
-                  role="menuitem"
-                  className={`more-item-reports ${activeTab === 'clients' ? 'active-reports' : ''}`}
-                  onClick={() => { setActiveTab('clients'); setReportData(null); setShowMoreTabs(false); }}
-                >
-                  Clients
-                </button>
-                <button
-                  role="menuitem"
-                  className={`more-item-reports ${activeTab === 'services' ? 'active-reports' : ''}`}
-                  onClick={() => { setActiveTab('services'); setReportData(null); setShowMoreTabs(false); }}
-                >
-                  Services
-                </button>
-                <button
-                  role="menuitem"
-                  className={`more-item-reports ${activeTab === 'quotations' ? 'active-reports' : ''}`}
-                  onClick={() => { setActiveTab('quotations'); setReportData(null); setShowMoreTabs(false); }}
-                >
-                  Quotations
-                </button>
+                {TABS.filter((t) => ['financial', 'clients', 'services', 'quotations'].includes(t.key)).map((t) => (
+                  <button
+                    key={t.key}
+                    role="menuitem"
+                    className={`more-item-reports ${activeTab === t.key ? 'active-reports' : ''}`}
+                    onClick={() => { setActiveTab(t.key); setReportData(null); setShowMoreTabs(false); }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
             )}
           </div>
         </div>
+
 
         {/* Report Controls */}
         <div className="report-controls-reports">
@@ -672,416 +698,48 @@ const Reports = () => {
             </div>
           )}
 
+          {/* Actions — margin-left:auto keeps them pinned right, absorbing the row's slack */}
+          <div className="report-controls-actions-reports">
+            <button
+              className="reset-btn-reports"
+              onClick={handleResetFilters}
+              title="Clear all filters and reset the date range"
+            >
+              <FaRedo /> Reset
+            </button>
+            {activeTab !== 'quotations' && (
+              <>
+                <button
+                  className="export-btn-reports pdf"
+                  onClick={() => exportReport('pdf')}
+                  disabled={generating}
+                >
+                  <FaFilePdf /> Export PDF
+                </button>
+                <button
+                  className="export-btn-reports excel"
+                  onClick={() => exportReport('xlsx')}
+                  disabled={generating}
+                >
+                  <FaFileExcel /> Export Excel
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ============ SITE ASSESSMENT REPORTS ============ */}
         {activeTab === 'site-assessment' && (
           <div className="report-content-reports">
             <div className="report-section-reports">
-              <h2>Site Assessment</h2>
-              <p>Complete list of site evaluations with booking details and status.</p>
-            </div>
-
-            <div className="report-section-reports">
-              <div className="table-container-reports">
-                <table className="reports-table-reports">
-                  <thead>
-                    <tr>
-                      <th>Booking Ref</th>
-                      <th>Client Name</th>
-                      <th>Contact</th>
-                      <th>Type</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData?.report?.assessments || []).map(assessment => {
-                      const statusNum = getStatusNumber(assessment.assessmentStatus);
-                      const statusDisplay = assessment.statusDisplay || (statusNum ? `${assessment.assessmentStatus?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : 'N/A');
-
-                      return (
-                        <tr key={assessment._id}>
-                          <td data-label="Booking Ref" className="ref-cell-reports">{assessment.bookingReference}</td>
-                          <td data-label="Client Name" className="client-cell-reports">{assessment.clientName || 'N/A'}</td>
-                          <td data-label="Contact">{assessment.clientContact || 'N/A'}</td>
-                          <td data-label="Type">
-                            <span className="property-type-badge-reports">
-                              {assessment.propertyType || 'N/A'}
-                            </span>
-                          </td>
-                          <td data-label="Status">
-                            <span className="status-badge-reports">
-                              {statusDisplay}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="report-actions-reports">
-              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
-              </button>
-              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ============ PROJECT SUMMARY REPORTS ============ */}
-        {activeTab === 'project-summary' && (
-          <div className="report-content-reports">
-            <div className="report-section-reports">
-              <h2>Project Summary</h2>
-              <p>Overview of all projects with key details and status.</p>
-            </div>
-
-            <div className="report-section-reports">
-              <div className="table-container-reports">
-                <table className="reports-table-reports">
-                  <thead>
-                    <tr>
-                      <th>Project Ref</th>
-                      <th>Client Name</th>
-                      <th>Contact</th>
-                      <th>System Type</th>
-                      <th>System Size</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData?.report?.projects || []).map(project => (
-                      <tr key={project._id}>
-                        <td data-label="Project Ref" className="ref-cell-reports">{project.projectReference}</td>
-                        <td data-label="Client Name" className="client-cell-reports">{project.clientName || 'N/A'}</td>
-                        <td data-label="Contact">{project.clientContact || 'N/A'}</td>
-                        <td data-label="System Type">
-                          <span className="system-type-badge-reports">
-                            {project.systemType || 'N/A'}
-                          </span>
-                        </td>
-                        <td data-label="System Size">{project.systemSize || 'N/A'} kWp</td>
-                        <td data-label="Status">
-                          <span className={`project-status-badge-reports ${project.status}`}>
-                            {project.status === 'in_progress' ? 'In Progress' :
-                              project.status === 'completed' ? 'Completed' :
-                                project.status === 'full_paid' ? 'Full Payment' :
-                                  project.status === 'initial_paid' ? 'Initial Paid' :
-                                    project.status === 'quoted' ? 'Quoted' :
-                                      project.status === 'approved' ? 'Approved' : 'Pending'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="report-actions-reports">
-              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
-              </button>
-              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ============ FINANCIAL REPORTS ============ */}
-        {activeTab === 'financial' && (
-          <div className="report-content-reports">
-            <div className="report-section-reports">
-              <h2>Financial</h2>
-              <p>Summary of all financial transactions including payments and status.</p>
-            </div>
-
-            <div className="report-section-reports">
-              <div className="table-container-reports">
-                <table className="reports-table-reports">
-                  <thead>
-                    <tr>
-                      <th>Project/Booking Ref</th>
-                      <th>Client Name</th>
-                      <th>Amount</th>
-                      <th>Payment Method</th>
-                      <th>Status</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData?.report?.payments || []).map((transaction, idx) => (
-                      <tr key={idx}>
-                        <td data-label="Reference" className="ref-cell-reports">{transaction.reference || transaction.projectName}</td>
-                        <td data-label="Client Name" className="client-cell-reports">{transaction.clientName || transaction.client || 'N/A'}</td>
-                        <td data-label="Amount" className="amount-reports">{formatCurrency(transaction.amount)}</td>
-                        <td data-label="Method">
-                          <span className={`payment-method-reports ${transaction.method?.toLowerCase()}`}>
-                            {transaction.paymentMethod || transaction.method || 'N/A'}
-                          </span>
-                        </td>
-                        <td data-label="Status">
-                          <span className="status-badge-reports">
-                            {transaction.status}
-                          </span>
-                        </td>
-                        <td data-label="Date">{formatDate(transaction.date)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="report-actions-reports">
-              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
-              </button>
-              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ============ CLIENTS REPORTS ============ */}
-        {activeTab === 'clients' && (
-          <div className="report-content-reports">
-            <div className="report-section-reports">
-              <h2>Clients</h2>
-              <p>Complete list of all clients with their contact details and information.</p>
-            </div>
-
-            <div className="report-section-reports">
-              <div className="table-container-reports">
-                <table className="reports-table-reports">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Contact</th>
-                      <th>Email</th>
-                      <th>Client Type</th>
-                      <th>Address</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData?.report?.clients || []).length > 0 ? (
-                      (reportData?.report?.clients || []).map(client => (
-                        <tr key={client._id}>
-                          <td data-label="Name" className="client-cell-reports">
-                            <strong>{client.clientName || 'N/A'}</strong>
-                          </td>
-                          <td data-label="Contact">{client.clientContact || 'N/A'}</td>
-                          <td data-label="Email">{client.email || 'N/A'}</td>
-                          <td data-label="Client Type">
-                            <span className="client-type-badge-reports">
-                            {client.clientType || 'Residential'}
-                            </span>
-                          </td>
-                          <td data-label="Address">
-                            {client.address || 'N/A'}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" data-label="" className="empty-state-reports">No clients found</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="report-actions-reports">
-              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
-              </button>
-              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ============ SERVICES REPORTS ============ */}
-        {activeTab === 'services' && (
-          <div className="report-content-reports">
-            <div className="report-section-reports">
-              <h2>Services</h2>
-              <p>Complete list of service requests with customer details and status.</p>
-            </div>
-
-            <div className="report-section-reports">
-              <div className="table-container-reports">
-                <table className="reports-table-reports">
-                  <thead>
-                    <tr>
-                      <th>Reference</th>
-                      <th>Client Name</th>
-                      <th>Contact</th>
-                      <th>Service Type</th>
-                      <th>Preferred Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData?.report?.services || []).length > 0 ? (
-                      (reportData?.report?.services || []).map((service, idx) => (
-                        <tr key={service._id || idx}>
-                          <td data-label="Reference" className="ref-cell-reports">{service.reference || 'N/A'}</td>
-                          <td data-label="Client Name" className="client-cell-reports">{service.clientName || 'N/A'}</td>
-                          <td data-label="Contact">{service.clientContact || 'N/A'}</td>
-                          <td data-label="Service Type">
-                            <span className="system-type-badge-reports">
-                              {service.serviceType || 'N/A'}
-                            </span>
-                          </td>
-                          <td data-label="Preferred Date">{service.preferredDate ? formatDate(service.preferredDate) : 'N/A'}</td>
-                          <td data-label="Status">
-                            <span className="status-badge-reports">
-                              {service.status || 'N/A'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="6" data-label="" className="empty-state-reports">No service requests found</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="report-actions-reports">
-              <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')} disabled={generating}>
-                <FaFilePdf /> Export as PDF
-              </button>
-              <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')} disabled={generating}>
-                <FaFileExcel /> Export as Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ============ QUOTATIONS REPORT (cards + redirect, no export) ============ */}
-        {activeTab === 'quotations' && (
-          <div className="report-content-reports">
-            <div className="report-section-reports">
-              <h2>Quotations</h2>
-              <p>Click any card to view the full quotation in a new tab. No PDF or Excel generation in this tab.</p>
-            </div>
-
-            <div className="report-section-reports">
-              {getFilteredQuotations().length > 0 ? (
-                <div className="quotation-grid-reports">
-                  {getFilteredQuotations().map((q) => {
-                    const hasFile = isQuotationUrlSafe(q.url);
-                    return (
-                      <article
-                        key={`${q.sourceType}-${q.id}`}
-                        className={`quotation-card-reports ${hasFile ? '' : 'no-file'}`}
-                        onClick={() => handleOpenQuotation(q)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenQuotation(q); } }}
-                        tabIndex={0}
-                        role="link"
-                        aria-label={`View quotation ${q.reference} for ${q.name}`}
-                        title={hasFile ? `View ${q.reference} in a new tab` : `${q.reference} — no file yet`}
-                      >
-                        <div className="quotation-preview-reports">
-                          {hasFile ? (
-                            <>
-                              <iframe
-                                src={q.url}
-                                title={`Quotation preview ${q.reference}`}
-                                loading="lazy"
-                                tabIndex={-1}
-                                aria-hidden="true"
-                              />
-                              <span className="quotation-open-hint-reports">
-                                <FaExternalLinkAlt /> View
-                              </span>
-                            </>
-                          ) : (
-                            <div className="quotation-no-preview-reports">
-                              <FaFilePdf className="quotation-no-preview-icon-reports" />
-                              <span>No preview available</span>
-                            </div>
-                          )}
-                          <span className="quotation-source-reports">{q.sourceLabel}</span>
-                        </div>
-                        <div className="quotation-body-reports">
-                          <strong className="quotation-name-reports">{q.name || 'N/A'}</strong>
-                          <span className="quotation-ref-reports">{q.reference || 'N/A'}</span>
-                          <span className="status-badge-reports">{formatQuotationStatus(q.status)}</span>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-state-reports">No quotations found</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Report Preview Modal */}
-        {false && reportData && reportData.report && (
-          <div className="report-preview-overlay-reports" onClick={() => setReportData(null)}>
-            <div className="report-preview-reports" onClick={e => e.stopPropagation()}>
-              <div className="preview-header-reports">
-                <button className="close-preview-reports" onClick={() => setReportData(null)}><FaTimes /></button>
-              </div>
-              <div className="preview-content-reports">
-                {/* Company Logo and Report Header */}
-                <div className="report-header-reports">
-                  <div className="company-info-reports">
-                    <img
-                      src={logo}
-                      alt="Salfer Engineering"
-                      className="company-logo-reports"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextElementSibling.style.display = 'flex';
-                      }}
-                    />
-                    <div className="company-logo-placeholder-reports" style={{ display: 'none' }}>
-                      <span>🏢</span>
-                    </div>
-                    <div className="company-details-reports">
-                      <h2 className="company-name-reports">Salfer Engineering</h2>
-                      <p className="company-address-reports">San Nicolas St. Bunsuran 3rd, Pandi, Bulacan</p>
-                      <p className="company-tagline-reports">Solar Technology Enterprise</p>
-                    </div>
-                  </div>
-                  <div className="report-title-section-reports">
-                    <h3 className="report-title-reports">
-                      {activeTab === 'clients' ? 'Clients Report' : activeTab === 'services' ? 'Services Report' : reportData.report.title || 'Report'}
-                    </h3>
-                    <p className="report-generated-reports">Generated: {new Date(reportData.report.generatedAt).toLocaleString()}</p>
-                    {reportData.report.dateRange && (
-                      <p className="report-date-range-reports">
-                        Date Range: {reportData.report.dateRange.startDate || 'All'} to {reportData.report.dateRange.endDate || 'All'}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Assessment Details Table - Only for site-assessment tab */}
-                {activeTab === 'site-assessment' && reportData.report.assessments && reportData.report.assessments.length > 0 && (
-                  <div className="preview-table-section-reports">
-                    <h4>Assessment Details</h4>
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[0].empty} />
+                ) : (
+                  <>
                     <div className="table-container-reports">
-                      <table className="reports-table-reports">
+                      <table className="reports-table-reports table-site-assessment-reports">
                         <thead>
                           <tr>
                             <th>Booking Ref</th>
@@ -1092,38 +750,51 @@ const Reports = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {reportData.report.assessments.slice(0, 10).map((item, index) => (
-                            <tr key={index}>
-                              <td data-label="Booking Ref" className="ref-cell-reports">{item.bookingReference || 'N/A'}</td>
-                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
-                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
-                              <td data-label="Type">
-                                <span className="property-type-badge-reports">
-                                  {item.propertyType || 'N/A'}
-                                </span>
-                              </td>
-                              <td data-label="Status">
-                                <span className="status-badge-reports">
-                                  {item.statusDisplay || item.assessmentStatus || 'N/A'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                          {pagedRows.map(assessment => {
+                            const statusNum = getStatusNumber(assessment.assessmentStatus);
+                            const statusDisplay = assessment.statusDisplay || (statusNum ? `${assessment.assessmentStatus?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : 'N/A');
+
+                            return (
+                              <tr key={assessment._id}>
+                                <td data-label="Booking Ref" className="ref-cell-reports">{assessment.bookingReference}</td>
+                                <td data-label="Client Name" className="client-cell-reports">{assessment.clientName || 'N/A'}</td>
+                                <td data-label="Contact">{assessment.clientContact || 'N/A'}</td>
+                                <td data-label="Type">
+                                  <span className="property-type-badge-reports">
+                                    {assessment.propertyType || 'N/A'}
+                                  </span>
+                                </td>
+                                <td data-label="Status">
+                                  <span className="status-badge-reports">
+                                    {statusDisplay}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
-                      {reportData.report.assessments.length > 10 && (
-                        <p className="preview-note-reports">Showing 10 of {reportData.report.assessments.length} records</p>
-                      )}
                     </div>
-                  </div>
+                    <ReportPagination />
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Project Details Table - Only for project-summary tab */}
-                {activeTab === 'project-summary' && reportData.report.projects && reportData.report.projects.length > 0 && (
-                  <div className="preview-table-section-reports">
-                    <h4>Project Details</h4>
+        {/* ============ PROJECT SUMMARY REPORTS ============ */}
+        {activeTab === 'project-summary' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[1].empty} />
+                ) : (
+                  <>
                     <div className="table-container-reports">
-                      <table className="reports-table-reports">
+                      <table className="reports-table-reports table-project-summary-reports">
                         <thead>
                           <tr>
                             <th>Project Ref</th>
@@ -1135,83 +806,104 @@ const Reports = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {reportData.report.projects.slice(0, 10).map((item, index) => (
-                            <tr key={index}>
-                              <td data-label="Project Ref" className="ref-cell-reports">{item.projectReference || 'N/A'}</td>
-                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
-                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                          {pagedRows.map(project => (
+                            <tr key={project._id}>
+                              <td data-label="Project Ref" className="ref-cell-reports">{project.projectReference}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{project.clientName || 'N/A'}</td>
+                              <td data-label="Contact">{project.clientContact || 'N/A'}</td>
                               <td data-label="System Type">
                                 <span className="system-type-badge-reports">
-                                  {item.systemType || 'N/A'}
+                                  {project.systemType || 'N/A'}
                                 </span>
                               </td>
-                              <td data-label="System Size">{item.systemSize || 'N/A'} kWp</td>
+                              <td data-label="System Size">{project.systemSize || 'N/A'} kWp</td>
                               <td data-label="Status">
-                                <span className={`project-status-badge-reports ${item.status?.toLowerCase()}`}>
-                                  {item.status || 'N/A'}
+                                <span className={`project-status-badge-reports ${project.status}`}>
+                                  {project.status === 'in_progress' ? 'In Progress' :
+                                    project.status === 'completed' ? 'Completed' :
+                                      project.status === 'full_paid' ? 'Full Payment' :
+                                        project.status === 'initial_paid' ? 'Initial Paid' :
+                                          project.status === 'quoted' ? 'Quoted' :
+                                            project.status === 'approved' ? 'Approved' : 'Pending'}
                                 </span>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                      {reportData.report.projects.length > 10 && (
-                        <p className="preview-note-reports">Showing 10 of {reportData.report.projects.length} records</p>
-                      )}
                     </div>
-                  </div>
+                    <ReportPagination />
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Payment Details Table - Only for financial tab */}
-                {activeTab === 'financial' && reportData.report.payments && reportData.report.payments.length > 0 && (
-                  <div className="preview-table-section-reports">
-                    <h4>Payment Details</h4>
+        {/* ============ FINANCIAL REPORTS ============ */}
+        {activeTab === 'financial' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[2].empty} />
+                ) : (
+                  <>
                     <div className="table-container-reports">
-                      <table className="reports-table-reports">
+                      <table className="reports-table-reports table-financial-reports">
                         <thead>
                           <tr>
-                            <th>Reference</th>
+                            <th>Project/Booking Ref</th>
                             <th>Client Name</th>
                             <th>Amount</th>
-                            <th>Method</th>
+                            <th>Payment Method</th>
                             <th>Status</th>
                             <th>Date</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {reportData.report.payments.slice(0, 10).map((item, index) => (
-                            <tr key={index}>
-                              <td data-label="Reference" className="ref-cell-reports">{item.reference || item.projectName || 'N/A'}</td>
-                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || item.client || 'N/A'}</td>
-                              <td data-label="Amount" className="amount-reports">{formatCurrency(item.amount || 0)}</td>
+                          {pagedRows.map((transaction, idx) => (
+                            <tr key={transaction._id || `${transaction.reference}-${idx}`}>
+                              <td data-label="Reference" className="ref-cell-reports">{transaction.reference || transaction.projectName}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{transaction.clientName || transaction.client || 'N/A'}</td>
+                              <td data-label="Amount" className="amount-reports">{formatCurrency(transaction.amount)}</td>
                               <td data-label="Method">
-                                <span className={`payment-method-reports ${(item.method || item.paymentMethod || '').toLowerCase()}`}>
-                                  {item.method || item.paymentMethod || 'N/A'}
+                                <span className={`payment-method-reports ${transaction.method?.toLowerCase()}`}>
+                                  {transaction.paymentMethod || transaction.method || 'N/A'}
                                 </span>
                               </td>
                               <td data-label="Status">
                                 <span className="status-badge-reports">
-                                  {item.status || 'N/A'}
+                                  {transaction.status}
                                 </span>
                               </td>
-                              <td data-label="Date">{item.date ? formatDate(item.date) : 'N/A'}</td>
+                              <td data-label="Date">{formatDate(transaction.date)}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                      {reportData.report.payments.length > 10 && (
-                        <p className="preview-note-reports">Showing 10 of {reportData.report.payments.length} records</p>
-                      )}
                     </div>
-                  </div>
+                    <ReportPagination />
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Clients Details Table - Only for clients tab */}
-                {activeTab === 'clients' && reportData.report.clients && reportData.report.clients.length > 0 && (
-                  <div className="preview-table-section-reports">
-                    <h4>Client Details</h4>
+        {/* ============ CLIENTS REPORTS ============ */}
+        {activeTab === 'clients' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[3].empty} />
+                ) : (
+                  <>
                     <div className="table-container-reports">
-                      <table className="reports-table-reports">
+                      <table className="reports-table-reports table-clients-reports">
                         <thead>
                           <tr>
                             <th>Name</th>
@@ -1222,36 +914,46 @@ const Reports = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {reportData.report.clients.slice(0, 10).map((item, index) => (
-                            <tr key={index}>
-                              <td data-label="Name" className="client-cell-reports"><strong>{item.clientName || 'N/A'}</strong></td>
-                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
-                              <td data-label="Email">{item.email || 'N/A'}</td>
+                          {pagedRows.map(client => (
+                            <tr key={client._id}>
+                              <td data-label="Name" className="client-cell-reports">
+                                <strong>{client.clientName || 'N/A'}</strong>
+                              </td>
+                              <td data-label="Contact">{client.clientContact || 'N/A'}</td>
+                              <td data-label="Email">{client.email || 'N/A'}</td>
                               <td data-label="Client Type">
                                 <span className="client-type-badge-reports">
-                                  {item.clientType || 'Residential'}
+                                  {client.clientType || 'Residential'}
                                 </span>
                               </td>
                               <td data-label="Address">
-                                {item.address || 'N/A'}
+                                {client.address || 'N/A'}
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                      {reportData.report.clients.length > 10 && (
-                        <p className="preview-note-reports">Showing 10 of {reportData.report.clients.length} records</p>
-                      )}
                     </div>
-                  </div>
+                    <ReportPagination />
+                  </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Services Details Table - Only for services tab */}
-                {activeTab === 'services' && reportData.report.services && reportData.report.services.length > 0 && (
-                  <div className="preview-table-section-reports">
-                    <h4>Service Details</h4>
+        {/* ============ SERVICES REPORTS ============ */}
+        {activeTab === 'services' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[4].empty} />
+                ) : (
+                  <>
                     <div className="table-container-reports">
-                      <table className="reports-table-reports">
+                      <table className="reports-table-reports table-services-reports">
                         <thead>
                           <tr>
                             <th>Reference</th>
@@ -1263,53 +965,93 @@ const Reports = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {reportData.report.services.slice(0, 10).map((item, index) => (
-                            <tr key={index}>
-                              <td data-label="Reference" className="ref-cell-reports">{item.reference || 'N/A'}</td>
-                              <td data-label="Client Name" className="client-cell-reports">{item.clientName || 'N/A'}</td>
-                              <td data-label="Contact">{item.clientContact || 'N/A'}</td>
+                          {pagedRows.map((service, idx) => (
+                            <tr key={service._id || idx}>
+                              <td data-label="Reference" className="ref-cell-reports">{service.reference || 'N/A'}</td>
+                              <td data-label="Client Name" className="client-cell-reports">{service.clientName || 'N/A'}</td>
+                              <td data-label="Contact">{service.clientContact || 'N/A'}</td>
                               <td data-label="Service Type">
                                 <span className="system-type-badge-reports">
-                                  {item.serviceType || 'N/A'}
+                                  {service.serviceType || 'N/A'}
                                 </span>
                               </td>
-                              <td data-label="Preferred Date">{item.preferredDate ? formatDate(item.preferredDate) : 'N/A'}</td>
+                              <td data-label="Preferred Date">{service.preferredDate ? formatDate(service.preferredDate) : 'N/A'}</td>
                               <td data-label="Status">
                                 <span className="status-badge-reports">
-                                  {item.status || 'N/A'}
+                                  {service.status || 'N/A'}
                                 </span>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                      {reportData.report.services.length > 10 && (
-                        <p className="preview-note-reports">Showing 10 of {reportData.report.services.length} records</p>
-                      )}
                     </div>
-                  </div>
+                    <ReportPagination />
+                  </>
                 )}
-
-                {!reportData.report.assessments?.length &&
-                  !reportData.report.projects?.length &&
-                  !reportData.report.payments?.length &&
-                  !reportData.report.clients?.length &&
-                  !reportData.report.services?.length && (
-                    <div className="preview-raw-reports">
-                      <pre>{JSON.stringify(reportData.report, null, 2)}</pre>
-                    </div>
-                  )}
               </div>
-              <div className="preview-actions-reports">
-                <button className="export-btn-reports pdf" onClick={() => exportReport('pdf')}>
-                  <FaFilePdf /> Download PDF
-                </button>
-                <button className="export-btn-reports excel" onClick={() => exportReport('xlsx')}>
-                  <FaFileExcel /> Download Excel
-                </button>
-                <button className="export-btn-reports print" onClick={() => setReportData(null)}>
-                  <FaTimes /> Close
-                </button>
+            </div>
+          </div>
+        )}
+
+        {/* ============ QUOTATIONS REPORT (cards + redirect, no export) ============ */}
+        {activeTab === 'quotations' && (
+          <div className="report-content-reports">
+            <div className="report-section-reports">
+              <ReportCardHead />
+              <div className="report-card-body-reports">
+                {pagedRows.length === 0 ? (
+                  <ReportEmpty message={TABS[5].empty} />
+                ) : (
+                  <>
+                    <div className="quotation-grid-reports">
+                      {pagedRows.map((q) => {
+                        const hasFile = isQuotationUrlSafe(q.url);
+                        return (
+                          <article
+                            key={`${q.sourceType}-${q.id}`}
+                            className={`quotation-card-reports ${hasFile ? '' : 'no-file'}`}
+                            onClick={() => handleOpenQuotation(q)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenQuotation(q); } }}
+                            tabIndex={0}
+                            role="link"
+                            aria-label={`View quotation ${q.reference} for ${q.name}`}
+                            title={hasFile ? `View ${q.reference} in a new tab` : `${q.reference} — no file yet`}
+                          >
+                            <div className="quotation-preview-reports">
+                              {hasFile ? (
+                                <>
+                                  <iframe
+                                    src={q.url}
+                                    title={`Quotation preview ${q.reference}`}
+                                    loading="lazy"
+                                    tabIndex={-1}
+                                    aria-hidden="true"
+                                  />
+                                  <span className="quotation-open-hint-reports">
+                                    <FaExternalLinkAlt /> View
+                                  </span>
+                                </>
+                              ) : (
+                                <div className="quotation-no-preview-reports">
+                                  <FaFilePdf className="quotation-no-preview-icon-reports" />
+                                  <span>No preview available</span>
+                                </div>
+                              )}
+                              <span className="quotation-source-reports">{q.sourceLabel}</span>
+                            </div>
+                            <div className="quotation-body-reports">
+                              <strong className="quotation-name-reports">{q.name || 'N/A'}</strong>
+                              <span className="quotation-ref-reports">{q.reference || 'N/A'}</span>
+                              <span className="status-badge-reports">{formatQuotationStatus(q.status)}</span>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                    <ReportPagination />
+                  </>
+                )}
               </div>
             </div>
           </div>

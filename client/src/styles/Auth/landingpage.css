@@ -409,10 +409,8 @@ html {
 }
 
 /* ============================================== ABOUT SECTION ============================================== */
-.about-section-land {
-  background: var(--light-gray);
-}
-
+/* .about-section-land background is handled by the shared backdrop rule
+   further down, alongside Our Services and Why Choose Us. */
 .about-grid-land {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -486,8 +484,9 @@ html {
 }
 
 /* ============================================== MISSION & VISION ============================================== */
+/* Background comes from .landing-shared-bg-land */
 .mission-vision-section-land {
-  background: white;
+  background: transparent;
 }
 
 .mission-vision-grid-land {
@@ -528,7 +527,7 @@ html {
 
 /* ============================================== COMPARISON CARDS (FREE VS PAID) ============================================== */
 .comparison-section-land {
-  background: var(--light-gray);
+  background: transparent;
   text-align: center;
 }
 
@@ -646,8 +645,9 @@ html {
 }
 
 /* ============================================== ESTIMATOR SECTION ============================================== */
+/* Background comes from .landing-shared-bg-land */
 .estimator-section-land {
-  background: white;
+  background: transparent;
 }
 
 .estimator-card-land {
@@ -894,8 +894,46 @@ html {
 }
 
 /* ============================================== SERVICES SECTION ============================================== */
-.services-section-land {
-  background: white;
+/* ============================================
+   SHARED BACKDROP - About -> Why Choose Us
+   A single wrapper paints the canvas and one continuous gradient
+   across all seven sections. The sections themselves stay
+   transparent, otherwise the alternating white/gray bands
+   read as a visible seam instead of one long panel.
+   ============================================ */
+.landing-shared-bg-land {
+  position: relative;
+  background: var(--light-gray);
+  overflow: hidden;
+}
+
+.landing-shared-bg-land::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 480px at 10% 2%, rgba(245, 158, 11, 0.15), transparent 70%),
+    radial-gradient(760px 420px at 92% 14%, rgba(26, 42, 62, 0.09), transparent 70%),
+    radial-gradient(820px 460px at 18% 38%, rgba(245, 158, 11, 0.10), transparent 70%),
+    radial-gradient(900px 500px at 84% 60%, rgba(26, 42, 62, 0.08), transparent 70%),
+    radial-gradient(820px 460px at 24% 80%, rgba(245, 158, 11, 0.09), transparent 70%),
+    radial-gradient(1000px 540px at 52% 100%, rgba(245, 158, 11, 0.13), transparent 70%);
+}
+
+/* Every section inside the wrapper gets out of the way */
+.landing-shared-bg-land > section {
+  background: transparent;
+}
+
+.landing-shared-bg-land > section > .container-land {
+  position: relative;
+  z-index: 1;
+}
+
+.services-section-land,
+.whyus-section-land {
+  text-align: center;
 }
 
 .services-grid-land {
@@ -965,110 +1003,281 @@ html {
 }
 
 /* ---- Display-only service cards (mirrors Support → Services options) ---- */
-.services-section-land {
-  text-align: center;
+/* ============================================
+   OUR SERVICES - auto-scrolling gallery
+   ============================================ */
+.services-gallery-land {
+  position: relative;
+  margin-top: 8px;
 }
 
-.services-cards-grid-land {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: left;
+/* --- Track: hidden while auto-playing, scrollable once paused --- */
+.services-track-land {
+  overflow: hidden;
+  margin: 0;
+  padding: 6px 0 18px;
 }
 
+.services-track-land:not(.is-auto) {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+.services-track-land:not(.is-auto) .service-card-land {
+  scroll-snap-align: start;
+}
+
+.services-track-land:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+.services-marquee-land {
+  --svc-gap: 24px;
+  --svc-card-w: 340px;
+  display: flex;
+  gap: var(--svc-gap);
+  width: max-content;
+}
+
+/* Seamless loop: slide exactly one copy's width (half the row, plus half a gap) */
+@keyframes svcMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - var(--svc-gap) / 2)); }
+}
+
+.services-track-land.is-auto .services-marquee-land {
+  animation: svcMarquee 55s linear infinite;
+}
+
+/* Pause on hover/focus so the row can actually be read */
+.services-track-land.is-auto:hover .services-marquee-land,
+.services-track-land.is-auto:focus-within .services-marquee-land {
+  animation-play-state: paused;
+}
+
+/* Safety net: never animate if the OS asks for reduced motion, even on the
+   first paint before the matchMedia effect has run. */
+@media (prefers-reduced-motion: reduce) {
+  .services-track-land.is-auto .services-marquee-land {
+    animation: none;
+  }
+  .services-track-land.is-auto {
+    overflow-x: auto;
+  }
+}
+
+/* --- Card: photo covers the card, text sits on a scrim ---
+   --svc-card-w is intentionally NOT redeclared here so the card inherits the
+   value set on .services-marquee-land (and its responsive overrides). */
 .service-card-land {
-  background: white;
-  padding: 40px 32px;
-  border-radius: 20px;
-  box-shadow: var(--shadow-md);
-  transition: all var(--transition-base);
-  border-top: 4px solid transparent;
+  position: relative;
+  flex: 0 0 var(--svc-card-w);
+  width: var(--svc-card-w);
+  height: 400px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #22303F;
+  box-shadow: 0 18px 40px rgba(26, 42, 62, 0.16), 0 4px 12px rgba(26, 42, 62, 0.08);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
 }
 
 .service-card-land:hover {
-  transform: translateY(-12px);
-  box-shadow: var(--shadow-xl);
-  border-top-color: var(--orange);
+  transform: translateY(-8px);
+  box-shadow: 0 30px 64px rgba(26, 42, 62, 0.26), 0 10px 22px rgba(26, 42, 62, 0.12);
 }
 
-.service-icon-land {
-  font-size: 44px;
-  color: var(--orange);
-  margin-bottom: 20px;
-  transition: all var(--transition-spring);
+.service-photo-land {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.service-card-land:hover .service-icon-land {
-  transform: scale(1.15);
+.service-card-land:hover .service-photo-land {
+  transform: scale(1.08);
 }
 
-.service-card-land h3 {
+.service-card-land::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(16, 26, 38, 0.10) 0%,
+    rgba(16, 26, 38, 0.24) 28%,
+    rgba(16, 26, 38, 0.66) 60%,
+    rgba(16, 26, 38, 0.90) 100%);
+}
+
+.service-body-land {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-align: left;
+}
+
+.service-body-land h3 {
   font-size: 20px;
   font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 12px;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.service-card-land p {
-  font-size: 15px;
-  color: rgba(26, 42, 62, 0.7);
-  line-height: 1.6;
-  margin: 0;
+.service-body-land p {
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.55;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Fallback: if a photo 404s, keep the card looking intentional */
+.service-card-land.no-photo-land {
+  background: linear-gradient(150deg, #2C3E52 0%, #1A2A3E 60%, #22303F 100%);
+}
+
+.service-card-land.no-photo-land .service-photo-land {
+  display: none;
 }
 
 /* ============================================== WHY CHOOSE US - CARD GRID ============================================== */
-.whyus-section-land {
-  background: var(--light-gray);
-  text-align: center;
-}
-
 .whyus-grid-land {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 24px;
 }
 
+/* --- Card: photo covers the whole card, glass panel floats on top --- */
 .whyus-card-land {
-  background: white;
-  padding: 40px 32px;
-  border-radius: 20px;
-  box-shadow: var(--shadow-md);
-  transition: all var(--transition-base);
-  border-top: 4px solid transparent;
+  position: relative;
+  display: flex;
+  min-height: 360px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #22303F;
+  box-shadow: 0 18px 40px rgba(26, 42, 62, 0.16),
+    0 4px 12px rgba(26, 42, 62, 0.08);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
 }
 
 .whyus-card-land:hover {
-  transform: translateY(-12px);
-  box-shadow: var(--shadow-xl);
-  border-top-color: var(--orange);
+  transform: translateY(-10px);
+  box-shadow: 0 30px 64px rgba(26, 42, 62, 0.26),
+    0 10px 22px rgba(26, 42, 62, 0.12);
 }
 
-.whyus-icon-land {
-  font-size: 48px;
-  color: var(--orange);
-  margin-bottom: 20px;
-  transition: all var(--transition-spring);
+/* Full-bleed screenshot */
+.whyus-photo-land {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.whyus-card-land:hover .whyus-icon-land {
-  transform: scale(1.15) rotateY(360deg);
+.whyus-card-land:hover .whyus-photo-land {
+  transform: scale(1.08);
 }
 
-.whyus-card-land h3 {
+/* Legibility scrim. No glass panel - the text sits straight on the photo,
+   so the gradient has to do all the work: transparent at the top so the
+   photo reads, heavy at the bottom where the text sits. */
+.whyus-card-land::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(16, 26, 38, 0.10) 0%,
+    rgba(16, 26, 38, 0.20) 30%,
+    rgba(16, 26, 38, 0.62) 62%,
+    rgba(16, 26, 38, 0.88) 100%);
+}
+
+/* Orange icon badge, top-left over the photo */
+.whyus-badge-land {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #FFFFFF;
+  font-size: 19px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28), 0 8px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.whyus-card-land:hover .whyus-badge-land {
+  transform: scale(1.1) rotate(-8deg);
+}
+
+/* --- Text block ---
+   No panel, no backdrop-filter. min-height + centering keeps all four blocks
+   the same size even though the titles wrap to different line counts.
+   The layered text-shadow keeps white text readable over any photo. */
+.whyus-body-land {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 148px;
+  text-align: center;
+}
+
+.whyus-body-land h3 {
   font-size: 20px;
   font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 12px;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.whyus-card-land p {
+.whyus-body-land p {
   font-size: 15px;
-  color: rgba(26, 42, 62, 0.7);
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.55;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Fallback: if the photo 404s, keep the card looking intentional */
+.whyus-card-land.no-photo-land {
+  background: linear-gradient(150deg, #2C3E52 0%, #1A2A3E 60%, #22303F 100%);
+}
+
+.whyus-card-land.no-photo-land .whyus-photo-land {
+  display: none;
 }
 
 /* ============================================== DOWNLOAD APP SECTION ============================================== */
@@ -1144,74 +1353,7 @@ html {
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* App Download Card */
-.app-download-container {
-  display: flex;
-  justify-content: center;
-}
-
-.app-download-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 40px;
-  border-radius: 20px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all var(--transition-base);
-}
-
-.app-download-card:hover {
-  transform: translateY(-8px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
-}
-
-.android-icon {
-  font-size: 64px;
-  color: var(--orange);
-  margin-bottom: 20px;
-  transition: transform var(--transition-spring);
-}
-
-.app-download-card:hover .android-icon {
-  transform: scale(1.1) rotate(5deg);
-}
-
-.app-download-card h3 {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: white;
-}
-
-.app-download-card p {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 24px;
-}
-
-.download-btn {
-  padding: 14px 32px;
-  background: var(--orange);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  transition: all var(--transition-base);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
-}
-
-.download-btn:hover {
-  background: var(--orange-hover);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
-}
+/* App download visuals now live in styles/Auth/appDownload.css (-adl prefix) */
 
 /* ============================================== MODAL ============================================== */
 .modal-overlay-land {
@@ -1503,9 +1645,8 @@ html {
     gap: 24px;
   }
 
-  .services-cards-grid-land {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+  .services-marquee-land {
+    --svc-card-w: 300px;
   }
 
   .results-grid-land {
@@ -1599,15 +1740,26 @@ html {
   }
 
   .whyus-card-land {
-    padding: 32px 24px;
+    min-height: 330px;
+  }
+
+  .whyus-body-land {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    min-height: 132px;
+  }
+
+  .whyus-body-land h3 {
+    font-size: 19px;
+  }
+
+  .whyus-body-land p {
+    font-size: 14.5px;
   }
 
   .service-card-land {
-    padding: 32px 24px;
-  }
-
-  .whyus-icon-land {
-    font-size: 40px;
+    height: 370px;
   }
 
   .download-content-land {
@@ -1695,9 +1847,12 @@ html {
   }
 
   .results-grid-land,
-  .whyus-grid-land,
-  .services-cards-grid-land {
+  .whyus-grid-land {
     grid-template-columns: 1fr;
+  }
+
+  .services-marquee-land {
+    --svc-card-w: 270px;
   }
 
   .footer-grid-land {
@@ -1815,19 +1970,32 @@ html {
   }
 
   .whyus-card-land {
-    padding: 28px 20px;
+    min-height: 300px;
+    border-radius: 22px;
   }
 
-  .whyus-icon-land {
-    font-size: 36px;
+  .whyus-body-land {
+    left: 14px;
+    right: 14px;
+    bottom: 16px;
+    min-height: 124px;
   }
 
-  .whyus-card-land h3 {
-    font-size: 18px;
+  .whyus-body-land h3 {
+    font-size: 17px;
+    margin-bottom: 6px;
   }
 
-  .whyus-card-land p {
-    font-size: 14px;
+  .whyus-body-land p {
+    font-size: 13.5px;
+  }
+
+  .whyus-badge-land {
+    top: 14px;
+    left: 14px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 
   .download-content-land {
@@ -2096,10 +2264,13 @@ html {
 }
 
 /* ==============================================
-   APP DOWNLOAD - MOBILE RESPONSIVE FIXES
-============================================== */
+   APP DOWNLOAD - HOST CONTAINER
+   The phone stage itself is styled in styles/Auth/appDownload.css
+   (-adl prefix). The legacy per-child overrides that targeted
+   .subtitle / .version-badge / .download-button / .trust-badges /
+   .phone-app-* were removed: none of those class names exist.
+   ============================================== */
 
-/* App Download Container */
 .download-app-info-land {
   display: flex;
   justify-content: center;
@@ -2107,140 +2278,9 @@ html {
   width: 100%;
 }
 
-/* Override AppDownload component styles for mobile */
 @media (max-width: 768px) {
   .download-app-info-land {
     padding: 0 8px;
-  }
-  
-  /* Hide the phone mockup on mobile */
-  .download-app-info-land .app-download-phone {
-    display: none !important;
-  }
-  
-  /* Adjust the app download card for mobile */
-  .download-app-info-land > div {
-    padding: 20px 16px !important;
-    gap: 16px !important;
-    border-radius: 20px !important;
-  }
-  
-  /* Smaller header in app download */
-  .download-app-info-land h3 {
-    font-size: 18px !important;
-  }
-  
-  .download-app-info-land .subtitle {
-    font-size: 12px !important;
-  }
-  
-  /* Smaller version badge */
-  .download-app-info-land .version-badge {
-    font-size: 11px !important;
-    padding: 3px 10px !important;
-  }
-  
-  /* Smaller download button */
-  .download-app-info-land .download-button {
-    padding: 12px 20px !important;
-    font-size: 14px !important;
-    border-radius: 12px !important;
-  }
-  
-  /* Smaller trust badges */
-  .download-app-info-land .trust-badges {
-    gap: 10px !important;
-  }
-  
-  .download-app-info-land .trust-badge {
-    font-size: 10px !important;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 480px) {
-  .download-app-info-land {
-    padding: 0 4px;
-  }
-  
-  .download-app-info-land > div {
-    padding: 16px 12px !important;
-    gap: 12px !important;
-    border-radius: 16px !important;
-  }
-  
-  .download-app-info-land .logo-wrapper {
-    width: 36px !important;
-    height: 36px !important;
-    padding: 4px !important;
-  }
-  
-  .download-app-info-land h3 {
-    font-size: 16px !important;
-  }
-  
-  .download-app-info-land .subtitle {
-    font-size: 11px !important;
-  }
-  
-  .download-app-info-land .version-badge {
-    font-size: 10px !important;
-    padding: 2px 8px !important;
-  }
-  
-  .download-app-info-land .download-button {
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    border-radius: 10px !important;
-  }
-  
-  .download-app-info-land .download-button svg {
-    font-size: 16px !important;
-  }
-  
-  .download-app-info-land .trust-badges {
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-  }
-  
-  .download-app-info-land .trust-badge {
-    font-size: 9px !important;
-  }
-}
-
-/* Tablet (medium screens) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .download-app-info-land > div {
-    padding: 24px 28px !important;
-    gap: 20px !important;
-  }
-  
-  /* Smaller phone mockup on tablet */
-  .download-app-info-land .app-download-phone {
-    width: 100px !important;
-    height: 200px !important;
-  }
-  
-  .download-app-info-land .phone-app-icon-wrapper {
-    width: 48px !important;
-    height: 48px !important;
-    padding: 6px !important;
-  }
-  
-  .download-app-info-land .phone-app-name {
-    font-size: 10px !important;
-  }
-  
-  .download-app-info-land .phone-app-sub {
-    font-size: 8px !important;
-  }
-}
-
-/* Large screens */
-@media (min-width: 1025px) {
-  .download-app-info-land > div {
-    padding: 32px 40px !important;
-    gap: 24px !important;
   }
 }
 

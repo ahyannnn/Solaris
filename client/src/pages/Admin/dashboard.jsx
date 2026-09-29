@@ -333,7 +333,7 @@ const AdminDashboard = () => {
     },
     {
       icon: <FaUsers />,
-      label: 'User Management',
+      label: 'User Accounts',
       description: 'Manage user accounts',
       link: '/app/admin/usermanagement'
     }

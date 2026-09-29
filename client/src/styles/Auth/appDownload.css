@@ -1,0 +1,580 @@
+/* styles/Auth/appDownload.css - landing page "Download Our Mobile App" 3-phone hero
+   Sits on the navy download section, so it uses the landing page's
+   --orange / --orange-hover accents rather than a separate palette. */
+
+/* ============================================
+   WRAPPER
+   All sizing is driven by three custom properties so every
+   breakpoint below is a single override.
+   ============================================ */
+.adl-wrap {
+  /* center phone width, measured across the whole bezel */
+  --adl-w: 210px;
+  /* how far each side phone sits from the center phone */
+  --adl-offset: 116px;
+  /* side phone scale-down */
+  --adl-side: 0.82;
+  --adl-bezel: 8px;
+  --adl-radius: 30px;
+  /* Screenshots are 1080 x ~2185, so height/width ~= 2.024.
+     Kept as a plain unitless number (not a "w / h" ratio) so it can be
+     multiplied in calc() without tripping up token substitution. */
+  --adl-ar: 2.024;
+  /* the visible screen area inside the bezel */
+  --adl-screen-w: calc(var(--adl-w) - var(--adl-bezel) * 2);
+  --adl-screen-h: calc(var(--adl-screen-w) * var(--adl-ar));
+
+  --adl-orange: #F59E0B;
+  --adl-orange-hover: #D97706;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  width: 100%;
+}
+
+/* ============================================
+   STAGE - phones are absolutely positioned so the
+   side offsets don't stretch the flex row
+   ============================================ */
+.adl-stage {
+  position: relative;
+  width: calc(var(--adl-w) * var(--adl-side) + var(--adl-offset) * 2);
+  height: calc(var(--adl-screen-h) + var(--adl-bezel) * 2 + 34px);
+  perspective: 1400px;
+}
+
+/* ============================================
+   PHONE - a <button>, so reset the UA chrome
+   ============================================ */
+.adl-phone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: var(--adl-w);
+  margin-left: calc(var(--adl-w) / -2);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transform-origin: center center;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.3s ease, opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.adl-phone:focus-visible {
+  outline: 3px solid var(--adl-orange);
+  outline-offset: 6px;
+  border-radius: var(--adl-radius);
+}
+
+.adl-phone--center {
+  z-index: 3;
+  transform: translateY(-50%) translateZ(48px);
+}
+
+.adl-phone--left {
+  z-index: 1;
+  transform: translateY(-50%) translateX(calc(-1 * var(--adl-offset))) rotate(-7deg) scale(var(--adl-side));
+}
+
+.adl-phone--right {
+  z-index: 1;
+  transform: translateY(-50%) translateX(var(--adl-offset)) rotate(7deg) scale(var(--adl-side));
+}
+
+/* --- Hover: lift a phone and bring it forward --- */
+.adl-phone--center:hover,
+.adl-phone--center:focus-visible {
+  transform: translateY(-54%) translateZ(74px);
+}
+
+.adl-phone--left:hover,
+.adl-phone--left:focus-visible {
+  z-index: 4;
+  transform: translateY(-52%) translateX(calc(-1 * var(--adl-offset))) rotate(-5deg)
+    scale(calc(var(--adl-side) + 0.06));
+}
+
+.adl-phone--right:hover,
+.adl-phone--right:focus-visible {
+  z-index: 4;
+  transform: translateY(-52%) translateX(var(--adl-offset)) rotate(5deg)
+    scale(calc(var(--adl-side) + 0.06));
+}
+
+.adl-phone--left:hover .adl-shot,
+.adl-phone--right:hover .adl-shot {
+  filter: brightness(0.92) saturate(1);
+}
+
+/* ============================================
+   BEZEL + SCREEN
+   The screenshots have no OS status bar, so the frame is a
+   clean rounded bezel - no notch is drawn over the content.
+   ============================================ */
+.adl-bezel {
+  display: block;
+  box-sizing: border-box;
+  position: relative;
+  padding: var(--adl-bezel);
+  border-radius: var(--adl-radius);
+  background: linear-gradient(160deg, #26313F 0%, #0E1620 55%, #1B2532 100%);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.adl-screen {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: var(--adl-screen-h);
+  border-radius: calc(var(--adl-radius) - var(--adl-bezel));
+  overflow: hidden;
+  background: #0E1620;
+}
+
+.adl-shot {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Push the side phones back so the center one reads as the hero */
+.adl-phone--left .adl-shot,
+.adl-phone--right .adl-shot {
+  filter: brightness(0.8) saturate(0.92);
+}
+
+/* "Tap to enlarge" hint that fades in on hover */
+.adl-zoom {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  border-radius: 50%;
+  background: rgba(14, 22, 32, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  opacity: 0;
+  transform: translateY(6px) scale(0.9);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6'/%3E%3Cpath d='M20 20l-4.2-4.2M11 8.6v4.8M8.6 11h4.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 17px 17px;
+}
+
+.adl-phone:hover .adl-zoom,
+.adl-phone:focus-visible .adl-zoom {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Shown only if a screenshot fails to load */
+.adl-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  text-align: center;
+  background: linear-gradient(180deg, #22303F 0%, #0E1620 100%);
+}
+
+.adl-fallback-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #FFFFFF;
+  padding: 6px;
+  margin-bottom: 4px;
+}
+
+.adl-fallback-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.adl-fallback-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   CTA - version, download button, trust badges
+   ============================================ */
+.adl-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.adl-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--adl-orange);
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.34);
+}
+
+.adl-release {
+  margin: -4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.adl-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 15px 32px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--adl-orange) 0%, var(--adl-orange-hover) 100%);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.32);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.adl-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.45);
+}
+
+.adl-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+}
+
+.adl-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.adl-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(0);
+  animation: adl-ripple 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes adl-ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.adl-trust {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.adl-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.adl-trust-item svg {
+  color: var(--adl-orange);
+}
+
+/* ============================================
+   LOADING / ERROR
+   ============================================ */
+.adl-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.adl-spin {
+  animation: adl-spin 1s linear infinite;
+  color: var(--adl-orange);
+}
+
+@keyframes adl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Skeleton screen inside the loading phone frame */
+.adl-skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(100deg, #1B2532 30%, #26313F 50%, #1B2532 70%);
+  background-size: 220% 100%;
+  animation: adl-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes adl-shimmer {
+  0% {
+    background-position: 140% 0;
+  }
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+/* ============================================
+   LIGHTBOX - full-size screenshot preview
+   ============================================ */
+.adl-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(6, 12, 20, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: adl-fade 0.25s ease;
+}
+
+@keyframes adl-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.adl-lb-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: min(420px, 82vw);
+  margin: 0;
+  animation: adl-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes adl-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.adl-lb-img {
+  display: block;
+  width: 100%;
+  max-height: 76vh;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  background: #0E1620;
+}
+
+.adl-lb-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: inherit;
+}
+
+.adl-lb-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.adl-lb-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.adl-lb-close,
+.adl-lb-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.adl-lb-close:hover,
+.adl-lb-nav:hover {
+  background: var(--adl-orange);
+  border-color: var(--adl-orange);
+  transform: translateY(-2px);
+}
+
+.adl-lb-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.adl-lb-close:focus-visible,
+.adl-lb-nav:focus-visible {
+  outline: 3px solid var(--adl-orange);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .adl-lightbox {
+    padding: 16px 8px;
+    gap: 8px;
+  }
+  .adl-lb-figure {
+    max-width: min(320px, 78vw);
+  }
+  .adl-lb-nav {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+  .adl-lb-close {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   Between 1025px and ~1200px the two-column grid narrows to
+   ~456px, so the stage shrinks first. Below 1024px the grid
+   collapses to one full-width column and there is room again.
+   ============================================ */
+@media (max-width: 1200px) {
+  .adl-wrap {
+    --adl-w: 186px;
+    --adl-offset: 110px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .adl-wrap {
+    --adl-w: 200px;
+    --adl-offset: 118px;
+  }
+}
+
+@media (max-width: 768px) {
+  .adl-wrap {
+    --adl-w: 150px;
+    --adl-side: 0.78;
+    --adl-offset: 92px;
+    --adl-bezel: 6px;
+    --adl-radius: 22px;
+    gap: 26px;
+  }
+  .adl-btn {
+    padding: 13px 24px;
+    font-size: 15px;
+  }
+  .adl-trust {
+    gap: 12px;
+  }
+}
+
+/* Too narrow for three phones - keep only the hero */
+@media (max-width: 560px) {
+  .adl-wrap {
+    --adl-w: 196px;
+    --adl-offset: 0;
+    gap: 22px;
+  }
+  .adl-stage {
+    width: var(--adl-w);
+  }
+  .adl-phone--left,
+  .adl-phone--right {
+    display: none;
+  }
+  .adl-cta {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .adl-wrap {
+    --adl-w: 168px;
+  }
+  .adl-trust-item {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adl-phone,
+  .adl-btn,
+  .adl-ripple,
+  .adl-spin,
+  .adl-skeleton,
+  .adl-zoom,
+  .adl-lightbox,
+  .adl-lb-figure {
+    animation: none !important;
+    transition: none !important;
+  }
+  .adl-btn:hover:not(:disabled),
+  .adl-lb-close:hover,
+  .adl-lb-nav:hover {
+    transform: none !important;
+  }
+}

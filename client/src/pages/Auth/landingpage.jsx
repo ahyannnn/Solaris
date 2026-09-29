@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaUsers,
-  FaClipboardList,
-  FaStar,
   FaMoneyBillWave,
-  FaTools,
   FaSolarPanel,
   FaChartLine,
   FaCheckCircle,
@@ -13,12 +9,7 @@ import {
   FaDownload,
   FaCalculator,
   FaCalendarAlt,
-  FaExclamationTriangle,
-  FaBolt,
-  FaVideo,
-  FaBroadcastTower,
-  FaLightbulb,
-  FaGraduationCap
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import logo from '../../assets/Salfare_Logo.png';
 import "../../styles/Auth/landingpage.css";
@@ -27,36 +18,79 @@ import AppDownload from '../../components/AppDownload';
 // Display-only landing copy of the bookable customer services.
 // NOTE: keep `name` values in sync with SERVICE_OPTIONS in
 // pages/Customer/supports.jsx (Support → Services tab).
+// Photos are free-licence Pexels stock, face-free on purpose so the cards
+// never imply staff who don't work here. Replace with real job photos later.
 const LANDING_SERVICES = [
   {
     name: 'Electrical Design and Wiring',
-    icon: FaBolt,
-    description: 'Safe and compliant electrical design and wiring for homes and businesses.'
+    description: 'Safe and compliant electrical design and wiring for homes and businesses.',
+    image: '/services/svc-electrical.jpg',
+    alt: 'Electrical power distribution cabinet mounted on a wall'
   },
   {
     name: 'CCTV Installation',
-    icon: FaVideo,
-    description: 'Professional CCTV supply and installation for homes and businesses.'
+    description: 'Professional CCTV supply and installation for homes and businesses.',
+    image: '/services/svc-cctv.jpg',
+    alt: 'Security camera mounted on an exterior wall'
   },
   {
     name: 'Broadcast system integration',
-    icon: FaBroadcastTower,
-    description: 'Sound and broadcast system setup and integration for buildings and venues.'
+    description: 'Sound and broadcast system setup and integration for buildings and venues.',
+    image: '/services/svc-broadcast.jpg',
+    alt: 'Communication tower fitted with antennas and satellite dishes'
   },
   {
     name: 'Lighting system design and integration',
-    icon: FaLightbulb,
-    description: 'Energy-efficient lighting design and installation for any space.'
+    description: 'Energy-efficient lighting design and installation for any space.',
+    image: '/services/svc-lighting.jpg',
+    alt: 'Modern LED ceiling light fixture'
   },
   {
     name: 'Solar Installation Course with hands on training',
-    icon: FaGraduationCap,
-    description: 'Learn solar installation with actual hands-on training from our engineers.'
+    description: 'Learn solar installation with actual hands-on training from our engineers.',
+    image: '/services/svc-course.jpg',
+    alt: 'Solar panel array against a clear sky'
   },
   {
     name: 'Maintenance',
-    icon: FaTools,
-    description: 'Preventive maintenance and repair for your installed systems.'
+    description: 'Preventive maintenance and repair for your installed systems.',
+    image: '/services/svc-maintenance.jpg',
+    alt: 'Solar panel being cleaned with a long-handled brush'
+  }
+];
+
+// "Why Choose Us" cards.
+// Photos are free-licence, face-free stock (no staff depicted, so the cards
+// never imply people who don't work here):
+//   whyus-team.jpg      Unsplash License - rooftop array
+//   whyus-workflow.jpg  Pexels License    - panel grid pattern
+//   whyus-service.jpg   Unsplash License - rooftop array
+//   whyus-support.jpg   CC0 (Pexels)      - panel close-up
+// Replace these with photos of real Salfer work when available.
+const WHY_US = [
+  {
+    title: 'Experienced Engineering Team',
+    description: 'Years of expertise in solar technology',
+    image: '/whyus/whyus-install.jpg',
+    alt: 'Aerial view of a large rooftop solar panel array'
+  },
+  {
+    title: 'Organized Workflow',
+    description: 'Efficient processes from start to finish',
+    image: '/whyus/whyus-workflow.jpg',
+    alt: 'Neatly aligned grid of solar photovoltaic cells'
+  },
+  {
+    title: 'Reliable Service',
+    description: 'Trusted by hundreds of satisfied clients',
+    image: '/whyus/whyus-service.jpg',
+    alt: 'Solar panels mounted on a residential rooftop'
+  },
+  {
+    title: 'Post-Installation Support',
+    description: 'Ongoing maintenance and assistance',
+    image: '/whyus/whyus-support.jpg',
+    alt: 'Close-up detail of a solar photovoltaic panel surface'
   }
 ];
 
@@ -455,6 +489,32 @@ const LandingPage = () => {
     window.open('/terms', '_blank');
   };
 
+  // ===== Services auto-scrolling gallery =====
+  const servicesTrackRef = useRef(null);
+  const [svcReduced, setSvcReduced] = useState(false);
+  const [svcHidden, setSvcHidden] = useState(false);
+
+  // Honour the OS "reduce motion" setting: no autoplay, single copy, manual scroll.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setSvcReduced(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  // Don't burn CPU animating a tab nobody is looking at.
+  useEffect(() => {
+    const onVis = () => setSvcHidden(document.hidden);
+    onVis();
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  const svcAuto = !svcReduced && !svcHidden;
+  // Two copies makes the loop seamless; the second is hidden from screen readers.
+  const svcItems = svcReduced ? LANDING_SERVICES : [...LANDING_SERVICES, ...LANDING_SERVICES];
+
   return (
     <div className="landing-page-land">
       {/* Sticky Header */}
@@ -507,6 +567,10 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* One continuous backdrop for About -> Why Choose Us. Without this
+          wrapper each <section> paints its own background and the alternating
+          white/gray bands read as a visible seam. */}
+      <div className="landing-shared-bg-land">
       {/* About Us Section */}
       <section id="about" className="about-section-land animate-on-scroll">
         <div className="container-land">
@@ -744,24 +808,52 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section — display-only cards mirroring Support → Services */}
+      {/* Services Section — auto-scrolling gallery, display-only cards
+          mirroring Support → Services */}
       <section id="services" className="services-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Our Services</h2>
           <p className="section-subtitle-land">
             Bookable through your customer account under Support → Services
           </p>
-          <div className="services-cards-grid-land">
-            {LANDING_SERVICES.map((service) => {
-              const Icon = service.icon;
-              return (
-                <div key={service.name} className="service-card-land">
-                  <Icon className="service-icon-land" />
-                  <h3>{service.name}</h3>
-                  <p>{service.description}</p>
-                </div>
-              );
-            })}
+
+          <div className="services-gallery-land">
+            <div
+              className={`services-track-land${svcAuto ? ' is-auto' : ''}`}
+              ref={servicesTrackRef}
+              tabIndex={svcAuto ? -1 : 0}
+              role="region"
+              aria-label="Our services"
+            >
+              <div className="services-marquee-land">
+                {svcItems.map((service, i) => {
+                  const dup = i >= LANDING_SERVICES.length;
+                  return (
+                    <div
+                      key={`${service.name}-${i}`}
+                      className="service-card-land"
+                      aria-hidden={dup || undefined}
+                    >
+                      <img
+                        className="service-photo-land"
+                        src={service.image}
+                        alt={dup ? '' : service.alt}
+                        loading="lazy"
+                        decoding="async"
+                        draggable="false"
+                        width="600"
+                        height="400"
+                        onError={(e) => { e.currentTarget.parentElement.classList.add('no-photo-land'); }}
+                      />
+                      <div className="service-body-land">
+                        <h3>{service.name}</h3>
+                        <p>{service.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -770,30 +862,33 @@ const LandingPage = () => {
       <section id="why-us" className="whyus-section-land animate-on-scroll">
         <div className="container-land">
           <h2 className="section-title-land">Why Choose Us</h2>
+          <p className="section-subtitle-land">
+            Four reasons homeowners and businesses trust Salfer Engineering with their solar journey
+          </p>
           <div className="whyus-grid-land">
-            <div className="whyus-card-land">
-              <FaUsers className="whyus-icon-land" />
-              <h3>Experienced Engineering Team</h3>
-              <p>Years of expertise in solar technology</p>
-            </div>
-            <div className="whyus-card-land">
-              <FaClipboardList className="whyus-icon-land" />
-              <h3>Organized Workflow</h3>
-              <p>Efficient processes from start to finish</p>
-            </div>
-            <div className="whyus-card-land">
-              <FaStar className="whyus-icon-land" />
-              <h3>Reliable Service</h3>
-              <p>Trusted by hundreds of satisfied clients</p>
-            </div>
-            <div className="whyus-card-land">
-              <FaTools className="whyus-icon-land" />
-              <h3>Post-Installation Support</h3>
-              <p>Ongoing maintenance and assistance</p>
-            </div>
+            {WHY_US.map((item) => (
+              <div key={item.title} className="whyus-card-land">
+                <img
+                  className="whyus-photo-land"
+                  src={item.image}
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  draggable="false"
+                  width="600"
+                  height="400"
+                  onError={(e) => { e.currentTarget.parentElement.classList.add('no-photo-land'); }}
+                />
+                <div className="whyus-body-land">
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+      </div>
 
       {/* Download App Section */}
       <section id="download-app" className="download-section-land animate-on-scroll">

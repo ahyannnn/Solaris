@@ -750,7 +750,7 @@ const Dashboard = () => {
       }
       if (currentPath === '/app/admin/usermanagement') {
         return {
-          title: 'User Management',
+          title: 'User Accounts',
           description: 'Manage user accounts, roles, and permissions across the platform.'
         };
       }
@@ -868,7 +868,7 @@ const Dashboard = () => {
           icon: <FaTasks />,
           isDropdown: false,
           items: [
-            { icon: <FaUsers />, label: 'User Management', path: '/app/admin/usermanagement' },
+            { icon: <FaUsers />, label: 'User Accounts', path: '/app/admin/usermanagement' },
             { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
             { icon: <FaCalendarAlt />, label: 'Schedule', path: '/app/admin/schedule' },
             { icon: <FaTools />, label: 'Maintenance', path: '/app/admin/maintenance' },

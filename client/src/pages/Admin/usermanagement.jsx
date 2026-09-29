@@ -974,7 +974,7 @@ const UserManagement = () => {
   return (
     <>
       <Helmet>
-        <title>User Management | Admin | Salfer Engineering</title>
+        <title>User Accounts | Admin | Salfer Engineering</title>
       </Helmet>
 
       <div className="user-management-usermanagement">

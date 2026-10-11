@@ -197,7 +197,20 @@ app.use(
 // Registered BEFORE maintenanceMiddleware on purpose so it always
 // answers — even while maintenance mode is ON. Used by the Admin
 // Maintenance > System Health tab and external uptime monitors
-// (e.g. UptimeRobot pinging this URL every 5 minutes).
+// (e.g. UptimeRobot / cron-job.org pinging every 5 minutes).
+//
+// Two endpoints share the same purpose:
+// - GET /health     → ultra-light, always 200, for Render / cron keep-alive.
+//                     No DB query so it never times out or triggers buffering.
+// - GET /api/health → detailed status (db, uptime, connections, maintenance).
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get(
   "/api/health",
   async (req, res) => {
@@ -288,8 +301,8 @@ app.use(optionalAuth);
 // DB availability guard — fail fast with 503 instead of buffering 10s when Mongo is down.
 // Login and other DB-dependent routes get immediate Retry-After instead of Mongoose buffering timeout.
 app.use((req, res, next) => {
-  // Allow health and maintenance status to answer degraded instead of 503
-  if (req.path === '/api/health' || req.path === '/api/maintenance/status') return next();
+  // Allow health checks and maintenance status to answer degraded instead of 503
+  if (req.path === '/health' || req.path === '/api/health' || req.path === '/api/maintenance/status') return next();
   // Only guard API routes — static assets / pages don't need DB
   if (!req.path.startsWith('/api/')) return next();
   if (mongoose.connection.readyState !== 1) {

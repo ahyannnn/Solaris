@@ -2416,6 +2416,7 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 12px;
+  align-items: stretch;
 }
 
 .result-item {
@@ -2425,6 +2426,7 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
   background: var(--bg-section);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  min-width: 0;
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -2442,6 +2444,9 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
+  /* long values ("19917.00 kWh/yr") must wrap, not blow out the cell */
+  overflow-wrap: anywhere;
+  line-height: 1.25;
   transition: color 0.3s ease;
 }
 
@@ -2449,12 +2454,16 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
   font-size: 10px;
   color: var(--text-muted);
   margin-top: 2px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
   transition: color 0.3s ease;
 }
 
 .result-item.highlight {
-  background: var(--bg-section);
-  border-color: rgba(243, 156, 18, 0.15);
+  /* Was identical to .result-item's background, so the headline number
+     wasn't actually emphasised. Give it a warm tint + stronger border. */
+  background: rgba(243, 156, 18, 0.08);
+  border-color: rgba(243, 156, 18, 0.35);
 }
 
 .result-item.highlight strong {
@@ -2463,6 +2472,92 @@ body.dark-mode .detail-content-enad > .detail-header-enad {
 
 .result-item.battery-autonomy {
   grid-column: span 2;
+}
+
+/* Grid-Tie note card - visually quieter, it's informational not a result */
+.result-item.system-info {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--border-medium);
+}
+
+.result-item.system-info strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* --- Battery autonomy options ---
+   These had no rules at all, so the day label and the kWh value ran
+   together on one line ("1 Day68.20 kWh"). */
+.battery-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.battery-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-color);
+  min-width: 0;
+}
+
+.battery-option span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.battery-option strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.formula-hint {
+  display: block;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* Dark mode: the warm highlight tint needs more opacity to read on navy */
+body.dark-mode .result-item.highlight {
+  background: rgba(243, 156, 18, 0.12);
+  border-color: rgba(243, 156, 18, 0.45);
+}
+
+body.dark-mode .battery-option {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Below ~430px the card is too narrow for 3 battery options side by side,
+   so switch to label-left / value-right rows. Placed after the base rules
+   so it actually wins the cascade. */
+@media (max-width: 430px) {
+  .battery-options {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .battery-option {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .battery-option strong {
+    font-size: 14px;
+  }
 }
 
 /* Results Actions */

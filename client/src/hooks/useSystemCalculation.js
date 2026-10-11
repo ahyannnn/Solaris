@@ -92,6 +92,8 @@ export const useSystemCalculation = () => {
   const [totalDailyConsumption, setTotalDailyConsumption] = useState(0);
   const [dayConsumption, setDayConsumption] = useState(0);
   const [nightConsumption, setNightConsumption] = useState(0);
+  const [dayPercentage, setDayPercentage] = useState(0);
+  const [nightPercentage, setNightPercentage] = useState(0);
   const [ratePerKwh, setRatePerKwh] = useState(12);
   const [monthlyBill, setMonthlyBill] = useState(0);
   const [targetSavings, setTargetSavings] = useState(100);
@@ -141,6 +143,8 @@ export const useSystemCalculation = () => {
   const initializeFromData = (selectedItem) => {
     if (!selectedItem) {
       setIsDataLoaded(false);
+      setDayPercentage(0);
+      setNightPercentage(0);
       return;
     }
 
@@ -162,6 +166,8 @@ export const useSystemCalculation = () => {
     const total = day + night;
     const rate = parseFloat(selectedItem.rate) || 12;
     const bill = parseFloat(selectedItem.monthlyBill) || 0;
+    const dayPct = parseFloat(selectedItem.dayPercentage) || 0;
+    const nightPct = parseFloat(selectedItem.nightPercentage) || 0;
 
     // Get target savings from selected item or use default
     const target = parseFloat(selectedItem.targetSavings) || 100;
@@ -170,6 +176,8 @@ export const useSystemCalculation = () => {
     setTotalDailyConsumption(total);
     setDayConsumption(day);
     setNightConsumption(night);
+    setDayPercentage(dayPct);
+    setNightPercentage(nightPct);
     setMonthlyBill(bill);
     setRatePerKwh(rate);
 
@@ -510,17 +518,37 @@ export const useSystemCalculation = () => {
   // hooks/useSystemCalculation.js
 
 const calculateByNetMetering = (systemType) => {
-  const day = parseFloat(dayConsumption) || 0;
-  const night = parseFloat(nightConsumption) || 0;
+  const rawDay = parseFloat(dayConsumption) || 0;
+  const rawNight = parseFloat(nightConsumption) || 0;
   const target = parseFloat(targetSavings) || 100;
-  const exportRateValue = parseFloat(exportRate) || 12;
-  
+  const exportRateValue = parseFloat(exportRate) || 0;
+  const billValue = parseFloat(monthlyBill) || 0;
+  const rateValue = parseFloat(ratePerKwh) || 0;
+  const storedDayPct = parseFloat(dayPercentage) || 0;
+  const storedNightPct = parseFloat(nightPercentage) || 0;
+
   const psh = parseFloat(pshValue) || 3.5;
-  
-  
+
+  // Bill-based day/night split for grid-tie net metering:
+  // billDaily = (bill / rate) / 30; day = billDaily * day% ; night = billDaily * night%
+  // Falls back to raw appliance day/night kWh when bill/rate/% are unavailable.
+  let day = rawDay;
+  let night = rawNight;
+  const billDailyKwh = (billValue > 0 && rateValue > 0) ? (billValue / rateValue) / 30 : 0;
+  if (billDailyKwh > 0 && (storedDayPct > 0 || storedNightPct > 0)) {
+    const dayFrac = storedDayPct > 0 ? storedDayPct / 100 : 0.5;
+    const nightFrac = storedNightPct > 0 ? storedNightPct / 100 : (1 - dayFrac);
+    day = billDailyKwh * dayFrac;
+    night = billDailyKwh * nightFrac;
+  }
 
   if (day === 0 && night === 0) {
     alert('No consumption data available. Please check client data.');
+    return;
+  }
+
+  if (exportRateValue <= 0) {
+    alert('Please enter a valid export rate for net metering calculation.');
     return;
   }
 
@@ -536,7 +564,9 @@ const calculateByNetMetering = (systemType) => {
     : 0.8;
   const safetyFactor = 1.3;
 
-  // Formula: (day consumption * safety factor / psh) + (night consumption * 12 / exportRate * safety factor / psh) * target savings
+  // Formula: dayPv = dayKwh * 1.3 / psh; nightPv = (nightKwh * 12hrs / exportRate) * 1.3 / psh;
+  // day/night kWh come from bill split ((bill/rate)/30 * stored %) when available, else raw appliance kWh.
+  // Total * target savings.
   const dayPv = (day * safetyFactor) / psh;
   const nightPv = ((night * 12 / exportRateValue) * safetyFactor) / psh;
   const totalPv = dayPv + nightPv;
@@ -752,6 +782,8 @@ const calculateByNetMetering = (systemType) => {
     totalDailyConsumption, setTotalDailyConsumption,
     dayConsumption, setDayConsumption,
     nightConsumption, setNightConsumption,
+    dayPercentage, setDayPercentage,
+    nightPercentage, setNightPercentage,
     ratePerKwh, setRatePerKwh,
     monthlyBill, setMonthlyBill,
     pshValue, setPshValue,

@@ -2857,8 +2857,12 @@ const MyAssessments = () => {
                                 <NetMeteringCalculationCard
                                   dayConsumption={calculation.dayConsumption}
                                   nightConsumption={calculation.nightConsumption}
+                                  dayPercentage={calculation.dayPercentage}
+                                  nightPercentage={calculation.nightPercentage}
+                                  monthlyBill={calculation.monthlyBill}
                                   dayPvCapacity={calculation.dayPvCapacity}
                                   pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
                                   setExportRate={calculation.setExportRate}
                                   ratePerKwh={calculation.ratePerKwh}
                                   nightPvCapacity={calculation.nightPvCapacity}
@@ -3337,7 +3341,7 @@ const MyAssessments = () => {
                       <div className="metric-item">
                         <div>
                           <label>Peak Sun Hours</label>
-                          <span><strong>{assessmentResults.peakSunHours?.toFixed(1) || '—'}</strong> hrs/day</span>
+                          <span><strong>{assessmentResults.peakSunHours?.toFixed(2) || '—'}</strong> hrs/day</span>
                         </div>
                       </div>
                       <div className="metric-item">
@@ -3511,7 +3515,11 @@ const MyAssessments = () => {
                               {activeMethod === 'netmetering' && paSystemType === 'grid-tie' && (
                                 <NetMeteringCalculationCard
                                   dayConsumption={calculation.dayConsumption}
+                                  dayPercentage={calculation.dayPercentage}
+                                  nightPercentage={calculation.nightPercentage}
+                                  monthlyBill={calculation.monthlyBill}
                                   pshValue={calculation.pshValue}
+                                  setPshValue={calculation.setPshValue}
                                   setExportRate={calculation.setExportRate}
                                   nightConsumption={calculation.nightConsumption}
                                   dayPvCapacity={calculation.dayPvCapacity}

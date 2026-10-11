@@ -679,6 +679,10 @@ export const LoadProfileCalculationCard = ({
 export const NetMeteringCalculationCard = ({
   dayConsumption,
   nightConsumption,
+  dayPercentage = 0,
+  nightPercentage = 0,
+  monthlyBill = 0,
+  ratePerKwh = 0,
   dayPvCapacity,
   nightPvCapacity,
   totalPvCapacity,
@@ -691,17 +695,38 @@ export const NetMeteringCalculationCard = ({
   exportRate,
   setExportRate,
   pshValue, // Add pshValue prop
+  setPshValue = () => {},
   showToast
 }) => {
   const panelWattage = getPanelWattage(selectedPanelForCalc);
   // Use pshValue if available, otherwise default to 3.5
-  
-  const psh = parseFloat(pshValue) || 3.5;
 
-  // Use exportRate instead of ratePerKwh for net metering calculation
-  const dayNetMeteringConsumption = (dayConsumption * 1.3 )/ psh;
-  const nightNetMeteringConsumption = nightConsumption * 12 / exportRate;
-  const nightNetMeteringPvCapacity = nightNetMeteringConsumption * 1.3 / psh;
+  const psh = parseFloat(pshValue) || 3.5;
+  const expVal = parseFloat(exportRate) || 0;
+
+  // Bill-based day/night split (mirrors calculateByNetMetering in useSystemCalculation):
+  // billDaily = (bill / rate) / 30; day = billDaily * day% ; night = billDaily * night%.
+  // Falls back to raw appliance day/night kWh when bill/rate/% are unavailable.
+  const rawDay = parseFloat(dayConsumption) || 0;
+  const rawNight = parseFloat(nightConsumption) || 0;
+  const billNum = parseFloat(monthlyBill) || 0;
+  const rateNum = parseFloat(ratePerKwh) || 0;
+  const storedDayPct = parseFloat(dayPercentage) || 0;
+  const storedNightPct = parseFloat(nightPercentage) || 0;
+  const billDailyKwh = (billNum > 0 && rateNum > 0) ? (billNum / rateNum) / 30 : 0;
+  let billDayKwh = rawDay;
+  let billNightKwh = rawNight;
+  if (billDailyKwh > 0 && (storedDayPct > 0 || storedNightPct > 0)) {
+    const dayFrac = storedDayPct > 0 ? storedDayPct / 100 : 0.5;
+    const nightFrac = storedNightPct > 0 ? storedNightPct / 100 : (1 - dayFrac);
+    billDayKwh = billDailyKwh * dayFrac;
+    billNightKwh = billDailyKwh * nightFrac;
+  }
+
+  // Day PV met directly; night energy offset via export (12 = night hours) then sized.
+  const dayNetMeteringConsumption = (billDayKwh * 1.3) / psh;
+  const nightNetMeteringConsumption = expVal > 0 ? billNightKwh * 12 / expVal : 0;
+  const nightNetMeteringPvCapacity = (nightNetMeteringConsumption * 1.3) / psh;
 
   // Raw input values substituted into the formula below (no pre-computation)
   const dayNum = parseFloat(dayConsumption) || 0;
@@ -758,6 +783,16 @@ export const NetMeteringCalculationCard = ({
               <div className="panel-spec-enad"><label>Power</label><strong>{panelWattage}W</strong></div>
             </div>
           )}
+          <div className="psh-field-enad" title="Peak Sun Hours — default 3.5 for Philippines">
+            <label>PSH</label>
+            <input
+              type="number"
+              step="0.1"
+              value={pshValue}
+              onChange={(e) => setPshValue(parseFloat(e.target.value) || 3.5)}
+              className="param-input"
+            />
+          </div>
         </div>
 
         {/* Export Rate Input */}
@@ -778,8 +813,8 @@ export const NetMeteringCalculationCard = ({
         <div className="consumption-display">
           <div className="consumption-item">
             <label>Day Consumption</label>
-            <strong>{safeToFixed(dayConsumption)} kWh</strong>
-            <small>From client data</small>
+            <strong>{safeToFixed(billDayKwh)} kWh</strong>
+            <small>{billDailyKwh > 0 ? `Bill split (${safeToFixed(storedDayPct, 0)}%)` : 'From client data'}</small>
           </div>
           <div className="consumption-item">
             <label>Day PV Capacity</label>
@@ -788,13 +823,18 @@ export const NetMeteringCalculationCard = ({
           </div>
           <div className="consumption-item">
             <label>Night Consumption</label>
+            <strong>{safeToFixed(billNightKwh)} kWh</strong>
+            <small>{billDailyKwh > 0 ? `Bill split (${safeToFixed(storedNightPct, 0)}%)` : 'From client data'}</small>
+          </div>
+          <div className="consumption-item">
+            <label>Night Export Equiv.</label>
             <strong>{safeToFixed(nightNetMeteringConsumption)} kWh</strong>
-            <small>Night × 12 / Export Rate</small>
+            <small>Night × 12hrs / Export Rate</small>
           </div>
           <div className="consumption-item">
             <label>Night PV Capacity</label>
             <strong>{safeToFixed(nightNetMeteringPvCapacity, 2)} kWp</strong>
-            <small>Night × 1.3 / {psh}</small>
+            <small>Equiv × 1.3 / {psh}</small>
           </div>
           <div className="consumption-item">
             <label>Target Savings</label>

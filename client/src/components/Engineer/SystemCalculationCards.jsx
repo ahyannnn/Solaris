@@ -937,8 +937,8 @@ export const CalculationResultsCard = ({
             <>
               <strong>{safeToFixed(calculationResults.inverterSize)} kW</strong>
               {hasApplianceWatts
-                ? <small>( ({motorWatts} x 3 )+ {nonMotorWatts} )1.3</small>
-                : <small>( (Total Motor power x 3 )+ other non motor )1.3</small>}
+                ? <small>(( {motorWatts} × 3 ) + {nonMotorWatts}) × 1.3 ÷ 1000</small>
+                : <small>(( Total Motor power × 3 ) + other non-motor ) × 1.3 ÷ 1000</small>}
               <small>Hybrid / Off-grid surge sizing</small>
             </>
           )}

@@ -229,7 +229,7 @@ export const useSystemCalculation = () => {
     const nonMotor = parseFloat(nonMotorAppliancesWatts) || 0;
     const safetyFactor = 1.3;
     const inverterKva = ((motor * 3) + nonMotor) * safetyFactor / 1000;
-    return Math.ceil(inverterKva * 100) / 100;
+    return Math.round(inverterKva * 100) / 100;
   };
 
   const calculateBatteryCapacity = (totalDailyConsumption, autonomyDays, depthOfDischarge) => {
@@ -267,7 +267,7 @@ export const useSystemCalculation = () => {
     const panelsNeeded = Math.ceil((recommendedSystemSize * 1000) / PANEL_WATTAGE_W);
     // Hybrid/off-grid keeps motor-surge formula; grid-tie matches system size to catalog (10% tolerance).
     const isGridTie = systemType === 'grid-tie';
-    let inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
+    let inverterSize = Math.round(calculateInverterSize() * 100) / 100;
     let inverterQuantity = 1;
     let inverterCombo = [inverterSize];
     let recommendedInverterLabel = '';
@@ -354,7 +354,7 @@ export const useSystemCalculation = () => {
 
     // Hybrid/off-grid keeps motor-surge formula; grid-tie matches system size to catalog (10% tolerance).
     const isGridTie = systemType === 'grid-tie';
-    let inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
+    let inverterSize = Math.round(calculateInverterSize() * 100) / 100;
     let inverterQuantity = 1;
     let inverterCombo = [inverterSize];
     let recommendedInverterLabel = '';
@@ -446,7 +446,7 @@ export const useSystemCalculation = () => {
 
     // Hybrid/off-grid keeps motor-surge formula; grid-tie matches system size to catalog (10% tolerance).
     const isGridTieLoad = systemType === 'grid-tie';
-    let inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
+    let inverterSize = Math.round(calculateInverterSize() * 100) / 100;
     let inverterQuantity = 1;
     let inverterCombo = [inverterSize];
     let recommendedInverterLabel = '';
@@ -545,7 +545,7 @@ const calculateByNetMetering = (systemType) => {
   // Net Metering card is grid-tie only: inverter is matched from system size (10% tolerance).
   // If called with hybrid/off-grid explicitly, fall back to surge formula for safety.
   const isGridTieNet = !systemType || systemType === 'grid-tie';
-  let inverterSize = Math.ceil(calculateInverterSize() * 100) / 100;
+  let inverterSize = Math.round(calculateInverterSize() * 100) / 100;
   let inverterQuantity = 1;
   let inverterCombo = [inverterSize];
   let recommendedInverterLabel = '';

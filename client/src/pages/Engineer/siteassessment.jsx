@@ -2942,10 +2942,24 @@ const MyAssessments = () => {
                             <label>Panels Needed</label>
                             <strong>{calculation.calculationResults.panelsNeeded} pcs</strong>
                           </div>
-                          {calculation.calculationResults.batteryCapacityKwh > 0 && (
-                            <div className="summary-item">
-                              <label>Battery Capacity</label>
-                              <strong>{calculation.calculationResults.batteryCapacityKwh} kWh</strong>
+                          {(freeQuoteForm.systemType === 'hybrid' || freeQuoteForm.systemType === 'off-grid') &&
+                            calculation.calculationResults.batteryCapacity1Day > 0 && (
+                            <div className="summary-item battery-summary">
+                              <label>Battery Capacity (1–3 Days)</label>
+                              <div className="battery-options">
+                                <div className="battery-option">
+                                  <span>1 Day</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity1Day} kWh</strong>
+                                </div>
+                                <div className="battery-option">
+                                  <span>2 Days</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity2Day} kWh</strong>
+                                </div>
+                                <div className="battery-option">
+                                  <span>3 Days</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity3Day} kWh</strong>
+                                </div>
+                              </div>
                             </div>
                           )}
                           <div className="summary-item">
@@ -3583,10 +3597,24 @@ const MyAssessments = () => {
                             <label>Panels Needed</label>
                             <strong>{calculation.calculationResults.panelsNeeded} pcs</strong>
                           </div>
-                          {calculation.calculationResults.batteryCapacityKwh > 0 && (
-                            <div className="summary-item">
-                              <label>Battery Capacity</label>
-                              <strong>{calculation.calculationResults.batteryCapacityKwh} kWh</strong>
+                          {((selectedItem.systemType || 'grid-tie') === 'hybrid' || (selectedItem.systemType || 'grid-tie') === 'off-grid') &&
+                            calculation.calculationResults.batteryCapacity1Day > 0 && (
+                            <div className="summary-item battery-summary">
+                              <label>Battery Capacity (1–3 Days)</label>
+                              <div className="battery-options">
+                                <div className="battery-option">
+                                  <span>1 Day</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity1Day} kWh</strong>
+                                </div>
+                                <div className="battery-option">
+                                  <span>2 Days</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity2Day} kWh</strong>
+                                </div>
+                                <div className="battery-option">
+                                  <span>3 Days</span>
+                                  <strong>{calculation.calculationResults.batteryCapacity3Day} kWh</strong>
+                                </div>
+                              </div>
                             </div>
                           )}
                           <div className="summary-item">

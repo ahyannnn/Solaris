@@ -1065,8 +1065,15 @@ exports.generateFreeQuotePDF = async (req, res) => {
       remarks,
       equipmentDetails,
       annualProduction,
+      annualProductionMin,
+      annualProductionMax,
+      ratePerKwh,
+      annualSavingsMin,
+      annualSavingsMax,
+      roiYearsMin,
+      roiYearsMax,
       co2Offset,
-      roiYears,  // ✅ This is the ROI years value
+      roiYears,  // ✅ This is the ROI years value (midpoint, kept for compat)
       discountPercentage,
       discountAmount,
       finalAmount
@@ -1197,6 +1204,21 @@ exports.generateFreeQuotePDF = async (req, res) => {
       ? Number(totalCost)
       : (recomputedEquipmentTotal + recomputedInstallationTotal);
 
+    // ROI range + annual savings (display-only, no schema change).
+    // Prefer client payload, fallback to stored quote, then single value.
+    const roiRate = parseFloat(ratePerKwh) || parseFloat(quote.rate) || 0;
+    const prodMin = parseFloat(annualProductionMin) || quote.estimatedAnnualProductionMin || parseFloat(annualProduction) || 0;
+    const prodMax = parseFloat(annualProductionMax) || quote.estimatedAnnualProductionMax || parseFloat(annualProduction) || 0;
+    const effTotal = (parseFloat(discountPercentage) > 0 ? parseFloat(finalAmount) : 0) || calculatedTotalCost;
+    let saveMin = parseFloat(annualSavingsMin);
+    let saveMax = parseFloat(annualSavingsMax);
+    if (!Number.isFinite(saveMin) || saveMin <= 0) saveMin = prodMin * roiRate;
+    if (!Number.isFinite(saveMax) || saveMax <= 0) saveMax = prodMax * roiRate;
+    let rMin = parseFloat(roiYearsMin);
+    let rMax = parseFloat(roiYearsMax);
+    if (!Number.isFinite(rMin) || rMin <= 0) rMin = saveMax > 0 && effTotal > 0 ? Math.round((effTotal / saveMax) * 10) / 10 : 0;
+    if (!Number.isFinite(rMax) || rMax <= 0) rMax = saveMin > 0 && effTotal > 0 ? Math.round((effTotal / saveMin) * 10) / 10 : 0;
+
     // Prepare data for PDF - ✅ FIXED: Include roiYears
     const pdfData = {
       quotationReference: quote.quotationReference,
@@ -1223,6 +1245,13 @@ exports.generateFreeQuotePDF = async (req, res) => {
       calculatedTotalCost,
       totalCost: calculatedTotalCost,
       annualProduction: parseFloat(annualProduction) || 0,
+      annualProductionMin: prodMin,
+      annualProductionMax: prodMax,
+      ratePerKwh: roiRate,
+      annualSavingsMin: saveMin,
+      annualSavingsMax: saveMax,
+      roiYearsMin: rMin,
+      roiYearsMax: rMax,
       co2Offset: parseFloat(co2Offset) || 0,
       roiYears: parseFloat(roiYears) || 0,  // ✅ ROI years passed here
       discountPercentage: parseFloat(discountPercentage) || 0,

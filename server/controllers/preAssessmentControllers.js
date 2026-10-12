@@ -246,6 +246,13 @@ exports.generateQuotationPDF = async (req, res) => {
       estimatedAnnualProductionMin,
       estimatedAnnualProductionMax,
       annualProduction,
+      annualProductionMin,
+      annualProductionMax,
+      ratePerKwh,
+      annualSavingsMin,
+      annualSavingsMax,
+      roiYearsMin,
+      roiYearsMax,
       co2Offset,
       co2OffsetMin,
       co2OffsetMax,
@@ -420,6 +427,24 @@ exports.generateQuotationPDF = async (req, res) => {
       // Fall back to the default placeholder
     }
 
+    // ROI range + annual savings (display-only). Prefer client payload,
+    // fallback to stored assessment / single values.
+    const roiRate = parseFloat(ratePerKwh) || parseFloat(assessment.rate) || 0;
+    const prodMin = parseFloat(annualProductionMin) || parseFloat(estimatedAnnualProductionMin)
+      || parseFloat(annualProduction) || 0;
+    const prodMax = parseFloat(annualProductionMax) || parseFloat(estimatedAnnualProductionMax)
+      || parseFloat(annualProduction) || 0;
+    const effTotal = (parseFloat(discountPercentage) > 0 ? parseFloat(finalAmount) : 0)
+      || parseFloat(totalCost) || calculatedTotalCost;
+    let saveMin = parseFloat(annualSavingsMin);
+    let saveMax = parseFloat(annualSavingsMax);
+    if (!Number.isFinite(saveMin) || saveMin <= 0) saveMin = prodMin * roiRate;
+    if (!Number.isFinite(saveMax) || saveMax <= 0) saveMax = prodMax * roiRate;
+    let rMin = parseFloat(roiYearsMin);
+    let rMax = parseFloat(roiYearsMax);
+    if (!Number.isFinite(rMin) || rMin <= 0) rMin = saveMax > 0 && effTotal > 0 ? Math.round((effTotal / saveMax) * 10) / 10 : 0;
+    if (!Number.isFinite(rMax) || rMax <= 0) rMax = saveMin > 0 && effTotal > 0 ? Math.round((effTotal / saveMin) * 10) / 10 : 0;
+
     // Prepare data for PDF with IoT metrics
     const pdfData = {
       engineerName,
@@ -444,11 +469,20 @@ exports.generateQuotationPDF = async (req, res) => {
       calculatedEquipmentTotal,
       calculatedInstallationTotal,
       calculatedTotalCost,
+      totalCost: calculatedTotalCost,
       iotAnalysis,
       // ✅ NEW: Use values passed from frontend
       estimatedAnnualProduction: estimatedAnnualProduction || 0,
       estimatedAnnualProductionMin: estimatedAnnualProductionMin || 0,
       estimatedAnnualProductionMax: estimatedAnnualProductionMax || 0,
+      annualProduction: parseFloat(annualProduction) || 0,
+      annualProductionMin: prodMin,
+      annualProductionMax: prodMax,
+      ratePerKwh: roiRate,
+      annualSavingsMin: saveMin,
+      annualSavingsMax: saveMax,
+      roiYearsMin: rMin,
+      roiYearsMax: rMax,
       co2Offset: co2Offset || 0,
       co2OffsetMin: co2OffsetMin || 0,
       co2OffsetMax: co2OffsetMax || 0,
@@ -466,16 +500,30 @@ exports.generateQuotationPDF = async (req, res) => {
       },
       performanceEstimates: iotAnalysis ? {
         annualProduction: parseFloat(annualProduction) || 0,
-        annualSavings: iotAnalysis.estimatedAnnualSavings || (calculatedTotalCost || 0) * 0.15,
+        annualProductionMin: prodMin,
+        annualProductionMax: prodMax,
+        ratePerKwh: roiRate,
+        annualSavings: saveMax > 0 ? (saveMin + saveMax) / 2 : (iotAnalysis.estimatedAnnualSavings || 0),
+        annualSavingsMin: saveMin,
+        annualSavingsMax: saveMax,
         monthlySavings: iotAnalysis.estimatedMonthlySavings || 0,
         paybackPeriod: parseFloat(roiYears) || 0,
+        paybackPeriodMin: rMin,
+        paybackPeriodMax: rMax,
         co2Offset: co2Offset || 0,
         siteSuitabilityScore: iotAnalysis.siteSuitabilityScore || 85
       } : {
         annualProduction: (systemSize || 0) * 1200,
-        annualSavings: (calculatedTotalCost || 0) * 0.15,
+        annualProductionMin: prodMin || (systemSize || 0) * 1200,
+        annualProductionMax: prodMax || (systemSize || 0) * 1200,
+        ratePerKwh: roiRate,
+        annualSavings: saveMax > 0 ? (saveMin + saveMax) / 2 : (calculatedTotalCost || 0) * 0.15,
+        annualSavingsMin: saveMin,
+        annualSavingsMax: saveMax,
         monthlySavings: 0,
         paybackPeriod: Math.ceil((calculatedTotalCost || 0) / ((systemSize || 1) * 1200 * 0.1)),
+        paybackPeriodMin: rMin,
+        paybackPeriodMax: rMax,
         co2Offset: (systemSize || 0) * 800,
         siteSuitabilityScore: 85
       },
@@ -720,7 +768,19 @@ exports.generateFreeQuotePDF = async (req, res) => {
       totalCost,
       paymentTerms,
       warrantyYears,
-      remarks
+      remarks,
+      annualProduction,
+      annualProductionMin,
+      annualProductionMax,
+      ratePerKwh,
+      annualSavingsMin,
+      annualSavingsMax,
+      roiYearsMin,
+      roiYearsMax,
+      roiYears,
+      discountPercentage,
+      discountAmount,
+      finalAmount
     } = req.body;
 
     const quote = await FreeQuote.findById(id)
@@ -745,6 +805,18 @@ exports.generateFreeQuotePDF = async (req, res) => {
     }
 
     // Prepare data for PDF
+    const _roiRate = parseFloat(ratePerKwh) || 0;
+    const _prodMin = parseFloat(annualProductionMin) || parseFloat(annualProduction) || 0;
+    const _prodMax = parseFloat(annualProductionMax) || parseFloat(annualProduction) || 0;
+    const _effTotal = (parseFloat(discountPercentage) > 0 ? parseFloat(finalAmount) : 0) || parseFloat(totalCost) || 0;
+    let _saveMin = parseFloat(annualSavingsMin);
+    let _saveMax = parseFloat(annualSavingsMax);
+    if (!Number.isFinite(_saveMin) || _saveMin <= 0) _saveMin = _prodMin * _roiRate;
+    if (!Number.isFinite(_saveMax) || _saveMax <= 0) _saveMax = _prodMax * _roiRate;
+    let _rMin = parseFloat(roiYearsMin);
+    let _rMax = parseFloat(roiYearsMax);
+    if (!Number.isFinite(_rMin) || _rMin <= 0) _rMin = _saveMax > 0 && _effTotal > 0 ? Math.round((_effTotal / _saveMax) * 10) / 10 : 0;
+    if (!Number.isFinite(_rMax) || _rMax <= 0) _rMax = _saveMin > 0 && _effTotal > 0 ? Math.round((_effTotal / _saveMin) * 10) / 10 : 0;
     const pdfData = {
       engineerName,
       quotationReference: quote.quotationReference,
@@ -765,7 +837,19 @@ exports.generateFreeQuotePDF = async (req, res) => {
       totalCost,
       paymentTerms,
       warrantyYears,
-      remarks
+      remarks,
+      annualProduction: parseFloat(annualProduction) || 0,
+      annualProductionMin: _prodMin,
+      annualProductionMax: _prodMax,
+      ratePerKwh: _roiRate,
+      annualSavingsMin: _saveMin,
+      annualSavingsMax: _saveMax,
+      roiYearsMin: _rMin,
+      roiYearsMax: _rMax,
+      roiYears: parseFloat(roiYears) || 0,
+      discountPercentage: parseFloat(discountPercentage) || 0,
+      discountAmount: parseFloat(discountAmount) || 0,
+      finalAmount: parseFloat(finalAmount) || 0
     };
 
     // Generate PDF

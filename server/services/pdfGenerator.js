@@ -91,7 +91,8 @@ class QuotationGenerator {
 
    _generateFreeQuote(doc, data) {
       // Page 1 - Header drawn by _drawHeader inside _drawPage1
-      this._drawPage1(doc, data);
+      const page1Y = this._drawPage1(doc, data);
+      this._drawROIData(doc, data, page1Y);
       this._drawFooter(doc, data);
 
       // Page 2 - Add logo via _drawPageLogo
@@ -135,6 +136,8 @@ class QuotationGenerator {
       y = this._drawClientInfo(doc, data, y);
       y = this._drawEquipmentTable(doc, data, y);
       y = this._drawPricing(doc, data, y);
+
+      return y;
    }
 
    _drawHeader(doc, data, y) {
@@ -627,6 +630,84 @@ class QuotationGenerator {
                color: '#666666'
             });
          y += 15;
+      }
+
+      return y + 10;
+   }
+
+   _drawROIData(doc, data, y) {
+      const currency = data.currency || '₱';
+      const prodMin = Number(data.annualProductionMin) || Number(data.annualProduction) || 0;
+      const prodMax = Number(data.annualProductionMax) || Number(data.annualProduction) || 0;
+      const rate = Number(data.ratePerKwh) || 0;
+      let saveMin = Number(data.annualSavingsMin);
+      let saveMax = Number(data.annualSavingsMax);
+      if (!Number.isFinite(saveMin) || saveMin <= 0) saveMin = prodMin * rate;
+      if (!Number.isFinite(saveMax) || saveMax <= 0) saveMax = prodMax * rate;
+      const totalCost = Number(data.finalAmount) > 0 && Number(data.discountPercentage) > 0
+         ? Number(data.finalAmount)
+         : (Number(data.totalCost ?? data.calculatedTotalCost) || 0);
+      let rMin = Number(data.roiYearsMin);
+      let rMax = Number(data.roiYearsMax);
+      if (!Number.isFinite(rMin) || rMin <= 0) rMin = saveMax > 0 && totalCost > 0 ? Math.round((totalCost / saveMax) * 10) / 10 : 0;
+      if (!Number.isFinite(rMax) || rMax <= 0) rMax = saveMin > 0 && totalCost > 0 ? Math.round((totalCost / saveMin) * 10) / 10 : 0;
+
+      // Skip the section when there is nothing meaningful to show
+      if (!(prodMin > 0 || prodMax > 0) && !(rMin > 0 || rMax > 0)) return y;
+
+      const fmtInt = (v) => Math.round(Number(v) || 0).toLocaleString('en-PH');
+      const productionValue = (prodMin > 0 && prodMax > 0)
+         ? `${fmtInt(prodMin)} - ${fmtInt(prodMax)} kWh/year`
+         : (prodMax > 0 || prodMin > 0 ? `${fmtInt(prodMax || prodMin)} kWh/year` : 'N/A');
+      const savingsValue = (saveMin > 0 && saveMax > 0)
+         ? `${this._formatPeso(currency, saveMin)} - ${this._formatPeso(currency, saveMax)} /year`
+         : 'N/A';
+      const roiValue = (rMin > 0 && rMax > 0)
+         ? `${rMin.toFixed(1)} - ${rMax.toFixed(1)} years`
+         : (Number(data.roiYears || data.roiData) > 0 ? `${Number(data.roiYears || data.roiData).toFixed(1)} years` : 'N/A');
+
+      const roiItems = [
+         { label: 'Total Cost', value: totalCost > 0 ? this._formatPeso(currency, totalCost) : 'N/A' },
+         { label: 'Rate per kWh', value: rate > 0 ? `${currency}${rate.toFixed(2)}` : 'N/A' },
+         { label: 'Annual Production', value: productionValue },
+         { label: 'Annual Savings', value: savingsValue },
+         { label: 'ROI / Payback Period', value: roiValue },
+      ];
+
+      // Keep header + rows together; move to a fresh page if they won't fit
+      const requiredHeight = 25 + (roiItems.length * 18) + 10;
+      if (y + requiredHeight > doc.page.height - this.margins.bottom - 30) {
+         doc.addPage();
+         this._drawPageLogo(doc);
+         y = this.margins.top + 60;
+      }
+
+      doc.font('Roboto-Bold')
+         .fontSize(10)
+         .text('ROI DATA', this.margins.left, y);
+
+      y += 15;
+
+      for (const item of roiItems) {
+         if (y > doc.page.height - this.margins.bottom - 50) {
+            doc.addPage();
+            this._drawPageLogo(doc);
+            y = this.margins.top + 60;
+         }
+
+         doc.fillColor(this.colors.black);
+         doc.font('Roboto-Bold')
+            .fontSize(10)
+            .text(`${item.label}:`, this.margins.left, y);
+
+         doc.font('Roboto')
+            .fontSize(9)
+            .text(item.value, this.margins.left + 100, y, {
+               width: doc.page.width - this.margins.left - this.margins.right - 110,
+               align: 'right'
+            });
+
+         y += 18;
       }
 
       return y + 10;
@@ -1423,11 +1504,29 @@ class QuotationGenerator {
       y += 25;
 
       const perf = data.performanceEstimates || {};
+      const currency = data.currency || '₱';
+      const pMin = Number(perf.annualProductionMin) || Number(perf.annualProduction) || 0;
+      const pMax = Number(perf.annualProductionMax) || Number(perf.annualProduction) || 0;
+      const sMin = Number(perf.annualSavingsMin) || 0;
+      const sMax = Number(perf.annualSavingsMax) || Number(perf.annualSavings) || 0;
+      const rMin = Number(perf.paybackPeriodMin) || 0;
+      const rMax = Number(perf.paybackPeriodMax) || 0;
+      const fmtInt = (v) => Math.round(Number(v) || 0).toLocaleString('en-PH');
+      const productionValue = (pMin > 0 && pMax > 0)
+         ? `${fmtInt(pMin)} - ${fmtInt(pMax)} kWh/year`
+         : (perf.annualProduction ? `${perf.annualProduction.toFixed(0)} kWh/year` : 'N/A');
+      const savingsValue = (sMin > 0 && sMax > 0)
+         ? `${this._formatPeso(currency, sMin)} - ${this._formatPeso(currency, sMax)} /year`
+         : (sMax > 0 ? `${this._formatPeso(currency, sMax)} /year` : 'N/A');
+      const roiPerfValue = (rMin > 0 && rMax > 0)
+         ? `${rMin.toFixed(1)} - ${rMax.toFixed(1)} years`
+         : (perf.paybackPeriod ? `${perf.paybackPeriod} years` : 'N/A');
       const performanceData = [
-         { label: 'Annual Production', value: perf.annualProduction ? `${perf.annualProduction.toFixed(0)} kWh/year` : 'N/A' },
+         { label: 'Annual Production', value: productionValue },
          { label: 'CO₂ Offset', value: perf.co2Offset ? `${perf.co2Offset.toFixed(0)} kg/year` : 'N/A' },
-         { label: 'ROI / Payback Period', value: perf.paybackPeriod ? `${perf.paybackPeriod} years` : 'N/A' },
-         
+         { label: 'Annual Savings', value: savingsValue },
+         { label: 'ROI / Payback Period', value: roiPerfValue },
+
       ];
 
       for (const item of performanceData) {

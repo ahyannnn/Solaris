@@ -1026,9 +1026,13 @@ export const CalculationResultsCard = ({
         </div>
         <div className="result-item">
           <label>Annual Production</label>
-          <strong>{safeToFixed(calculationResults.estimatedAnnualProduction || 0)} kWh/yr</strong>
-          {calculationResults.estimatedAnnualProductionMin > 0 && (
-            <small>Range: {safeToFixed(calculationResults.estimatedAnnualProductionMin)} - {safeToFixed(calculationResults.estimatedAnnualProductionMax)} kWh/yr</small>
+          {calculationResults.estimatedAnnualProductionMin > 0 && calculationResults.estimatedAnnualProductionMax > 0 ? (
+            <>
+              <strong>{safeToFixed(calculationResults.estimatedAnnualProductionMin)} - {safeToFixed(calculationResults.estimatedAnnualProductionMax)} kWh/yr</strong>
+              <small>Range: {safeToFixed(calculationResults.estimatedAnnualProductionMin)} - {safeToFixed(calculationResults.estimatedAnnualProductionMax)} kWh/yr (3-4.5 PSH range)</small>
+            </>
+          ) : (
+            <strong>{safeToFixed(calculationResults.estimatedAnnualProduction || 0)} kWh/yr</strong>
           )}
         </div>
         <div className="result-item">

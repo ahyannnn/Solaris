@@ -3867,6 +3867,8 @@ body.dark-mode .battery-option {
 .cost-detail {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   font-size: 13px;
   color: var(--text-secondary);
   padding: 4px 0;
@@ -3878,6 +3880,27 @@ body.dark-mode .battery-option {
   font-weight: 500;
   color: var(--text-primary);
   transition: color 0.3s ease;
+}
+
+.cost-value-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-left: auto;
+  text-align: right;
+}
+
+.cost-value-group > span {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.cost-value-group .formula-hint {
+  font-size: 11px;
+  opacity: 0.6;
+  font-style: italic;
+  white-space: nowrap;
 }
 
 .labor-total {

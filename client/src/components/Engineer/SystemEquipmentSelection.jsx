@@ -69,6 +69,9 @@ export const SystemEquipmentSelection = ({
   getSystemTypeLabel,
 
   annualProduction,
+  annualProductionMin,
+  annualProductionMax,
+  ratePerKwh,
   roiData,
   onROICalculated,
   // Utility
@@ -409,17 +412,26 @@ export const SystemEquipmentSelection = ({
   const { discountAmount, finalAmount } = freeQuoteCalculatedCosts;
   
   // Calculate ROI whenever values change
+  // Annual Savings = Annual Production × Rate per kWh (customer rate)
+  // ROI (Payback Period) = Total Cost / Annual Savings
   useEffect(() => {
     const totalCost = discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost;
-    const annualProd = annualProduction || 0;
+    const rate = parseFloat(ratePerKwh) || 0;
+    const prodMin = annualProductionMin > 0 ? annualProductionMin : (annualProduction || 0);
+    const prodMax = annualProductionMax > 0 ? annualProductionMax : (annualProduction || 0);
 
-    if (annualProd > 0 && totalCost > 0) {
-      const calculatedROI = totalCost / annualProd;
-      const roundedROI = Math.round(calculatedROI * 10) / 10;
-      if (onROICalculated) {
-        onROICalculated(roundedROI);
+    if (prodMin > 0 && prodMax > 0 && rate > 0 && totalCost > 0) {
+      const savingsMin = prodMin * rate;
+      const savingsMax = prodMax * rate;
+      const avgSavings = (savingsMin + savingsMax) / 2;
+      if (avgSavings > 0) {
+        const calculatedROI = totalCost / avgSavings;
+        const roundedROI = Math.round(calculatedROI * 10) / 10;
+        if (onROICalculated) {
+          onROICalculated(roundedROI);
+        }
       }
-    } else if (annualProd === 0 && totalCost > 0) {
+    } else if ((annualProduction || 0) === 0 && totalCost > 0) {
       if (onROICalculated) {
         onROICalculated(0);
       }
@@ -429,8 +441,21 @@ export const SystemEquipmentSelection = ({
     finalAmount,
     freeQuoteCalculatedCosts.totalSystemCost,
     annualProduction,
+    annualProductionMin,
+    annualProductionMax,
+    ratePerKwh,
     onROICalculated
   ]);
+
+  // Derived display values for ROI Data card (range-based)
+  const roiTotalCost = discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost;
+  const roiRate = parseFloat(ratePerKwh) || 0;
+  const roiProdMin = annualProductionMin > 0 ? annualProductionMin : (annualProduction || 0);
+  const roiProdMax = annualProductionMax > 0 ? annualProductionMax : (annualProduction || 0);
+  const roiSavingsMin = roiProdMin * roiRate;
+  const roiSavingsMax = roiProdMax * roiRate;
+  const roiYearsMin = roiSavingsMax > 0 && roiTotalCost > 0 ? roiTotalCost / roiSavingsMax : 0;
+  const roiYearsMax = roiSavingsMin > 0 && roiTotalCost > 0 ? roiTotalCost / roiSavingsMin : 0;
 
   return (
     <>
@@ -1088,16 +1113,34 @@ export const SystemEquipmentSelection = ({
               <span>{formatCurrency(discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost)}</span>
             </div>
             <div className="cost-detail">
+              <span>Rate per kWh:</span>
+              <span>₱{roiRate.toFixed(2)}</span>
+            </div>
+            <div className="cost-detail">
               <span>Annual Production:</span>
-              <span>{annualProduction.toLocaleString()} kWh/year</span>
+              <span>{roiProdMin.toLocaleString()} - {roiProdMax.toLocaleString()} kWh/year</span>
+            </div>
+            <div className="cost-detail">
+              <span>Annual Savings:</span>
+              <div className="cost-value-group">
+                <small className="formula-hint">Annual Production × Rate per kWh (₱{roiRate.toFixed(2)})</small>
+                <span>
+                  {roiRate > 0
+                    ? `${formatCurrency(roiSavingsMin)} - ${formatCurrency(roiSavingsMax)} /year`
+                    : '—'}
+                </span>
+              </div>
             </div>
             <div className="cost-detail highlight-roi">
               <span>ROI (Payback Period):</span>
-              <span>
-                {(discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost) > 0 && annualProduction > 0
-                  ? ((discountPercentage > 0 ? finalAmount : freeQuoteCalculatedCosts.totalSystemCost) / annualProduction).toFixed(1)
-                  : '—'} years
-              </span>
+              <div className="cost-value-group">
+                <small className="formula-hint">Total Cost ÷ Annual Savings</small>
+                <span>
+                  {roiTotalCost > 0 && roiSavingsMin > 0 && roiSavingsMax > 0
+                    ? `${roiYearsMin.toFixed(1)} - ${roiYearsMax.toFixed(1)}`
+                    : '—'} years
+                </span>
+              </div>
             </div>
           </div>
         </div>

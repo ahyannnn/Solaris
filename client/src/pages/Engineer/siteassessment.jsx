@@ -1525,6 +1525,20 @@ const MyAssessments = () => {
     const annualProduction = isFreeQuote
       ? calculation.calculationResults.estimatedAnnualProduction || 0
       : calculation.calculationResults.estimatedAnnualProduction || 0;
+    const annualProductionMin = calculation.calculationResults.estimatedAnnualProductionMin
+      || annualProduction || 0;
+    const annualProductionMax = calculation.calculationResults.estimatedAnnualProductionMax
+      || annualProduction || 0;
+    const ratePerKwh = parseFloat(calculation.ratePerKwh ?? selectedItem?.rate) || 0;
+    const roiBaseCost = (parseFloat(discountPercentage) > 0
+      ? (isFreeQuote ? freeQuoteCalculatedCosts.finalAmount : calculatedCosts.finalAmount)
+      : totalCost) || 0;
+    const annualSavingsMin = annualProductionMin * ratePerKwh;
+    const annualSavingsMax = annualProductionMax * ratePerKwh;
+    const roiYearsMin = annualSavingsMax > 0 && roiBaseCost > 0
+      ? Math.round((roiBaseCost / annualSavingsMax) * 10) / 10 : 0;
+    const roiYearsMax = annualSavingsMin > 0 && roiBaseCost > 0
+      ? Math.round((roiBaseCost / annualSavingsMin) * 10) / 10 : 0;
     const co2Offset = isFreeQuote
       ? calculation.calculationResults.co2Offset || 0
       : calculation.calculationResults.co2Offset || 0;
@@ -1607,6 +1621,13 @@ const MyAssessments = () => {
         remarks: freeQuoteForm.remarks,
         includeIoTData: false,
         annualProduction: annualProduction,
+        annualProductionMin: annualProductionMin,
+        annualProductionMax: annualProductionMax,
+        ratePerKwh: ratePerKwh,
+        annualSavingsMin: annualSavingsMin,
+        annualSavingsMax: annualSavingsMax,
+        roiYearsMin: roiYearsMin,
+        roiYearsMax: roiYearsMax,
         co2Offset: co2Offset,
         roiYears: roiYears,
         discountPercentage: discountPercentage,
@@ -1657,6 +1678,13 @@ const MyAssessments = () => {
         includeIoTData: includeIoTData,
         iotData: includeIoTData ? iotDataForPDF : null,
         annualProduction: annualProduction,
+        annualProductionMin: annualProductionMin,
+        annualProductionMax: annualProductionMax,
+        ratePerKwh: ratePerKwh,
+        annualSavingsMin: annualSavingsMin,
+        annualSavingsMax: annualSavingsMax,
+        roiYearsMin: roiYearsMin,
+        roiYearsMax: roiYearsMax,
         co2Offset: co2Offset,
         roiYears: roiYears,
         discountPercentage: discountPercentage,
@@ -2968,7 +2996,11 @@ const MyAssessments = () => {
                           )}
                           <div className="summary-item">
                             <label>Annual Production</label>
-                            <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                            {calculation.calculationResults.estimatedAnnualProductionMin > 0 && calculation.calculationResults.estimatedAnnualProductionMax > 0 ? (
+                              <strong>{calculation.calculationResults.estimatedAnnualProductionMin.toLocaleString()} - {calculation.calculationResults.estimatedAnnualProductionMax.toLocaleString()} kWh/yr</strong>
+                            ) : (
+                              <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                            )}
                           </div>
                           <div className="summary-item">
                             <label>CO₂ Offset</label>
@@ -3047,6 +3079,9 @@ const MyAssessments = () => {
                       generateQuotationPDF={generateQuotationPDF}
                       generatingPDF={generatingPDF}
                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                      annualProductionMin={calculation.calculationResults.estimatedAnnualProductionMin || 0}
+                      annualProductionMax={calculation.calculationResults.estimatedAnnualProductionMax || 0}
+                      ratePerKwh={calculation.ratePerKwh || selectedItem?.rate || 0}
                       onROICalculated={handleROICalculated}
                     />
                   </>
@@ -3627,7 +3662,11 @@ const MyAssessments = () => {
                           )}
                           <div className="summary-item">
                             <label>Annual Production</label>
-                            <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                            {calculation.calculationResults.estimatedAnnualProductionMin > 0 && calculation.calculationResults.estimatedAnnualProductionMax > 0 ? (
+                              <strong>{calculation.calculationResults.estimatedAnnualProductionMin.toLocaleString()} - {calculation.calculationResults.estimatedAnnualProductionMax.toLocaleString()} kWh/yr</strong>
+                            ) : (
+                              <strong>{calculation.calculationResults.estimatedAnnualProduction?.toLocaleString() || 0} kWh/yr</strong>
+                            )}
                           </div>
                           <div className="summary-item">
                             <label>CO₂ Offset</label>
@@ -3706,6 +3745,9 @@ const MyAssessments = () => {
                       generateQuotationPDF={generateQuotationPDF}
                       generatingPDF={generatingPDF}
                       annualProduction={calculation.calculationResults.estimatedAnnualProduction || 0}
+                      annualProductionMin={calculation.calculationResults.estimatedAnnualProductionMin || 0}
+                      annualProductionMax={calculation.calculationResults.estimatedAnnualProductionMax || 0}
+                      ratePerKwh={calculation.ratePerKwh || selectedItem?.rate || 0}
                       onROICalculated={handleROICalculated}
                     />
                   </>

@@ -2,7 +2,25 @@
 import React, { useState, useEffect } from 'react';
 import { FaSun, FaMoon, FaLightbulb, FaFileInvoice, FaPlug } from 'react-icons/fa';
 import { useToast, ToastNotification } from '../../assets/toastnotification';
+import InfoTip from '../../components/InfoTip';
 import { COMMON_APPLIANCES, CUSTOM_APPLIANCE_VALUE, findAppliancePreset } from '../../data/commonAppliances';
+
+// Grading guides for the Site Inspection option-button fields.
+// Rendered through InfoTip `items` so each grade is color-coded
+// and visually separated from its description.
+const STRUCTURAL_INTEGRITY_GUIDE = [
+  { label: 'Excellent', tone: 'excellent', text: 'Solid structure, no visible damage or sagging.' },
+  { label: 'Good', tone: 'good', text: 'Minor wear, no repairs needed for install.' },
+  { label: 'Fair', tone: 'fair', text: 'Some wear; minor repairs advised before install.' },
+  { label: 'Poor', tone: 'poor', text: 'Visible damage, sagging, or major repairs required; may not support panels.' },
+];
+
+const ROOF_CONDITION_GUIDE = [
+  { label: 'Excellent', tone: 'excellent', text: 'No leaks, cracks, or rust; surface like new.' },
+  { label: 'Good', tone: 'good', text: 'Minor wear or discoloration, fully serviceable.' },
+  { label: 'Fair', tone: 'fair', text: 'Aging surface, small leaks or rust spots; monitor or patch.' },
+  { label: 'Poor', tone: 'poor', text: 'Active leaks, large cracks, or heavy corrosion; repair or replace before install.' },
+];
 
 const SiteInspectionTab = ({
   assessmentForm,
@@ -653,12 +671,12 @@ const SiteInspectionTab = ({
         </div>
       </div>
 
-      {/* ===== SYSTEM TYPE & ROOF ===== */}
+      {/* ===== SYSTEM & ROOF (balanced two-card layout) ===== */}
+      <div className="form-row-grid-enad system-roof-grid-enad">
       <div className="form-section-enad">
         <div className="form-section-header-enad">
-          <h4>System & Roof</h4>
+          <h4>System</h4>
         </div>
-        <div className="form-row-grid-enad">
         <div className="form-group-enad">
           <label className="form-label-enad">Preferred System Type *</label>
           <select
@@ -678,6 +696,44 @@ const SiteInspectionTab = ({
         </div>
 
         <div className="form-group-enad">
+          <label className="form-label-enad">Structural Integrity * <InfoTip items={STRUCTURAL_INTEGRITY_GUIDE} /></label>
+          <div className="options-group-enad">
+            {STRUCTURAL_INTEGRITY.map(integrity => (
+              <button
+                key={integrity.value}
+                type="button"
+                onClick={() => handleAssessmentFormChangeWithValidation('structuralIntegrity', integrity.value)}
+                className={`option-btn-enad ${assessmentForm.structuralIntegrity === integrity.value ? 'active-enad' : ''}`}
+              >
+                {integrity.label}
+              </button>
+            ))}
+          </div>
+          {validationErrors.structuralIntegrity && (
+            <div className="error-message-enad">{validationErrors.structuralIntegrity}</div>
+          )}
+        </div>
+
+        <div className="form-group-enad">
+          <label className="form-label-enad">Estimated Installation Time (days) *</label>
+          <input
+            type="number"
+            className={`assessment-form-input-enad ${validationErrors.estimatedInstallationTime ? 'error' : ''}`}
+            value={assessmentForm.estimatedInstallationTime}
+            onChange={(e) => handleAssessmentFormChangeWithValidation('estimatedInstallationTime', e.target.value)}
+            required
+          />
+          {validationErrors.estimatedInstallationTime && (
+            <div className="error-message-enad">{validationErrors.estimatedInstallationTime}</div>
+          )}
+        </div>
+      </div>
+
+      <div className="form-section-enad">
+        <div className="form-section-header-enad">
+          <h4>Roof</h4>
+        </div>
+        <div className="form-group-enad">
           <label className="form-label-enad">Roof Type *</label>
           <select
             className={`assessment-form-select-enad ${validationErrors.roofType ? 'error' : ''}`}
@@ -695,95 +751,61 @@ const SiteInspectionTab = ({
           )}
           <small className="form-hint-enad">Type of roof structure</small>
         </div>
-      </div>
 
-      {/* ===== EXISTING FIELDS ===== */}
-      <div className="form-group-enad">
-        <label className="form-label-enad">Roof Condition *</label>
-        <div className="options-group-enad">
-          {ROOF_CONDITIONS.map(condition => (
-            <button
-              key={condition.value}
-              type="button"
-              onClick={() => handleAssessmentFormChangeWithValidation('roofCondition', condition.value)}
-              className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}
-            >
-              {condition.label}
-            </button>
-          ))}
-        </div>
-        {validationErrors.roofCondition && (
-          <div className="error-message-enad">{validationErrors.roofCondition}</div>
-        )}
-      </div>
-
-      <div className="form-group-enad">
-        <label className="form-label-enad">Roof Dimensions (meters) *</label>
-        <div className="form-row-enad">
-          <div className="dimension-input-enad">
-            <input
-              type="number"
-              step="0.1"
-              className={`assessment-form-input-enad ${validationErrors.roofLength ? 'error' : ''}`}
-              value={assessmentForm.roofLength || ''}
-              onChange={(e) => handleAssessmentFormChangeWithValidation('roofLength', parseFloat(e.target.value))}
-              placeholder="Length (m)"
-              required
-            />
+        <div className="form-group-enad">
+          <label className="form-label-enad">Roof Condition * <InfoTip items={ROOF_CONDITION_GUIDE} /></label>
+          <div className="options-group-enad">
+            {ROOF_CONDITIONS.map(condition => (
+              <button
+                key={condition.value}
+                type="button"
+                onClick={() => handleAssessmentFormChangeWithValidation('roofCondition', condition.value)}
+                className={`option-btn-enad ${assessmentForm.roofCondition === condition.value ? 'active-enad' : ''}`}
+              >
+                {condition.label}
+              </button>
+            ))}
           </div>
-          <div className="dimension-input-enad">
-            <input
-              type="number"
-              step="0.1"
-              className={`assessment-form-input-enad ${validationErrors.roofWidth ? 'error' : ''}`}
-              value={assessmentForm.roofWidth || ''}
-              onChange={(e) => handleAssessmentFormChangeWithValidation('roofWidth', parseFloat(e.target.value))}
-              placeholder="Width (m)"
-              required
-            />
+          {validationErrors.roofCondition && (
+            <div className="error-message-enad">{validationErrors.roofCondition}</div>
+          )}
+        </div>
+
+        <div className="form-group-enad">
+          <label className="form-label-enad">Roof Dimensions (meters) *</label>
+          <div className="form-row-enad">
+            <div className="dimension-input-enad">
+              <input
+                type="number"
+                step="0.1"
+                className={`assessment-form-input-enad ${validationErrors.roofLength ? 'error' : ''}`}
+                value={assessmentForm.roofLength || ''}
+                onChange={(e) => handleAssessmentFormChangeWithValidation('roofLength', parseFloat(e.target.value))}
+                placeholder="Length (m)"
+                required
+              />
+            </div>
+            <div className="dimension-input-enad">
+              <input
+                type="number"
+                step="0.1"
+                className={`assessment-form-input-enad ${validationErrors.roofWidth ? 'error' : ''}`}
+                value={assessmentForm.roofWidth || ''}
+                onChange={(e) => handleAssessmentFormChangeWithValidation('roofWidth', parseFloat(e.target.value))}
+                placeholder="Width (m)"
+                required
+              />
+            </div>
           </div>
+          {validationErrors.roofLength && (
+            <div className="error-message-enad">{validationErrors.roofLength}</div>
+          )}
+          {validationErrors.roofWidth && (
+            <div className="error-message-enad">{validationErrors.roofWidth}</div>
+          )}
+          <small className="form-hint-enad">Measured during site inspection (Required)</small>
         </div>
-        {validationErrors.roofLength && (
-          <div className="error-message-enad">{validationErrors.roofLength}</div>
-        )}
-        {validationErrors.roofWidth && (
-          <div className="error-message-enad">{validationErrors.roofWidth}</div>
-        )}
-        <small className="form-hint-enad">Measured during site inspection (Required)</small>
       </div>
-
-      <div className="form-group-enad">
-        <label className="form-label-enad">Structural Integrity *</label>
-        <div className="options-group-enad">
-          {STRUCTURAL_INTEGRITY.map(integrity => (
-            <button
-              key={integrity.value}
-              type="button"
-              onClick={() => handleAssessmentFormChangeWithValidation('structuralIntegrity', integrity.value)}
-              className={`option-btn-enad ${assessmentForm.structuralIntegrity === integrity.value ? 'active-enad' : ''}`}
-            >
-              {integrity.label}
-            </button>
-          ))}
-        </div>
-        {validationErrors.structuralIntegrity && (
-          <div className="error-message-enad">{validationErrors.structuralIntegrity}</div>
-        )}
-      </div>
-
-      <div className="form-group-enad">
-        <label className="form-label-enad">Estimated Installation Time (days) *</label>
-        <input
-          type="number"
-          className={`assessment-form-input-enad ${validationErrors.estimatedInstallationTime ? 'error' : ''}`}
-          value={assessmentForm.estimatedInstallationTime}
-          onChange={(e) => handleAssessmentFormChangeWithValidation('estimatedInstallationTime', e.target.value)}
-          required
-        />
-        {validationErrors.estimatedInstallationTime && (
-          <div className="error-message-enad">{validationErrors.estimatedInstallationTime}</div>
-        )}
-        </div>
       </div>
 
       {/* ===== NOTES & FINDINGS ===== */}

@@ -37,7 +37,7 @@
   left: 50%;
   transform: translateX(-50%);
   min-width: 180px;
-  max-width: 240px;
+  max-width: 260px;
   background: var(--bg-modal, #FFFFFF);
   border: 1px solid var(--border-color, #E8EDE8);
   border-radius: 10px;
@@ -50,6 +50,45 @@
   z-index: 50;
   white-space: normal;
   text-align: left;
+}
+
+/* Structured grading list: one row per criteria */
+.infotip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.infotip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.infotip-grade {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.infotip-grade.tone-excellent {
+  color: #1E9E5A;
+}
+
+.infotip-grade.tone-good {
+  color: #0E9FC5;
+}
+
+.infotip-grade.tone-fair {
+  color: #D97706;
+}
+
+.infotip-grade.tone-poor {
+  color: #DC2626;
+}
+
+.infotip-grade.tone-neutral {
+  color: var(--text-primary, #17212B);
 }
 
 /* Opens below the "?" — for tips near a card top that would clip above */

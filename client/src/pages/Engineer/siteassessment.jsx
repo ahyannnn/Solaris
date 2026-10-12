@@ -48,9 +48,9 @@ import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 const DETAIL_TABS = [
   { key: 'overview', label: 'Overview' },
   { key: 'site-inspection', label: 'Site Inspection' },
-  { key: 'quotation', label: 'Quotation' },
   { key: 'documents', label: 'Documents' },
   { key: 'comments', label: 'Comments' },
+  { key: 'quotation', label: 'Quotation' },
 ];
 const VISIBLE_DETAIL_TABS = DETAIL_TABS.slice(0, 2);
 const OVERFLOW_DETAIL_TABS = DETAIL_TABS.slice(2);
@@ -1925,6 +1925,7 @@ const MyAssessments = () => {
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+    if (isSiteVisitOver(selectedItem)) return;
 
     setUploading(true);
     const formData = new FormData();
@@ -2068,6 +2069,7 @@ const MyAssessments = () => {
 
   const addComment = async () => {
     if (!commentText.trim()) return;
+    if (isSiteVisitOver(selectedItem)) return;
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -3769,11 +3771,11 @@ const MyAssessments = () => {
             {activeTab === 'documents' && (
               <div>
                 <div className="action-buttons-enad">
-                  <button onClick={() => setShowImageUploader(!showImageUploader)} disabled title="Photo uploads are disabled" className="btn-primary-enad">Upload Photos</button>
+                  <button onClick={() => setShowImageUploader(!showImageUploader)} disabled={isSiteVisitOver(selectedItem)} title={isSiteVisitOver(selectedItem) ? 'Site inspection already done' : 'Upload site photos'} className="btn-primary-enad">Upload Photos</button>
                 </div>
                 {showImageUploader && (
                   <div className="file-upload-enad">
-                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled className="file-upload-input-enad" />
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={isSiteVisitOver(selectedItem)} className="file-upload-input-enad" />
                     {uploading && (<div className="uploading-enad">Uploading images...</div>)}
                   </div>
                 )}
@@ -3797,8 +3799,8 @@ const MyAssessments = () => {
             {activeTab === 'comments' && (
               <div>
                 <div className="comment-input-wrapper-enad">
-                  <textarea className="assessment-form-textarea-enad" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} disabled />
-                  <button onClick={addComment} disabled title="Comments are disabled" className="comment-send-btn-enad">Send</button>
+                  <textarea className="assessment-form-textarea-enad" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Add a comment..." rows={3} disabled={isSiteVisitOver(selectedItem)} />
+                  <button onClick={addComment} disabled={isSiteVisitOver(selectedItem)} title={isSiteVisitOver(selectedItem) ? 'Site inspection already done' : 'Send comment'} className="comment-send-btn-enad">Send</button>
                 </div>
                 <div className="comment-list-enad">
                   {selectedItem.engineerComments?.length === 0 && (

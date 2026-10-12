@@ -3989,6 +3989,16 @@ body.dark-mode .battery-option {
   gap: 16px;
 }
 
+/* Balanced System + Roof cards: equal height, no bottom gap inside grid */
+.system-roof-grid-enad {
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
+.system-roof-grid-enad .form-section-enad {
+  margin-bottom: 0;
+}
+
 @media (max-width: 768px) {
   .form-row-grid-enad {
     grid-template-columns: 1fr;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSpinner, FaCreditCard } from 'react-icons/fa';
+import { formatPeso } from '../utils/formatPeso';
 
 const CardPaymentForm = ({ paymentIntentId, amount, onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
@@ -179,7 +180,7 @@ const CardPaymentForm = ({ paymentIntentId, amount, onSuccess, onError }) => {
 
       <button type="submit" className="pay-button" disabled={loading}>
         {loading ? <FaSpinner className="spinning" /> : <FaCreditCard />}
-        {loading ? 'Processing...' : `Pay ₱${amount.toLocaleString()}`}
+        {loading ? 'Processing...' : `Pay ${formatPeso(amount)}`}
       </button>
     </form>
   );

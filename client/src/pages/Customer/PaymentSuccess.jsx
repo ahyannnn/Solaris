@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import { useToast } from '../../assets/toastnotification';
+import { formatPeso } from '../../utils/formatPeso';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ const PaymentSuccess = () => {
               <p><strong>Booking Reference:</strong> {paymentData.data?.bookingReference}</p>
               <p><strong>Invoice Number:</strong> {paymentData.data?.invoiceNumber}</p>
               <p><strong>Amount Paid:</strong> {paymentData.data?.amountPaid != null || paymentData.data?.assessmentFee != null
-                ? `₱${Number(paymentData.data?.amountPaid ?? paymentData.data?.assessmentFee).toLocaleString()}`
+                ? formatPeso(paymentData.data?.amountPaid ?? paymentData.data?.assessmentFee)
                 : '—'}</p>
             </div>
             <div className="next-steps">
@@ -121,8 +122,8 @@ const PaymentSuccess = () => {
             <p>Your payment has been recorded successfully.</p>
             <div className="payment-details">
               <p><strong>Project Reference:</strong> {paymentData.data?.projectReference}</p>
-              <p><strong>Amount Paid:</strong> ₱{paymentData.data?.amountPaid?.toLocaleString()}</p>
-              <p><strong>Remaining Balance:</strong> ₱{paymentData.data?.balance?.toLocaleString()}</p>
+              <p><strong>Amount Paid:</strong> {formatPeso(paymentData.data?.amountPaid)}</p>
+              <p><strong>Remaining Balance:</strong> {formatPeso(paymentData.data?.balance)}</p>
               <p><strong>Project Status:</strong> {paymentData.data?.status}</p>
             </div>
             <div className="success-actions">

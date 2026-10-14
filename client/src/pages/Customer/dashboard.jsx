@@ -182,8 +182,16 @@ const Dashboard = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency', currency: 'PHP',
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    }).format(Number(String(amount ?? 0).replace(/,/g, '')) || 0);
+  };
+
+  // Savings stays as-is (0 decimals) per requirement — excluded from 2-decimal rule.
+  const formatSavings = (amount) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency', currency: 'PHP',
       minimumFractionDigits: 0, maximumFractionDigits: 0
-    }).format(amount);
+    }).format(Number(String(amount ?? 0).replace(/,/g, '')) || 0);
   };
 
   const getProjectProgress = () => {
@@ -414,7 +422,7 @@ const Dashboard = () => {
                     {estimatedSavings > 0 && (
                       <div className="project-savings-line-cusdash">
                         <FaSolarPanel className="savings-icon-cusdash" />
-                        <span>Est. savings: <strong>{formatCurrency(estimatedSavings)}/mo</strong></span>
+                        <span>Est. savings: <strong>{formatSavings(estimatedSavings)}/mo</strong></span>
                         <InfoTip text="Based on your monthly electric bill and the savings target from your assessment. Your actual savings depend on sunlight and usage." />
                       </div>
                     )}

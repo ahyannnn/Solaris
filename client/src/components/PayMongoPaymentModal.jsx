@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import CardPaymentForm from './CardPaymentForm';
 import GCashPaymentButton from './GCashPaymentButton';
 import { FaTimes, FaSpinner } from 'react-icons/fa';
+import { formatPeso } from '../utils/formatPeso';
 //import '../../styles/components/paymongo-modal.css';
 
 const PayMongoPaymentModal = ({ isOpen, onClose, amount, description, onSuccess, type, id, paymentId }) => {
@@ -25,7 +26,7 @@ const PayMongoPaymentModal = ({ isOpen, onClose, amount, description, onSuccess,
         <h3>Complete Payment</h3>
         
         <div className="paymongo-payment-summary">
-          <p className="paymongo-amount">Amount: ₱{amount.toLocaleString()}</p>
+          <p className="paymongo-amount">Amount: {formatPeso(amount)}</p>
           <p className="paymongo-description">{description}</p>
         </div>
 

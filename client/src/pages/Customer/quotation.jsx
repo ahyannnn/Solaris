@@ -637,7 +637,7 @@ const Quotation = () => {
 
   const validateAmountSent = (amount, dueAmount) => {
     if (!amount) return 'Amount sent is required';
-    const numAmount = parseFloat(amount);
+    const numAmount = Number(String(amount).replace(/,/g, ''));
     if (isNaN(numAmount) || numAmount <= 0) {
       return 'Please enter a valid amount';
     }
@@ -1299,7 +1299,7 @@ const Quotation = () => {
       currency: 'PHP',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(amount || 0);
+    }).format(Number(String(amount ?? 0).replace(/,/g, '')) || 0);
   };
 
   const getFilteredItems = () => {
@@ -1507,16 +1507,15 @@ const Quotation = () => {
               <div className="billing-customer-form-group-full">
                 <label>Amount Sent *</label>
                 <input
-                  type="number"
+                  type="text"
                   name="amount"
                   value={
                     (selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)
-                      ? Number(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount).toFixed(2)
+                      ? formatCurrency(selectedItem?.balance || selectedItem?.totalAmount || selectedItem?.amount)
                       : ''
                   }
                   readOnly
                   disabled
-                  step="0.01"
                   className="billing-customer-form-input-readonly"
                 />
                 {validationErrors.amount && (

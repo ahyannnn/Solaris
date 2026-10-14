@@ -161,9 +161,9 @@ const MyProject = () => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount || 0);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(Number(String(amount ?? 0).replace(/,/g, '')) || 0);
   };
 
   // 🔒 Progress-gated: locked stages are hidden until the engineer unlocks

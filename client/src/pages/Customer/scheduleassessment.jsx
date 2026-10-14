@@ -37,6 +37,7 @@ import {
 import InfoTip from '../../components/InfoTip';
 import { useRealtimeTable } from '../../hooks/useRealtimeTable';
 import { COMMON_APPLIANCES, CUSTOM_APPLIANCE_VALUE, findAppliancePreset } from '../../data/commonAppliances';
+import { formatMoneyInput, finalizeMoneyInput, parseMoneyInput } from '../../utils/formatPeso';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
@@ -287,14 +288,23 @@ const ScheduleAssessment = () => {
     }
   }, [appliances]);
 
+  const MONEY_FIELDS = ['monthlyBill', 'ratePerKwh'];
+
   const handleElectricBillChange = (e) => {
     const { name, value } = e.target;
-    setElectricBillInput(prev => ({ ...prev, [name]: value }));
+    const nextValue = MONEY_FIELDS.includes(name) ? formatMoneyInput(value) : value;
+    setElectricBillInput(prev => ({ ...prev, [name]: nextValue }));
 
     // Clear error for this field when user types (optional)
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleMoneyBlur = (e, setter) => {
+    const { name, value } = e.target;
+    if (!MONEY_FIELDS.includes(name) || String(value).trim() === '') return;
+    setter(prev => ({ ...prev, [name]: finalizeMoneyInput(value) }));
   };
 
   const handleApplianceFormChange = (e) => {
@@ -922,23 +932,25 @@ const ScheduleAssessment = () => {
   const validateAssessmentForm = (type) => {
     const errors = {};
 
-    // Monthly Bill - REQUIRED for BOTH
-    const monthlyBill = type === 'free-quote' ? freeQuoteData.monthlyBill : electricBillInput.monthlyBill;
-    if (!monthlyBill) {
+    // Monthly Bill - REQUIRED for BOTH (strip commas/₱ before numeric checks)
+    const monthlyBillRaw = type === 'free-quote' ? freeQuoteData.monthlyBill : electricBillInput.monthlyBill;
+    const monthlyBill = parseMoneyInput(monthlyBillRaw);
+    if (!monthlyBillRaw) {
       errors.monthlyBill = 'Monthly electricity bill is required';
-    } else if (parseFloat(monthlyBill) <= 0) {
+    } else if (monthlyBill <= 0) {
       errors.monthlyBill = 'Monthly bill must be greater than 0';
-    } else if (parseFloat(monthlyBill) > 1000000) {
+    } else if (monthlyBill > 1000000) {
       errors.monthlyBill = 'Monthly bill seems too high. Please check your input.';
     }
 
-    // Rate per kWh - REQUIRED for BOTH
-    const ratePerKwh = type === 'free-quote' ? freeQuoteData.ratePerKwh : electricBillInput.ratePerKwh;
-    if (!ratePerKwh) {
+    // Rate per kWh - REQUIRED for BOTH (strip commas/₱ before numeric checks)
+    const ratePerKwhRaw = type === 'free-quote' ? freeQuoteData.ratePerKwh : electricBillInput.ratePerKwh;
+    const ratePerKwh = parseMoneyInput(ratePerKwhRaw);
+    if (!ratePerKwhRaw) {
       errors.ratePerKwh = 'Rate per kWh is required';
-    } else if (parseFloat(ratePerKwh) <= 0) {
+    } else if (ratePerKwh <= 0) {
       errors.ratePerKwh = 'Rate must be greater than 0';
-    } else if (parseFloat(ratePerKwh) > 100) {
+    } else if (ratePerKwh > 100) {
       errors.ratePerKwh = 'Rate seems too high. Please check your input.';
     }
 
@@ -1037,8 +1049,8 @@ const ScheduleAssessment = () => {
       const quotePayload = {
         clientId: user?._id,
         addressId: selectedAddress?._id || null,
-        monthlyBill: freeQuoteData.monthlyBill,
-        rate: freeQuoteData.ratePerKwh ? parseFloat(freeQuoteData.ratePerKwh) : null,
+        monthlyBill: parseMoneyInput(freeQuoteData.monthlyBill),
+        rate: freeQuoteData.ratePerKwh ? parseMoneyInput(freeQuoteData.ratePerKwh) : null,
         propertyType: freeQuoteData.propertyType,
         systemType: freeQuoteData.systemType,
         roofType: freeQuoteData.roofType,
@@ -1090,7 +1102,7 @@ const ScheduleAssessment = () => {
 
       sendQuoteConfirmationEmail(
         response.data.quote.quotationReference,  // quoteReference
-        freeQuoteData.monthlyBill,               // monthlyBill
+        parseMoneyInput(freeQuoteData.monthlyBill),               // monthlyBill
         freeQuoteData.propertyType,              // propertyType
         freeQuoteData.systemType,                // systemType
         freeQuoteData.roofType,                  // roofType
@@ -1211,8 +1223,8 @@ const ScheduleAssessment = () => {
         roofType: formData.roofType,
         roofLength: formData.roofLength,
         roofWidth: formData.roofWidth,
-        monthlyBill: electricBillInput.monthlyBill,
-        rate: electricBillInput.ratePerKwh,
+        monthlyBill: parseMoneyInput(electricBillInput.monthlyBill),
+        rate: parseMoneyInput(electricBillInput.ratePerKwh),
         consumption: calculationResults.monthlyConsumption ? parseFloat(calculationResults.monthlyConsumption.toFixed(2)) : 0,
         dayConsumption: calculationResults.dayConsumption ? parseFloat(calculationResults.dayConsumption.toFixed(2)) : 0,
         nightConsumption: calculationResults.nightConsumption ? parseFloat(calculationResults.nightConsumption.toFixed(2)) : 0,
@@ -1274,20 +1286,21 @@ const ScheduleAssessment = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const nextValue = MONEY_FIELDS.includes(name) ? formatMoneyInput(value) : value;
 
     if (currentStep === 'free-quote-form') {
       // Just update the data, NO validation here
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+      setFreeQuoteData(prev => ({ ...prev, [name]: nextValue }));
 
       // Clear error for this field when user types (optional - improves UX)
       if (freeQuoteValidationErrors[name]) {
         setFreeQuoteValidationErrors(prev => ({ ...prev, [name]: '' }));
       }
     } else if (currentStep === 'service-selection') {
-      setFreeQuoteData(prev => ({ ...prev, [name]: value }));
+      setFreeQuoteData(prev => ({ ...prev, [name]: nextValue }));
     } else {
       // Pre-Assessment form - just update data
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: nextValue }));
 
       // Clear error for this field when user types (optional - improves UX)
       if (validationErrors[name]) {
@@ -1295,6 +1308,9 @@ const ScheduleAssessment = () => {
       }
     }
   };
+
+  const handleFreeQuoteMoneyBlur = (e) => handleMoneyBlur(e, setFreeQuoteData);
+  const handleBillMoneyBlur = (e) => handleMoneyBlur(e, setElectricBillInput);
 
   const getFullName = () => [formData.firstName, formData.middleName, formData.lastName].filter(p => p).join(' ');
 
@@ -1330,7 +1346,7 @@ const ScheduleAssessment = () => {
     return 'Address not available';
   };
 
-  const formatCurrency = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value || 0);
+  const formatCurrency = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(String(value ?? 0).replace(/,/g, '')) || 0);
 
   const capitalizeFirstLetter = (string) => {
     if (!string) return '';
@@ -2859,17 +2875,20 @@ const ScheduleAssessment = () => {
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Monthly Electricity Bill (₱) * <InfoTip text="Use the Total Amount Due on your Meralco bill — the big peso amount, not the kWh." /></label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="monthlyBill"
-                      min="0.01"
-                      max="1000000"
-                      value={freeQuoteData.monthlyBill}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 5000"
-                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted, #64748b)', pointerEvents: 'none' }}>₱</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        name="monthlyBill"
+                        value={freeQuoteData.monthlyBill}
+                        onChange={handleInputChange}
+                        onBlur={handleFreeQuoteMoneyBlur}
+                        placeholder="e.g., 5,000.00"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.monthlyBill ? 'error' : ''}`}
+                        style={{ paddingLeft: '28px' }}
+                      />
+                    </div>
                     {freeQuoteValidationErrors.monthlyBill && (
                       <div className="error-message-cusset">{freeQuoteValidationErrors.monthlyBill}</div>
                     )}
@@ -2897,17 +2916,20 @@ const ScheduleAssessment = () => {
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Rate per kWh (₱) * <InfoTip text="Find 'Your rate this month — ₱X per kWh' on your bill (e.g. ₱8.59). Type just the number." /></label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      max="1000000"
-                      name="ratePerKwh"
-                      value={freeQuoteData.ratePerKwh}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 11.50"
-                      className={`schedule-form-input-cusset ${freeQuoteValidationErrors.ratePerKwh ? 'error' : ''}`}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted, #64748b)', pointerEvents: 'none' }}>₱</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        name="ratePerKwh"
+                        value={freeQuoteData.ratePerKwh}
+                        onChange={handleInputChange}
+                        onBlur={handleFreeQuoteMoneyBlur}
+                        placeholder="e.g., 11.50"
+                        className={`schedule-form-input-cusset ${freeQuoteValidationErrors.ratePerKwh ? 'error' : ''}`}
+                        style={{ paddingLeft: '28px' }}
+                      />
+                    </div>
                     {freeQuoteValidationErrors.ratePerKwh && (
                       <div className="error-message-cusset">{freeQuoteValidationErrors.ratePerKwh}</div>
                     )}
@@ -3541,17 +3563,20 @@ const ScheduleAssessment = () => {
                 <div className="schedule-form-grid-cusset">
                   <div className="schedule-form-group-cusset">
                     <label>Monthly Electricity Bill (₱) * <InfoTip text="Use the Total Amount Due on your Meralco bill — the big peso amount, not the kWh." /></label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="monthlyBill"
-                      min="1"
-                      max="1000000"
-                      value={electricBillInput.monthlyBill}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 5000"
-                      className={`schedule-form-input-cusset ${validationErrors.monthlyBill ? 'error' : ''}`}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted, #64748b)', pointerEvents: 'none' }}>₱</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        name="monthlyBill"
+                        value={electricBillInput.monthlyBill}
+                        onChange={handleElectricBillChange}
+                        onBlur={handleBillMoneyBlur}
+                        placeholder="e.g., 5,000.00"
+                        className={`schedule-form-input-cusset ${validationErrors.monthlyBill ? 'error' : ''}`}
+                        style={{ paddingLeft: '28px' }}
+                      />
+                    </div>
                     {validationErrors.monthlyBill && (
                       <div className="error-message-cusset">{validationErrors.monthlyBill}</div>
                     )}
@@ -3579,17 +3604,20 @@ const ScheduleAssessment = () => {
                 <div className="schedule-form-grid-cusset" style={{ marginTop: '16px' }}>
                   <div className="schedule-form-group-cusset">
                     <label>Rate per kWh (₱) * <InfoTip text="Find 'Your rate this month — ₱X per kWh' on your bill (e.g. ₱8.59). Type just the number." /></label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      max="1000000"
-                      name="ratePerKwh"
-                      value={electricBillInput.ratePerKwh}
-                      onChange={handleElectricBillChange}
-                      placeholder="e.g., 11.50"
-                      className={`schedule-form-input-cusset ${validationErrors.ratePerKwh ? 'error' : ''}`}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted, #64748b)', pointerEvents: 'none' }}>₱</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        name="ratePerKwh"
+                        value={electricBillInput.ratePerKwh}
+                        onChange={handleElectricBillChange}
+                        onBlur={handleBillMoneyBlur}
+                        placeholder="e.g., 11.50"
+                        className={`schedule-form-input-cusset ${validationErrors.ratePerKwh ? 'error' : ''}`}
+                        style={{ paddingLeft: '28px' }}
+                      />
+                    </div>
                     {validationErrors.ratePerKwh && (
                       <div className="error-message-cusset">{validationErrors.ratePerKwh}</div>
                     )}
